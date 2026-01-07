@@ -5978,35 +5978,66 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 @media (max-width: 480px) {
   /* Root adjustments for mobile */
   :root {
-    --section-padding: 12px;
+    --section-padding: 10px;
   }
 
-  /* Header - more compact */
+  /* Header - compact */
   .header {
-    height: 52px;
+    height: 44px !important;
+  }
+
+  .header-content {
+    padding: 0 10px !important;
   }
 
   .header-brand-text {
-    font-size: 28px;
-    letter-spacing: 2px;
+    font-size: 22px !important;
+    letter-spacing: 1px !important;
   }
 
   .hamburger-btn {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
   }
 
   .hamburger-line {
-    width: 18px;
+    width: 16px;
+    height: 1.5px;
   }
 
   .logo-img {
-    height: 32px;
+    height: 28px !important;
+  }
+
+  /* Bottom Navigation - compact */
+  .bottom-nav {
+    padding: 4px var(--safe-area-left) 0 var(--safe-area-right) !important;
+    padding-bottom: max(6px, var(--safe-area-bottom)) !important;
+  }
+
+  .bottom-nav-item {
+    padding: 6px 4px !important;
+    gap: 2px !important;
+  }
+
+  .bottom-nav-icon {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .bottom-nav-item span {
+    font-size: 9px !important;
+    font-weight: 600 !important;
   }
 
   /* Main content padding adjustment */
   .app main {
-    padding-top: 100px;
+    padding-top: 88px;
+  }
+
+  .app::after {
+    bottom: 44px !important;
+    height: 40px !important;
   }
 
   /* Game Grid - properly sized for mobile */
