@@ -1,0 +1,387 @@
+/* Promotions Page Styles */
+.promotions-page {
+  min-height: 60vh;
+}
+
+.promo-hero {
+  position: relative;
+  min-height: 700px;
+  overflow: hidden;
+}
+
+.promo-hero-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, #1a1a2e 0%, #2d2d44 50%, #1a1a2e 100%);
+  z-index: 0;
+}
+
+.promo-hero-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 400px;
+  background:
+    radial-gradient(ellipse at center top, rgba(209, 174, 53, 0.3) 0%, transparent 60%),
+    linear-gradient(180deg, rgba(209, 174, 53, 0.1) 0%, transparent 100%);
+}
+
+.promo-hero-bg::after {
+  content: '';
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 200px;
+  background: radial-gradient(ellipse, rgba(209, 174, 53, 0.4) 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(40px);
+}
+
+.promo-content {
+  position: relative;
+  z-index: 1;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 30px;
+}
+
+/* Category Tabs */
+.promo-categories {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.promo-category {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid transparent;
+  color: var(--text-gray);
+  padding: 14px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.3s;
+  backdrop-filter: blur(10px);
+}
+
+.promo-category:hover {
+  border-color: var(--primary-gold);
+  color: var(--text-white);
+  background: rgba(209, 174, 53, 0.1);
+}
+
+.promo-category.active {
+  background: linear-gradient(135deg, var(--primary-gold), var(--primary-gold-dark));
+  color: var(--bg-dark);
+  border-color: var(--primary-gold);
+}
+
+.cat-icon {
+  font-size: 18px;
+}
+
+.cat-name {
+  white-space: nowrap;
+}
+
+/* Promotions Grid */
+.promo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 25px;
+}
+
+.promo-card {
+  background: var(--bg-card);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.promo-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+
+.promo-card-image {
+  position: relative;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+}
+
+.promo-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.promo-card:hover .promo-card-image img {
+  transform: scale(1.1);
+}
+
+.promo-card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.promo-card:hover .promo-card-overlay {
+  opacity: 1;
+}
+
+.claim-btn {
+  background: linear-gradient(135deg, var(--primary-gold), var(--primary-gold-dark));
+  color: var(--bg-dark);
+  border: none;
+  padding: 14px 32px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.claim-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(209, 174, 53, 0.4);
+}
+
+.promo-card-info {
+  padding: 20px;
+}
+
+.promo-card-info h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-white);
+  line-height: 1.4;
+}
+
+/* Loading & Empty States */
+.promo-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+.promo-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-gray);
+}
+
+.promo-empty p {
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Promo Card Enhancements */
+.promo-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: linear-gradient(135deg, var(--primary-gold), var(--primary-gold-dark));
+  color: var(--bg-dark);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  z-index: 2;
+}
+
+.promo-subtitle {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--text-gray);
+  line-height: 1.4;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .promotions-page {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .promo-hero {
+    min-height: auto;
+  }
+
+  .promo-content {
+    padding: 20px 16px;
+  }
+
+  .promo-categories {
+    gap: 8px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin: 0 -16px 24px;
+    padding: 0 16px 8px;
+  }
+
+  .promo-categories::-webkit-scrollbar {
+    display: none;
+  }
+
+  .promo-category {
+    padding: 12px 18px;
+    font-size: 12px;
+    border-radius: 12px;
+    min-height: 44px;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .promo-category:active {
+    transform: scale(0.95);
+  }
+
+  .cat-icon {
+    font-size: 16px;
+  }
+
+  .promo-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .promo-card {
+    border-radius: 16px;
+  }
+
+  .promo-card:hover {
+    transform: none;
+  }
+
+  .promo-card:active {
+    transform: scale(0.98);
+  }
+
+  .promo-card-overlay {
+    opacity: 1;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 60%);
+  }
+
+  .claim-btn {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    padding: 10px 20px;
+    font-size: 13px;
+    min-height: 44px;
+  }
+
+  .promo-card-info {
+    padding: 16px;
+  }
+
+  .promo-card-info h3 {
+    font-size: 15px;
+  }
+
+  .promo-subtitle {
+    font-size: 13px;
+  }
+
+  .promo-badge {
+    top: 10px;
+    left: 10px;
+    padding: 5px 10px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .promotions-page {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .promo-content {
+    padding: 24px 16px;
+  }
+
+  .promo-categories {
+    margin: 0 -16px 28px;
+    padding: 0 16px 12px;
+  }
+
+  .promo-category {
+    padding: 18px 22px;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 16px;
+    min-height: 56px;
+  }
+
+  .cat-icon {
+    font-size: 24px;
+  }
+
+  .promo-grid {
+    gap: 20px;
+  }
+
+  .promo-card {
+    border-radius: 22px;
+  }
+
+  .promo-card-info {
+    padding: 22px;
+  }
+
+  .promo-card-info h3 {
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .promo-subtitle {
+    font-size: 16px;
+    margin-top: 12px;
+  }
+
+  .promo-badge {
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 10px;
+  }
+
+  .claim-btn {
+    padding: 16px 24px;
+    font-size: 17px;
+    font-weight: 700;
+    bottom: 16px;
+    right: 16px;
+    min-height: 56px;
+    border-radius: 14px;
+  }
+}

@@ -1,0 +1,303 @@
+/* Live Casino Page Styles */
+.live-casino-page {
+  min-height: 60vh;
+}
+
+.casino-hero {
+  position: relative;
+  min-height: 600px;
+  overflow: hidden;
+}
+
+.casino-hero-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #8b1a4a 0%, #c41e5c 30%, #e91e7a 50%, #c41e5c 70%, #8b1a4a 100%);
+  z-index: 0;
+}
+
+.casino-hero-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
+}
+
+.casino-content {
+  position: relative;
+  z-index: 1;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 60px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 450px;
+}
+
+/* Casino Display */
+.casino-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
+.casino-logo-display {
+  width: 200px;
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.casino-logo-display::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: inherit;
+  border: 2px dashed rgba(255, 255, 255, 0.5);
+}
+
+.casino-logo-img {
+  max-width: 120px;
+  max-height: 120px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.casino-play-btn {
+  background: linear-gradient(135deg, var(--primary-gold), var(--primary-gold-dark));
+  color: var(--bg-dark);
+  border: none;
+  padding: 16px 50px;
+  border-radius: 30px;
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s;
+  box-shadow: 0 8px 30px rgba(209, 174, 53, 0.4);
+}
+
+.casino-play-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(209, 174, 53, 0.5);
+}
+
+.play-icon {
+  font-size: 14px;
+}
+
+/* Casino Girl */
+.casino-girl {
+  position: relative;
+}
+
+.casino-girl img {
+  max-height: 450px;
+  object-fit: contain;
+  filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.4));
+}
+
+/* Casino Chips Carousel */
+.casino-chips-wrapper {
+  position: relative;
+  z-index: 2;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.5) 100%);
+  padding: 20px 0 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.chips-nav {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.3s;
+}
+
+.chips-nav:hover {
+  background: var(--primary-gold);
+  border-color: var(--primary-gold);
+  color: var(--bg-dark);
+}
+
+.casino-chips {
+  display: flex;
+  gap: 15px;
+  overflow-x: auto;
+  padding: 10px;
+  scrollbar-width: none;
+}
+
+.casino-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.casino-chip {
+  background: linear-gradient(135deg, #333 0%, #1a1a1a 100%);
+  border: 4px solid #555;
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.casino-chip::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+}
+
+.casino-chip:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.casino-chip.active {
+  background: linear-gradient(135deg, #c41e5c 0%, #8b1a4a 100%);
+  border-color: var(--primary-gold);
+  box-shadow: 0 0 20px rgba(209, 174, 53, 0.5);
+}
+
+.chip-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chip-name {
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .live-casino-page {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .casino-hero {
+    min-height: 500px;
+  }
+
+  .casino-content {
+    flex-direction: column;
+    gap: 30px;
+    padding: 30px 15px;
+  }
+
+  .casino-girl img {
+    max-height: 300px;
+  }
+
+  .casino-logo-display {
+    width: 150px;
+    height: 180px;
+  }
+
+  .casino-logo-img {
+    max-width: 80px;
+    max-height: 80px;
+  }
+
+  .casino-play-btn {
+    padding: 12px 35px;
+    font-size: 16px;
+  }
+
+  .casino-chip {
+    width: 60px;
+    height: 60px;
+  }
+
+  .chip-name {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .live-casino-page {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .casino-content {
+    padding: 28px 16px;
+    gap: 28px;
+  }
+
+  .casino-logo-display {
+    width: 170px;
+    height: 200px;
+    border: 5px solid rgba(255, 255, 255, 0.35);
+  }
+
+  .casino-logo-img {
+    max-width: 100px;
+    max-height: 100px;
+  }
+
+  .casino-play-btn {
+    padding: 18px 44px;
+    font-size: 20px;
+    font-weight: 800;
+    border-radius: 35px;
+    min-height: 60px;
+  }
+
+  .play-icon {
+    font-size: 18px;
+  }
+
+  .casino-chips-wrapper {
+    padding: 24px 0 34px;
+    gap: 18px;
+  }
+
+  .chips-nav {
+    width: 48px;
+    height: 48px;
+    font-size: 22px;
+  }
+
+  .casino-chip {
+    width: 75px;
+    height: 75px;
+    border: 5px solid #555;
+  }
+
+  .chip-name {
+    font-size: 13px;
+    font-weight: 700;
+  }
+}

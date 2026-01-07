@@ -1,0 +1,35 @@
+[
+  {
+    "id": "2e4fa97be30246e557e5cf86",
+    "username": "player1",
+    "email": "player1@test.com",
+    "password_hash": "$2a$10$YY.Sia573T49niUN/nXbBOq8QJXZ9JUUubMp/3Riwcf9t8VzUMUpi",
+    "balance": 1000,
+    "available_balance": 1000,
+    "vip_level": "Bronze",
+    "created_at": "2026-01-01T08:37:39.107Z",
+    "last_login": "2026-01-01T08:37:39.107Z"
+  },
+  {
+    "id": "50cc87332e9522fe29c8081c",
+    "username": "player2",
+    "email": "player2@test.com",
+    "password_hash": "$2a$10$yckoZU/3rRReYLGscd58ruJl5gzyXcbfWdOlltBqE98uUGJkTA9EW",
+    "balance": 500,
+    "available_balance": 500,
+    "vip_level": "Bronze",
+    "created_at": "2026-01-01T08:37:39.107Z",
+    "last_login": "2026-01-01T08:37:39.107Z"
+  },
+  {
+    "id": "74d18183de2f89c7ed8f34d3",
+    "username": "vipuser",
+    "email": "vip@test.com",
+    "password_hash": "$2a$10$TRiRpC/szKMA4wllabDqculMeU6JYg11QcAUyKkplMVhabvUotpdC",
+    "balance": 5000,
+    "available_balance": 5000,
+    "vip_level": "Gold",
+    "created_at": "2026-01-01T08:37:39.107Z",
+    "last_login": "2026-01-01T08:37:39.107Z"
+  }
+]

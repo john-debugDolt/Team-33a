@@ -1,0 +1,139 @@
+/* Signup Page - Extends Login.css */
+@import './Login.css';
+
+/* Signup-specific styles */
+.signup-card {
+  max-width: 420px;
+}
+
+.signup-card .auth-form {
+  gap: 14px;
+}
+
+/* Input validation status */
+.input-status {
+  position: absolute;
+  right: 50px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.input-status.valid {
+  color: #22c55e;
+  opacity: 1;
+}
+
+.input-status.invalid {
+  color: #ef4444;
+  opacity: 1;
+}
+
+/* Terms checkbox */
+.terms-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.terms-label input {
+  display: none;
+}
+
+.custom-checkbox {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  margin-top: 1px;
+}
+
+.terms-label:hover .custom-checkbox {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.terms-label input:checked + .custom-checkbox {
+  background: #22c55e;
+  border-color: #22c55e;
+}
+
+.terms-label input:checked + .custom-checkbox::after {
+  content: '';
+  width: 6px;
+  height: 10px;
+  border: solid #0a0c0a;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+  margin-bottom: 3px;
+}
+
+.terms-text {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.5;
+}
+
+.terms-text a {
+  color: #22c55e;
+  text-decoration: none;
+}
+
+.terms-text a:hover {
+  text-decoration: underline;
+}
+
+/* Adjust password input for status indicator */
+.signup-card .input-group input[name="password"],
+.signup-card .input-group input[name="confirmPassword"] {
+  padding-right: 80px;
+}
+
+/* Mobile 480px adjustments for signup */
+@media (max-width: 480px) {
+  .signup-card {
+    max-width: 100%;
+    padding: 40px 26px;
+  }
+
+  .signup-card .auth-form {
+    gap: 18px;
+  }
+
+  .input-status {
+    font-size: 20px;
+    right: 60px;
+  }
+
+  .terms-label {
+    gap: 14px;
+    padding: 6px 0;
+  }
+
+  .custom-checkbox {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    border: 3px solid rgba(255, 255, 255, 0.25);
+    border-radius: 8px;
+  }
+
+  .terms-text {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .signup-card .input-group input[name="password"],
+  .signup-card .input-group input[name="confirmPassword"] {
+    padding-right: 90px;
+  }
+}

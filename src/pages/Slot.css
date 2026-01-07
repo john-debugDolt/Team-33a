@@ -1,0 +1,396 @@
+/* Slot Page Styles */
+.slot-page {
+  background: var(--bg-darker);
+}
+
+.slot-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px 30px;
+}
+
+/* Filter Header */
+.slot-filters-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.slot-tabs {
+  display: flex;
+  background: var(--bg-card);
+  border-radius: 30px;
+  padding: 5px;
+  gap: 5px;
+}
+
+.slot-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-gray);
+  padding: 12px 24px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.slot-tab:hover {
+  color: var(--text-white);
+}
+
+.slot-tab.active {
+  background: var(--primary-gold);
+  color: var(--bg-dark);
+}
+
+.tab-icon {
+  font-size: 16px;
+}
+
+.tab-icon.new {
+  background: #ff4444;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.slot-search {
+  position: relative;
+}
+
+.slot-search input {
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-white);
+  padding: 12px 45px 12px 20px;
+  border-radius: 25px;
+  width: 250px;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.slot-search input:focus {
+  outline: none;
+  border-color: var(--primary-gold);
+}
+
+.slot-search input::placeholder {
+  color: var(--text-gray);
+}
+
+.search-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-gray);
+}
+
+/* Provider Chips */
+.slot-providers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+.slot-provider-chip {
+  background: var(--bg-card);
+  border: 2px solid transparent;
+  border-radius: 50px;
+  width: 70px;
+  height: 70px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.slot-provider-chip:hover {
+  border-color: var(--primary-gold);
+  transform: translateY(-3px);
+}
+
+.slot-provider-chip.active {
+  background: var(--primary-gold);
+  border-color: var(--primary-gold);
+}
+
+.slot-provider-chip.active .chip-label {
+  color: var(--bg-dark);
+}
+
+.chip-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-gray);
+}
+
+/* Games Layout */
+.slot-games-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+/* Featured Game */
+.featured-game {
+  grid-row: span 2;
+}
+
+.featured-game-inner {
+  position: relative;
+  height: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.featured-game-inner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.featured-game-inner:hover img {
+  transform: scale(1.05);
+}
+
+.featured-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 30px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.featured-overlay h3 {
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+}
+
+/* Slot Games Grid */
+.slot-games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 15px;
+}
+
+.slot-game-card {
+  background: var(--bg-card);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.slot-game-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.slot-game-card .game-image-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.slot-game-card .game-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 287/200;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.slot-game-card:hover .game-image {
+  transform: scale(1.1);
+}
+
+.slot-game-card .game-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.slot-game-card:hover .game-overlay {
+  opacity: 1;
+}
+
+.slot-game-card .game-name {
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-white);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .slot-games-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .featured-game {
+    grid-row: auto;
+  }
+
+  .featured-game-inner {
+    height: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .slot-page {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .slot-content {
+    padding: 15px;
+  }
+
+  .slot-filters-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .slot-tabs {
+    justify-content: center;
+  }
+
+  .slot-tab {
+    padding: 10px 16px;
+    font-size: 12px;
+  }
+
+  .slot-search input {
+    width: 100%;
+  }
+
+  .slot-provider-chip {
+    width: 55px;
+    height: 55px;
+  }
+
+  .chip-label {
+    font-size: 9px;
+  }
+
+  .slot-games-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .slot-page {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .slot-content {
+    padding: 18px 14px;
+  }
+
+  .slot-filters-header {
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+
+  .slot-tabs {
+    padding: 6px;
+    border-radius: 35px;
+  }
+
+  .slot-tab {
+    padding: 14px 20px;
+    font-size: 15px;
+    font-weight: 700;
+    border-radius: 28px;
+    min-height: 52px;
+  }
+
+  .tab-icon {
+    font-size: 20px;
+  }
+
+  .slot-search input {
+    padding: 16px 50px 16px 22px;
+    font-size: 17px;
+    border-radius: 30px;
+    min-height: 56px;
+  }
+
+  .search-icon {
+    right: 18px;
+    font-size: 20px;
+  }
+
+  .slot-providers {
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .slot-provider-chip {
+    width: 68px;
+    height: 68px;
+    border: 3px solid transparent;
+  }
+
+  .chip-label {
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .featured-overlay {
+    padding: 26px;
+    gap: 18px;
+  }
+
+  .featured-overlay h3 {
+    font-size: 26px;
+    font-weight: 800;
+  }
+
+  .slot-games-grid {
+    gap: 14px;
+  }
+
+  .slot-game-card {
+    border-radius: 16px;
+  }
+
+  .slot-game-card .game-name {
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+}

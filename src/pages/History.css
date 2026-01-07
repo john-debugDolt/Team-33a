@@ -1,0 +1,386 @@
+.history-page {
+  padding: 0 var(--section-padding, 40px);
+  max-width: var(--container-max, 1400px);
+  margin: 0 auto;
+  padding-bottom: 60px;
+}
+
+.history-hero {
+  text-align: center;
+  padding: 40px 0 30px;
+}
+
+.history-hero h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.history-hero p {
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+
+/* Filters */
+.history-filters {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  padding: 20px;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-group label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-group select {
+  padding: 10px 36px 10px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='%23a8b5a8'%3E%3Cpath d='M6 8L2 4h8L6 8z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+.filter-group select:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}
+
+.filter-summary {
+  margin-left: auto;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* Transactions */
+.transactions-container {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+
+.loading-container {
+  padding: 60px 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.empty-state h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.transactions-list {
+  padding: 8px;
+}
+
+.transaction-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  transition: background 0.2s;
+}
+
+.transaction-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.transaction-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.type-icon {
+  font-size: 18px;
+}
+
+.type-deposit { color: #22c55e; }
+.type-withdraw { color: #ef4444; }
+.type-bonus { color: #f59e0b; }
+.type-bet { color: #3b82f6; }
+.type-win { color: #22c55e; }
+.type-transfer { color: #8b5cf6; }
+
+.transaction-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.transaction-desc {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.transaction-date {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.transaction-amount-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.transaction-amount {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.transaction-amount.positive {
+  color: #22c55e;
+}
+
+.transaction-amount.negative {
+  color: #ef4444;
+}
+
+.transaction-status {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.status-completed {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.status-pending {
+  background: rgba(234, 179, 8, 0.15);
+  color: #eab308;
+}
+
+.status-failed {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+@media (max-width: 768px) {
+  .history-page {
+    padding: 0 16px;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .history-hero {
+    padding: 24px 0 16px;
+  }
+
+  .history-hero h1 {
+    font-size: 24px;
+  }
+
+  .history-hero p {
+    font-size: 14px;
+  }
+
+  .history-filters {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+    gap: 12px;
+    border-radius: 16px;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  .filter-group select {
+    width: 100%;
+    height: 48px;
+    font-size: 16px; /* Prevents iOS zoom */
+    border-radius: 12px;
+  }
+
+  .filter-summary {
+    margin-left: 0;
+    margin-top: 8px;
+    text-align: center;
+    font-size: 13px;
+  }
+
+  .transactions-container {
+    border-radius: 16px;
+  }
+
+  .transaction-item {
+    padding: 14px 12px;
+    gap: 12px;
+  }
+
+  .transaction-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .transaction-desc {
+    font-size: 14px;
+  }
+
+  .transaction-date {
+    font-size: 12px;
+  }
+
+  .transaction-amount {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .history-page {
+    padding: 0 14px;
+    padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .history-hero {
+    padding: 28px 0 20px;
+  }
+
+  .history-hero h1 {
+    font-size: 32px;
+    font-weight: 800;
+  }
+
+  .history-hero p {
+    font-size: 18px;
+  }
+
+  .history-filters {
+    padding: 22px;
+    gap: 18px;
+    border-radius: 22px;
+  }
+
+  .filter-group label {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .filter-group select {
+    height: 60px;
+    font-size: 18px;
+    padding: 14px 40px 14px 18px;
+    border-radius: 16px;
+  }
+
+  .filter-summary {
+    font-size: 17px;
+    font-weight: 500;
+  }
+
+  .transactions-container {
+    border-radius: 22px;
+  }
+
+  .transaction-item {
+    padding: 20px 18px;
+    gap: 16px;
+  }
+
+  .transaction-icon {
+    width: 56px;
+    height: 56px;
+  }
+
+  .type-icon {
+    font-size: 26px;
+  }
+
+  .transaction-desc {
+    font-size: 19px;
+    font-weight: 600;
+  }
+
+  .transaction-date {
+    font-size: 15px;
+  }
+
+  .transaction-amount {
+    font-size: 21px;
+    font-weight: 700;
+  }
+
+  .transaction-status {
+    font-size: 13px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-weight: 600;
+  }
+
+  .empty-state {
+    padding: 60px 24px;
+  }
+
+  .empty-icon {
+    font-size: 60px;
+  }
+
+  .empty-state h3 {
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  .empty-state p {
+    font-size: 18px;
+  }
+}
