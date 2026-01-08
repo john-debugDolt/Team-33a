@@ -1088,7 +1088,7 @@ body::before {
 .bottom-nav-item.active .bottom-nav-icon {
   opacity: 1;
   filter: brightness(0) saturate(100%) invert(65%) sepia(52%) saturate(657%) hue-rotate(85deg) brightness(95%) contrast(90%);
-  transform: scale(1.15);
+  transform: scale(1.08);
 }
 
 .bottom-nav-item span {
@@ -1938,6 +1938,58 @@ body::before {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
+/* Footer badge images */
+.footer-badge-img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  filter: brightness(0.9);
+  transition: filter 0.2s ease;
+}
+
+.footer-badge-img:hover {
+  filter: brightness(1.1);
+}
+
+/* Payment Methods / Banks Section */
+.footer-banks {
+  max-width: var(--container-max);
+  margin: 30px auto 0;
+  padding: 24px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+}
+
+.footer-banks h4 {
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.bank-logos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.bank-logo {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+  filter: brightness(0.85);
+  transition: all 0.2s ease;
+}
+
+.bank-logo:hover {
+  filter: brightness(1.1);
+  transform: scale(1.05);
+}
+
 .footer-bottom {
   max-width: var(--container-max);
   margin: 40px auto 0;
@@ -2306,11 +2358,11 @@ body::before {
 }
 
 @media (max-width: 480px) {
-  /* MUCH LARGER game grid for phones */
+  /* Optimized game grid for phones */
   .game-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-    padding: 0 14px;
+    gap: 10px;
+    padding: 0 12px;
   }
 
   .game-card:hover {
@@ -2318,13 +2370,13 @@ body::before {
   }
 
   .game-card {
-    border-radius: 16px;
+    border-radius: 12px;
   }
 
   .game-name {
-    padding: 14px 12px;
-    font-size: 15px;
-    font-weight: 700;
+    padding: 10px 8px;
+    font-size: 12px;
+    font-weight: 600;
   }
 
   .game-overlay {
@@ -2335,172 +2387,194 @@ body::before {
   .play-btn {
     opacity: 1;
     transform: translateY(0);
-    padding: 14px 20px;
-    font-size: 15px;
-    min-height: 52px;
-    font-weight: 700;
+    padding: 10px 16px;
+    font-size: 12px;
+    min-height: 40px;
+    font-weight: 600;
   }
 
   .footer-content {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: 24px;
   }
 
   .footer {
-    padding: 40px 20px;
-    padding-bottom: calc(120px + var(--safe-area-bottom));
+    padding: 30px 16px;
+    padding-bottom: calc(80px + var(--safe-area-bottom));
   }
 
   .footer-section h4 {
-    font-size: 18px;
-    margin-bottom: 16px;
+    font-size: 14px;
+    margin-bottom: 12px;
   }
 
   .footer-section a {
-    font-size: 16px;
-    padding: 8px 0;
+    font-size: 13px;
+    padding: 6px 0;
+  }
+
+  .footer-badge-img {
+    height: 32px;
+  }
+
+  .footer-banks {
+    margin: 20px auto 0;
+    padding: 16px 0;
+  }
+
+  .footer-banks h4 {
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+
+  .bank-logos {
+    gap: 12px;
+  }
+
+  .bank-logo {
+    height: 24px;
   }
 
   .marquee {
-    padding: 16px 18px;
+    padding: 12px 14px;
   }
 
   .marquee::before,
   .marquee::after {
-    width: 28px;
+    width: 20px;
   }
 
   .marquee-scroll {
-    font-size: 16px;
+    font-size: 13px;
   }
 
   .marquee-icon {
-    font-size: 22px;
+    font-size: 18px;
   }
 
   .banner-wrapper {
-    border-radius: 18px;
-  }
-
-  .banner-carousel {
-    margin: 16px auto;
-  }
-
-  .carousel-btn {
-    width: 52px;
-    height: 52px;
-  }
-
-  .carousel-dots {
-    margin-top: 16px;
-    gap: 12px;
-  }
-
-  .dot {
-    width: 14px;
-    height: 14px;
-    min-width: 14px;
-    min-height: 14px;
-  }
-
-  .dot.active {
-    width: 32px;
-  }
-
-  .pagination {
-    margin: 32px auto;
-    padding-bottom: 28px;
-    gap: 10px;
-  }
-
-  .page-btn {
-    min-width: 52px;
-    min-height: 52px;
-    height: 52px;
-    font-size: 17px;
     border-radius: 14px;
   }
 
+  .banner-carousel {
+    margin: 12px auto;
+  }
+
+  .carousel-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .carousel-dots {
+    margin-top: 12px;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    min-width: 8px;
+    min-height: 8px;
+  }
+
+  .dot.active {
+    width: 22px;
+  }
+
+  .pagination {
+    margin: 20px auto;
+    padding-bottom: 20px;
+    gap: 8px;
+  }
+
+  .page-btn {
+    min-width: 40px;
+    min-height: 40px;
+    height: 40px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+
   .provider-filters {
-    gap: 12px;
-    padding: 16px 14px;
+    gap: 8px;
+    padding: 12px 12px;
   }
 
   .provider-btn {
-    padding: 14px 22px;
-    font-size: 15px;
-    min-height: 52px;
-    border-radius: 26px;
+    padding: 10px 16px;
+    font-size: 12px;
+    min-height: 40px;
+    border-radius: 20px;
     font-weight: 600;
   }
 
-  /* MUCH LARGER bottom navigation */
+  /* Mobile bottom navigation - optimized sizing */
   .bottom-nav {
-    padding: 8px var(--safe-area-left) 0 var(--safe-area-right);
-    padding-bottom: max(14px, var(--safe-area-bottom));
+    padding: 6px var(--safe-area-left) 0 var(--safe-area-right);
+    padding-bottom: max(8px, var(--safe-area-bottom));
   }
 
   .bottom-nav-item {
-    padding: 10px 6px;
-    gap: 6px;
+    padding: 8px 4px;
+    gap: 4px;
   }
 
   .bottom-nav-icon {
-    width: 30px;
-    height: 30px;
+    width: 22px;
+    height: 22px;
   }
 
   .bottom-nav-item span {
-    font-size: 13px;
-    font-weight: 700;
+    font-size: 10px;
+    font-weight: 600;
   }
 
-  /* LARGER header brand */
+  /* Header - professional sizing */
   .header-brand-text {
-    font-size: 28px;
-    letter-spacing: 2px;
+    font-size: 24px;
+    letter-spacing: 1.5px;
   }
 
   .logo-img {
-    height: 44px;
+    height: 36px;
   }
 
   .header {
-    height: calc(64px + var(--safe-area-top));
+    height: calc(52px + var(--safe-area-top));
   }
 
   .header-content {
-    padding: 0 14px;
+    padding: 0 12px;
   }
 
   /* Games count label */
   .games-count {
-    font-size: 16px;
-    padding: 14px 14px;
+    font-size: 13px;
+    padding: 10px 12px;
     font-weight: 600;
   }
 
-  /* LARGER hamburger */
+  /* Hamburger - touch-friendly but compact */
   .hamburger-btn {
-    width: 54px;
-    height: 54px;
+    width: 44px;
+    height: 44px;
   }
 
   .hamburger-line {
-    width: 28px;
-    height: 3px;
+    width: 22px;
+    height: 2px;
   }
 
   /* Section titles */
   .section-title {
-    font-size: 24px;
-    padding: 0 14px;
+    font-size: 18px;
+    padding: 0 12px;
   }
 
   /* User balance in header */
   .user-balance {
-    font-size: 16px;
-    padding: 10px 16px;
+    font-size: 13px;
+    padding: 8px 12px;
   }
 }
 
@@ -6009,25 +6083,29 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
     height: 28px !important;
   }
 
-  /* Bottom Navigation - compact */
+  /* Bottom Navigation - professional compact sizing */
   .bottom-nav {
-    padding: 4px var(--safe-area-left) 0 var(--safe-area-right) !important;
-    padding-bottom: max(6px, var(--safe-area-bottom)) !important;
+    padding: 6px var(--safe-area-left) 0 var(--safe-area-right);
+    padding-bottom: max(8px, var(--safe-area-bottom));
+    background: linear-gradient(180deg, rgba(10, 13, 10, 0.98) 0%, rgba(5, 7, 5, 0.99) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
   }
 
   .bottom-nav-item {
-    padding: 6px 4px !important;
-    gap: 2px !important;
+    padding: 6px 4px;
+    gap: 3px;
   }
 
   .bottom-nav-icon {
-    width: 20px !important;
-    height: 20px !important;
+    width: 20px;
+    height: 20px;
   }
 
   .bottom-nav-item span {
-    font-size: 9px !important;
-    font-weight: 600 !important;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
   }
 
   /* Main content padding adjustment */

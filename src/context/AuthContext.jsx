@@ -3,22 +3,42 @@ import { authService } from '../services/authService';
 
 const AuthContext = createContext(null);
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+// Mock user for development - remove in production
+const MOCK_USER = {
+  id: 1,
+  username: 'testuser',
+  email: 'test@example.com',
+  phone: '0812345678',
+  balance: 5000,
+  availableBalance: 5000,
+  pendingBalance: 0,
+  vipLevel: 'Gold',
+  createdAt: '2024-01-01'
+};
 
-  // Load user on mount
+export function AuthProvider({ children }) {
+  // Start with mock user for development
+  const [user, setUser] = useState(MOCK_USER);
+  const [loading, setLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
+
+  // Skip auth check for development - uncomment below for production
   useEffect(() => {
-    const loadUser = async () => {
-      const result = await authService.getCurrentUser();
-      if (result.success && result.data) {
-        setUser(result.data.user);
-        setIsAuthenticated(true);
-      }
-      setLoading(false);
-    };
-    loadUser();
+    // For dev: just use mock user
+    setUser(MOCK_USER);
+    setIsAuthenticated(true);
+    setLoading(false);
+
+    // For production: uncomment this block
+    // const loadUser = async () => {
+    //   const result = await authService.getCurrentUser();
+    //   if (result.success && result.data) {
+    //     setUser(result.data.user);
+    //     setIsAuthenticated(true);
+    //   }
+    //   setLoading(false);
+    // };
+    // loadUser();
   }, []);
 
   const login = useCallback(async (username, password) => {

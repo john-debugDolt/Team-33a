@@ -3,7 +3,6 @@ import { AuthProvider } from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
 import ToastContainer from './components/Toast/Toast'
 import Layout from './components/Layout'
-import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
 import Sports from './pages/Sports'
 import LiveCasino from './pages/LiveCasino'
@@ -47,10 +46,10 @@ function App() {
                   <Route path="/promotions" element={<Promotions />} />
                   <Route path="/livechat" element={<LiveChat />} />
 
-                  {/* Protected Routes - Require Login */}
-                  <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
-                  <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-                  <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                  {/* User Routes - No login required for dev */}
+                  <Route path="/wallet" element={<Wallet />} />
+                  <Route path="/history" element={<History />} />
+                  <Route path="/settings" element={<Settings />} />
                 </Routes>
               </Layout>
             } />

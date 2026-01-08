@@ -10,6 +10,17 @@ import iconLivechat from '../images/icon-livechat.svg'
 import iconSettings from '../images/icon-settings.svg'
 import iconWallet from '../images/icon-wallet.svg'
 
+// Bank logos
+import bankLogo1 from '../logo/bank1.png'
+import bankLogo2 from '../logo/bank2.png'
+import bankLogo3 from '../logo/bank3.png'
+import bankLogo4 from '../logo/bank4.png'
+import bankLogo5 from '../logo/bank5.png'
+
+// License and certification
+import licenseLogo from '../license/license.png'
+import certLogo from '../cert/cert.png'
+
 const navItems = [
   { name: 'HOME', path: '/', icon: iconHome },
   { name: 'WALLET', path: '/wallet', icon: iconWallet },
@@ -205,18 +216,29 @@ export default function Layout({ children }) {
           <div className="footer-section">
             <h4>Gaming License</h4>
             <div className="license-badges">
-              <div className="badge">GC</div>
+              <img src={licenseLogo} alt="Gaming License" className="footer-badge-img" />
             </div>
           </div>
           <div className="footer-section">
             <h4>Certification</h4>
             <div className="cert-badges">
-              <div className="badge">BMM</div>
-              <div className="badge">iTech</div>
-              <div className="badge">TST</div>
+              <img src={certLogo} alt="Certification" className="footer-badge-img" />
             </div>
           </div>
         </div>
+
+        {/* Payment Methods / Banks */}
+        <div className="footer-banks">
+          <h4>Payment Methods</h4>
+          <div className="bank-logos">
+            <img src={bankLogo1} alt="Bank" className="bank-logo" />
+            <img src={bankLogo2} alt="Bank" className="bank-logo" />
+            <img src={bankLogo3} alt="Bank" className="bank-logo" />
+            <img src={bankLogo4} alt="Bank" className="bank-logo" />
+            <img src={bankLogo5} alt="Bank" className="bank-logo" />
+          </div>
+        </div>
+
         <div className="footer-bottom">
           <p>&copy; 2025 team33 All Rights Reserved.</p>
         </div>
