@@ -992,11 +992,13 @@ body::before {
 /* Professional bottom navigation with proper touch targets */
 .bottom-nav {
   display: none;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: auto !important;
+  transform: none !important;
+  z-index: 9999;
   background: linear-gradient(180deg, rgba(20, 25, 20, 0.98) 0%, rgba(10, 12, 10, 0.99) 100%);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
@@ -1004,6 +1006,7 @@ body::before {
   padding: 4px var(--safe-area-left) 0 var(--safe-area-right);
   padding-bottom: max(8px, var(--safe-area-bottom));
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.5);
+  will-change: auto;
 }
 
 .bottom-nav-item {
@@ -2225,9 +2228,14 @@ body::before {
     display: none;
   }
 
-  /* Show bottom nav on mobile */
+  /* Show bottom nav on mobile - MUST stay fixed */
   .bottom-nav {
     display: flex;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    transform: none !important;
   }
 
   .app main {
@@ -2510,6 +2518,11 @@ body::before {
 
   /* Mobile bottom navigation - optimized sizing */
   .bottom-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    transform: none !important;
     padding: 6px var(--safe-area-left) 0 var(--safe-area-right);
     padding-bottom: max(8px, var(--safe-area-bottom));
   }
@@ -6085,6 +6098,11 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 
   /* Bottom Navigation - professional compact sizing */
   .bottom-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    transform: none !important;
     padding: 6px var(--safe-area-left) 0 var(--safe-area-right);
     padding-bottom: max(8px, var(--safe-area-bottom));
     background: linear-gradient(180deg, rgba(10, 13, 10, 0.98) 0%, rgba(5, 7, 5, 0.99) 100%);
@@ -6529,5 +6547,342 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 
   button {
     font-size: 13px;
+  }
+}
+
+/* ================================
+   ENHANCED MOBILE OPTIMIZATION
+   ================================ */
+
+/* Wallet Page - Full Mobile Optimization */
+@media (max-width: 768px) {
+  .wallet-page-modern {
+    padding: 0 12px;
+    padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .wallet-hero {
+    margin-top: 10px;
+    margin-bottom: 16px;
+  }
+
+  .wallet-hero-content {
+    margin-bottom: 20px;
+  }
+
+  .modern-card {
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  .card-header {
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .card-title h3 {
+    font-size: 16px;
+  }
+
+  .title-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+  }
+
+  .streak-badge {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+
+  /* Check-in grid - better mobile layout */
+  .checkin-grid {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+
+  .checkin-box {
+    padding: 8px 4px;
+    border-radius: 8px;
+  }
+
+  .checkin-box .day-label {
+    font-size: 8px;
+  }
+
+  .reward-amount {
+    font-size: 9px;
+    padding: 2px 4px;
+  }
+
+  .gift-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .checked-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .checked-icon svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .claim-btn {
+    padding: 14px 20px;
+    font-size: 14px;
+    border-radius: 12px;
+  }
+
+  .checkin-countdown {
+    font-size: 11px;
+    padding: 10px 12px;
+  }
+
+  /* Transaction list */
+  .transactions-modern {
+    gap: 10px;
+  }
+
+  .tx-row {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .tx-icon-modern {
+    width: 36px;
+    height: 36px;
+  }
+
+  .tx-title {
+    font-size: 13px;
+  }
+
+  .tx-datetime {
+    font-size: 10px;
+  }
+
+  .tx-amount-modern {
+    font-size: 14px;
+  }
+
+  .tx-status-badge {
+    font-size: 9px;
+    padding: 3px 6px;
+  }
+
+  /* Action form */
+  .action-tabs {
+    padding: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .action-tab {
+    flex: 1;
+    min-width: 0;
+    padding: 14px 8px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .action-tab svg {
+    display: none;
+  }
+
+  .action-form {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .amount-input-modern {
+    border-radius: 12px;
+  }
+
+  .amount-input-modern .currency-symbol {
+    font-size: 20px;
+    padding: 0 12px;
+  }
+
+  .amount-input-modern input {
+    font-size: 24px;
+    padding: 12px 12px 12px 0;
+  }
+
+  .input-group label {
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+
+  .text-input-modern {
+    padding: 12px 14px;
+    border-radius: 10px;
+  }
+
+  .text-input-modern input {
+    font-size: 14px;
+  }
+
+  .submit-btn {
+    padding: 16px 20px;
+    font-size: 15px;
+    border-radius: 12px;
+    min-height: 52px;
+  }
+
+  .form-note {
+    font-size: 11px;
+  }
+
+  /* Payment methods */
+  .payment-method-toggle {
+    gap: 8px;
+  }
+
+  .method-btn {
+    padding: 12px;
+    font-size: 12px;
+    border-radius: 10px;
+  }
+
+  .method-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .payment-form {
+    padding: 14px;
+    gap: 14px;
+  }
+
+  /* Payment options grid */
+  .payment-grid {
+    gap: 8px;
+  }
+
+  .payment-option {
+    padding: 14px 10px;
+    border-radius: 12px;
+  }
+
+  .payment-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+  }
+
+  .payment-name {
+    font-size: 11px;
+  }
+
+  .see-all-btn {
+    font-size: 12px;
+  }
+}
+
+/* Extra small mobile (under 375px) */
+@media (max-width: 375px) {
+  .wallet-page-modern {
+    padding: 0 8px;
+    padding-bottom: calc(95px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .wallet-hero {
+    padding: 16px 12px;
+    border-radius: 14px;
+  }
+
+  .balance-amount-large .balance-value {
+    font-size: 32px;
+  }
+
+  .balance-amount-large .currency-sign,
+  .balance-amount-large .balance-cents {
+    font-size: 16px;
+  }
+
+  .quick-actions {
+    gap: 8px;
+  }
+
+  .quick-action-btn {
+    padding: 12px 8px;
+    gap: 6px;
+  }
+
+  .action-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .quick-action-btn span {
+    font-size: 10px;
+  }
+
+  .modern-card {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  /* Smaller check-in grid */
+  .checkin-grid {
+    gap: 3px;
+  }
+
+  .checkin-box {
+    padding: 6px 2px;
+    border-radius: 6px;
+  }
+
+  .checkin-box .day-label {
+    font-size: 7px;
+  }
+
+  .reward-amount {
+    font-size: 8px;
+    padding: 2px 3px;
+  }
+
+  .gift-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .checked-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .claim-btn {
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+
+  /* Smaller action tabs */
+  .action-tab {
+    padding: 12px 6px;
+    font-size: 11px;
+  }
+
+  .amount-input-modern .currency-symbol {
+    font-size: 18px;
+    padding: 0 10px;
+  }
+
+  .amount-input-modern input {
+    font-size: 20px;
+  }
+
+  .preset-amounts {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .preset-btn {
+    padding: 10px;
+    font-size: 12px;
   }
 }
