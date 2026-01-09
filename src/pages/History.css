@@ -11,10 +11,23 @@
 }
 
 .history-hero h1 {
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-family: 'Great Vibes', cursive;
+  font-size: 42px;
+  font-weight: 400;
+  background: linear-gradient(135deg, #fef08a 0%, #fcd34d 40%, #f59e0b 70%, #fef08a 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin-bottom: 8px;
+  letter-spacing: 2px;
+  filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.4));
+  animation: goldTextShimmer 4s linear infinite;
+}
+
+@keyframes goldTextShimmer {
+  0% { background-position: 200% 50%; }
+  100% { background-position: -200% 50%; }
 }
 
 .history-hero p {
@@ -222,11 +235,12 @@
   }
 
   .history-hero {
-    padding: 24px 0 16px;
+    padding: 16px 0 16px;
+    margin-top: 4px;
   }
 
   .history-hero h1 {
-    font-size: 24px;
+    font-size: 34px;
   }
 
   .history-hero p {
@@ -297,8 +311,8 @@
   }
 
   .history-hero h1 {
-    font-size: 32px;
-    font-weight: 800;
+    font-size: 38px;
+    font-weight: 400;
   }
 
   .history-hero p {
