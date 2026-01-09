@@ -1584,7 +1584,9 @@ body::before {
 }
 
 /* ========== BELOW BANNER ========== */
+/* Hidden on PC, shown only on mobile */
 .below-banner {
+  display: none;
   max-width: var(--container-max);
   margin: 0 auto 20px;
   padding: 0 var(--section-padding);
@@ -1593,18 +1595,23 @@ body::before {
 .below-banner-image {
   width: 100%;
   height: auto;
-  max-height: 150px;
   border-radius: 12px;
   display: block;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   transition: all 0.4s var(--ease-out);
   cursor: pointer;
-  object-fit: contain;
 }
 
 .below-banner-image:hover {
   transform: translateY(-4px) scale(1.005);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Show below-banner only on mobile */
+@media (max-width: 768px) {
+  .below-banner {
+    display: block;
+  }
 }
 
 /* ========== MARQUEE / ANNOUNCEMENT ========== */
