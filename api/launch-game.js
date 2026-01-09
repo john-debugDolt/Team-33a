@@ -1,10 +1,10 @@
 // Vercel Serverless API Proxy for Game Launch
-// This bypasses CORS by making the request server-side
+// CommonJS format for Vercel compatibility
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   // Handle preflight request
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
   const ACCOUNT_ID = 'ACC284290827402874880';
 
   try {
-    const { gameId } = req.body;
+    const { gameId } = req.body || {};
 
     if (!gameId) {
       return res.status(400).json({ error: 'gameId is required' });
@@ -51,4 +51,4 @@ export default async function handler(req, res) {
       details: error.message
     });
   }
-}
+};
