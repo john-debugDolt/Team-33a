@@ -265,27 +265,7 @@ export const gameService = {
 
   /**
    * Request game launch URL from backend
-   *
-   * Backend Developer Notes:
-   * ========================
-   * This function calls POST /games/launch to get a game URL.
-   *
-   * Request body sent:
-   * {
-   *   gameId: number,      // Internal game ID
-   *   gameSlug: string,    // Game slug (e.g., "all-you-can-eat")
-   *   userId: string|null  // User ID if logged in
-   * }
-   *
-   * Expected response format:
-   * {
-   *   success: boolean,
-   *   gameUrl?: string,    // URL to launch the game (required if success)
-   *   error?: string,      // Error message (if failed)
-   *   ...                  // Any other data you need
-   * }
-   *
-   * The frontend will call: window.open(response.gameUrl, '_blank')
+   * Uses Team33 Game Launch API
    */
   async requestGameUrl(gameId, userId) {
     const game = getLocalGameById(gameId);
@@ -293,52 +273,63 @@ export const gameService = {
       return { success: false, error: 'Game not found' };
     }
 
+    const GAME_LAUNCH_API = 'http://k8s-team33-accounts-9a3cb34ef2-792ca1b1aa42bb5e.elb.ap-southeast-2.amazonaws.com/api/games/launch';
+    const ACCOUNT_ID = 'ACC284290827402874880';
+
     try {
-      // Call backend API to get game launch URL
-      const response = await apiClient.post('/games/launch', {
-        gameId: game.id,
-        gameSlug: game.slug,
-        userId: userId || null
+      // Call Team33 Game Launch API
+      const response = await fetch(GAME_LAUNCH_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          accountId: ACCOUNT_ID,
+          gameId: game.gameId || game.slug  // Use gameId (slug) from game data
+        })
       });
 
-      // If backend returns success with gameUrl, use it
-      if (response.success && response.data?.gameUrl) {
+      const data = await response.json();
+
+      // If API returns a game URL
+      if (data.gameUrl || data.url || data.launchUrl) {
         return {
           success: true,
-          gameUrl: response.data.gameUrl,
-          ...response.data
+          gameUrl: data.gameUrl || data.url || data.launchUrl,
+          ...data
         };
       }
 
-      // If backend returns error
-      if (!response.success) {
+      // If API returns success with different structure
+      if (data.success && data.data?.gameUrl) {
+        return {
+          success: true,
+          gameUrl: data.data.gameUrl,
+          ...data.data
+        };
+      }
+
+      // If API returns error
+      if (data.error || data.message) {
         return {
           success: false,
-          error: response.error || response.message || 'Failed to launch game'
+          error: data.error || data.message || 'Failed to launch game'
         };
       }
 
-      // Fallback: return response as-is for flexibility
-      return response;
+      // Return raw response for debugging
+      console.log('Game launch API response:', data);
+      return {
+        success: false,
+        error: 'Unexpected response from game server',
+        rawResponse: data
+      };
 
     } catch (error) {
       console.error('Game launch API error:', error);
-
-      // Fallback for development/testing when backend is not ready
-      // Backend developer: Remove this fallback when API is implemented
-      if (process.env.NODE_ENV === 'development') {
-        console.warn('Using fallback game URL - Backend not connected');
-        return {
-          success: true,
-          gameUrl: `https://play.team33.com/games/${game.slug}`,
-          game: enhanceGameWithImages(game),
-          _fallback: true
-        };
-      }
-
       return {
         success: false,
-        error: 'Failed to connect to game server'
+        error: 'Failed to connect to game server. Please try again.'
       };
     }
   }
