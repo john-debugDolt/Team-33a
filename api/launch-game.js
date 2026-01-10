@@ -1,7 +1,4 @@
-// Vercel Serverless API Proxy for Game Launch
-// CommonJS format for Vercel compatibility
-
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -40,8 +37,6 @@ module.exports = async function handler(req, res) {
     });
 
     const data = await response.json();
-
-    // Return the response
     return res.status(response.status).json(data);
 
   } catch (error) {
@@ -51,4 +46,4 @@ module.exports = async function handler(req, res) {
       details: error.message
     });
   }
-};
+}
