@@ -265,7 +265,7 @@ export const gameService = {
 
   /**
    * Request game launch URL from backend
-   * Uses direct API on localhost, proxy on production (to avoid mixed content)
+   * Uses Team33 Game Launch API (HTTPS)
    */
   async requestGameUrl(gameId, userId) {
     const game = getLocalGameById(gameId);
@@ -273,24 +273,19 @@ export const gameService = {
       return { success: false, error: 'Game not found' };
     }
 
-    const GAME_LAUNCH_API = 'http://k8s-team33-accounts-9a3cb34ef2-792ca1b1aa42bb5e.elb.ap-southeast-2.amazonaws.com/api/games/launch';
+    const GAME_LAUNCH_API = 'https://api.team33.mx/api/games/launch';
     const ACCOUNT_ID = 'ACC284290827402874880';
 
-    // Use direct API on localhost, proxy on production (HTTPS)
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const apiUrl = isLocalhost ? GAME_LAUNCH_API : '/api/launch-game';
-
     try {
-      const requestBody = isLocalhost
-        ? { accountId: ACCOUNT_ID, gameId: game.gameId || game.slug }
-        : { gameId: game.gameId || game.slug };
-
-      const response = await fetch(apiUrl, {
+      const response = await fetch(GAME_LAUNCH_API, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify({
+          accountId: ACCOUNT_ID,
+          gameId: game.gameId || game.slug
+        })
       });
 
       const data = await response.json();
