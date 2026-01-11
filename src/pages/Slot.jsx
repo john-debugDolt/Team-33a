@@ -71,6 +71,7 @@ export default function Slot() {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [selectedGame, setSelectedGame] = useState(null)
   const [embeddedGame, setEmbeddedGame] = useState(null) // { url, name }
+  const [showExitConfirm, setShowExitConfirm] = useState(false)
   const [pagination, setPagination] = useState({
     page: 1,
     totalPages: 1,
@@ -351,9 +352,9 @@ export default function Slot() {
             <div className="game-player-header">
               <div className="game-player-left">
                 <button
-                  className="game-player-close"
-                  onClick={() => setEmbeddedGame(null)}
-                  title="Close game"
+                  className="game-player-back"
+                  onClick={() => setShowExitConfirm(true)}
+                  title="Exit game"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <path d="M19 12H5M12 19l-7-7 7-7"/>
@@ -370,6 +371,7 @@ export default function Slot() {
                   className="game-player-deposit"
                   onClick={() => {
                     setEmbeddedGame(null)
+                    setShowExitConfirm(false)
                     navigate('/wallet')
                   }}
                 >
@@ -380,6 +382,13 @@ export default function Slot() {
                 </button>
               </div>
               <div className="game-player-actions">
+                <button
+                  className="game-player-exit"
+                  onClick={() => setShowExitConfirm(true)}
+                  title="Exit game"
+                >
+                  Exit
+                </button>
                 <button
                   className="game-player-fullscreen"
                   onClick={() => window.open(embeddedGame.url, '_blank')}
@@ -399,6 +408,39 @@ export default function Slot() {
                 allow="autoplay; fullscreen; clipboard-write"
               />
             </div>
+
+            {/* Exit Confirmation Dialog */}
+            {showExitConfirm && (
+              <div className="exit-confirm-overlay">
+                <div className="exit-confirm-dialog">
+                  <div className="exit-confirm-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path d="M12 8v4M12 16h.01"/>
+                    </svg>
+                  </div>
+                  <h3>Exit Game?</h3>
+                  <p>Are you sure you want to exit {embeddedGame.name}?</p>
+                  <div className="exit-confirm-buttons">
+                    <button
+                      className="exit-btn-yes"
+                      onClick={() => {
+                        setEmbeddedGame(null)
+                        setShowExitConfirm(false)
+                      }}
+                    >
+                      Yes, Exit
+                    </button>
+                    <button
+                      className="exit-btn-no"
+                      onClick={() => setShowExitConfirm(false)}
+                    >
+                      No, Continue Playing
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

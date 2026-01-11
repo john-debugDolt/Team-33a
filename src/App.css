@@ -7905,3 +7905,161 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
     font-size: 13px;
   }
 }
+
+/* Exit Button */
+.game-player-back {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-player-back:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.game-player-exit {
+  background: rgba(255, 68, 68, 0.2);
+  border: 1px solid rgba(255, 68, 68, 0.5);
+  color: #ff6666;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.game-player-exit:hover {
+  background: #ff4444;
+  color: white;
+  border-color: #ff4444;
+}
+
+/* Exit Confirmation Dialog */
+.exit-confirm-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.exit-confirm-dialog {
+  background: linear-gradient(180deg, #1a1a2e 0%, #16162a 100%);
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.exit-confirm-icon {
+  color: #ffd700;
+  margin-bottom: 20px;
+}
+
+.exit-confirm-icon svg {
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.3));
+}
+
+.exit-confirm-dialog h3 {
+  color: white;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+}
+
+.exit-confirm-dialog p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 15px;
+  margin: 0 0 30px 0;
+  line-height: 1.5;
+}
+
+.exit-confirm-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.exit-btn-yes {
+  background: rgba(255, 68, 68, 0.2);
+  border: 1px solid rgba(255, 68, 68, 0.4);
+  color: #ff6666;
+  padding: 14px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.exit-btn-yes:hover {
+  background: #ff4444;
+  color: white;
+  border-color: #ff4444;
+}
+
+.exit-btn-no {
+  background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+  border: none;
+  color: #000;
+  padding: 14px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+}
+
+.exit-btn-no:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 25px rgba(0, 255, 136, 0.4);
+}
+
+@media (max-width: 480px) {
+  .exit-confirm-dialog {
+    padding: 30px 20px;
+  }
+
+  .exit-confirm-dialog h3 {
+    font-size: 20px;
+  }
+
+  .exit-confirm-dialog p {
+    font-size: 14px;
+  }
+
+  .exit-btn-yes,
+  .exit-btn-no {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+
+  .game-player-exit {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
