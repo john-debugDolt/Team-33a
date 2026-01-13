@@ -71,15 +71,15 @@ class AccountService {
         };
       }
 
-      // If external API fails with 401, use localStorage fallback
-      if (response.status === 401) {
-        console.log('External API unavailable, using localStorage fallback');
+      // If external API fails with 401 or 404, use localStorage fallback
+      if (response.status === 401 || response.status === 404) {
+        console.log('External API unavailable (status ' + response.status + '), using localStorage fallback');
         return this.registerLocal({ password, firstName, lastName, phoneNumber });
       }
 
       return {
         success: false,
-        error: data.error || 'Registration failed',
+        error: data.error || data.message || 'Registration failed',
         field: data.field,
       };
     } catch (error) {
