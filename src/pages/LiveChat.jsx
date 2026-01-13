@@ -107,16 +107,16 @@ export default function LiveChat() {
   };
 
   useEffect(() => {
-    if (!isAuthenticated || !user?.id) return;
+    if (!isAuthenticated || !user?.accountId) return;
     const unsubscribe = chatService.subscribe(handleChatEvent);
     return () => {
       unsubscribe();
       chatService.disconnect();
     };
-  }, [isAuthenticated, user?.id, handleChatEvent]);
+  }, [isAuthenticated, user?.accountId, handleChatEvent]);
 
   const handleStartChat = async () => {
-    if (!user?.id) return;
+    if (!user?.accountId) return;
 
     setChatStarted(true);
     setConnectionStatus('connecting');
