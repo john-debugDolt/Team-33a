@@ -157,7 +157,7 @@ export const walletService = {
     // Check for local wallet (for fallback)
     const localWallet = getLocalWallet(accountId);
 
-    // ALWAYS try API first for cross-browser/device balance sync
+    // Try API first for cross-browser/device balance sync
     try {
       const response = await fetch(`/api/wallets/${accountId}/balance`, {
         method: 'GET',
@@ -166,10 +166,18 @@ export const walletService = {
 
       if (response.ok) {
         const data = await response.json();
+        const apiBalance = data.balance || 0;
+        const localBalance = localWallet?.balance || 0;
 
-        // Update local wallet with API balance for consistency
-        if (localWallet) {
-          localWallet.balance = data.balance;
+        // Use the HIGHER balance to prevent losing money from race conditions
+        // This handles cases where:
+        // 1. Admin approved deposit locally but backend API hasn't synced
+        // 2. Backend wallet doesn't exist yet
+        const finalBalance = Math.max(apiBalance, localBalance);
+
+        // Only update local wallet if API has a higher balance
+        if (localWallet && apiBalance > localBalance) {
+          localWallet.balance = apiBalance;
           localWallet.updatedAt = new Date().toISOString();
           saveLocalWallet(accountId, localWallet);
         }
@@ -177,14 +185,14 @@ export const walletService = {
         return {
           success: true,
           data: {
-            balance: data.balance,
+            balance: finalBalance,
             currency: data.currency || 'AUD',
-            total: data.balance,
-            available: data.balance,
+            total: finalBalance,
+            available: finalBalance,
           },
-          balance: data.balance,
+          balance: finalBalance,
           currency: data.currency || 'AUD',
-          source: 'api',
+          source: apiBalance >= localBalance ? 'api' : 'local-priority',
         };
       }
 
