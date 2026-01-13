@@ -50,8 +50,9 @@ class ChatService {
    * POST /api/chat/sessions
    * Body: { accountId: string, subject?: string }
    */
-  async startSession(accountId, subject = null) {
+  async startSession(accountId, subject = null, userName = null) {
     this.accountId = accountId;
+    this.userName = userName;
 
     try {
       console.log('Starting chat session for account:', accountId);
@@ -80,6 +81,7 @@ class ChatService {
         chatStorageService.saveSession({
           sessionId: data.sessionId,
           accountId: data.accountId || accountId,
+          userName: userName, // Store user's display name for admin panel
           agentId: data.agentId,
           status: data.status || 'WAITING',
           subject: data.subject || subject,
@@ -535,11 +537,12 @@ class ChatService {
   /**
    * Connect to chat - starts session and WebSocket
    */
-  async connect(accountId, subject = null) {
+  async connect(accountId, subject = null, userName = null) {
     this.accountId = accountId;
+    this.userName = userName;
 
     // Start a new session
-    const sessionResult = await this.startSession(accountId, subject);
+    const sessionResult = await this.startSession(accountId, subject, userName);
     if (!sessionResult.success) {
       return sessionResult;
     }

@@ -9,6 +9,7 @@ import {
   FiRefreshCw
 } from 'react-icons/fi';
 import { adminChatService } from '../services/adminChatService';
+import { chatStorageService } from '../../services/chatStorageService';
 
 const ChatView = () => {
   const { sessionId } = useParams();
@@ -65,10 +66,20 @@ const ChatView = () => {
     try {
       setError(null);
 
-      // Get session details
+      // Get session details from API
       const sessionResult = await adminChatService.getSession(sessionId);
+      // Also get local session data for userName
+      const localSession = chatStorageService.getSession(sessionId);
+
       if (sessionResult.success) {
-        setSession(sessionResult.data);
+        // Merge API data with local data (for userName)
+        setSession({
+          ...sessionResult.data,
+          userName: localSession?.userName || sessionResult.data?.userName
+        });
+      } else if (localSession) {
+        // Fallback to local session if API fails
+        setSession(localSession);
       }
 
       // Get messages
@@ -258,7 +269,7 @@ const ChatView = () => {
 
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <strong>{session?.accountId || 'Unknown User'}</strong>
+            <strong>{session?.userName || session?.accountId || 'Unknown User'}</strong>
             {session?.status && (
               <span style={{
                 fontSize: '11px',

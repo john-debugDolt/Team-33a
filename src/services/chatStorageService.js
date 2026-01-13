@@ -1,13 +1,84 @@
 /**
  * Chat Storage Service
  * Stores chat sessions in localStorage for admin panel visibility
+ * Data persists for minimum 60 minutes (configurable)
  * This is a workaround until backend adds GET /api/chat/sessions endpoint
  */
 
 const CHAT_SESSIONS_KEY = 'team33_chat_sessions';
 const CHAT_MESSAGES_KEY = 'team33_chat_messages';
+const LAST_CLEANUP_KEY = 'team33_chat_last_cleanup';
+
+// Data retention period in milliseconds (60 minutes - keeps data longer than 20 min minimum)
+const DATA_RETENTION_MS = 60 * 60 * 1000; // 60 minutes
+// Cleanup interval (only cleanup once every 10 minutes to avoid performance issues)
+const CLEANUP_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
 
 class ChatStorageService {
+  constructor() {
+    // Run cleanup on initialization (but not too often)
+    this.maybeCleanup();
+  }
+
+  // Check if cleanup should run (rate limited)
+  maybeCleanup() {
+    try {
+      const lastCleanup = localStorage.getItem(LAST_CLEANUP_KEY);
+      const now = Date.now();
+
+      if (!lastCleanup || (now - parseInt(lastCleanup)) > CLEANUP_INTERVAL_MS) {
+        this.cleanupOldData();
+        localStorage.setItem(LAST_CLEANUP_KEY, now.toString());
+      }
+    } catch {
+      // Ignore cleanup errors
+    }
+  }
+
+  // Remove sessions and messages older than retention period
+  cleanupOldData() {
+    try {
+      const now = Date.now();
+      const cutoffTime = now - DATA_RETENTION_MS;
+
+      // Clean old closed sessions (keep active/waiting sessions regardless of age)
+      const sessions = this.getSessions();
+      const activeSessions = sessions.filter(s => {
+        // Always keep active and waiting sessions
+        if (s.status === 'ACTIVE' || s.status === 'WAITING') {
+          return true;
+        }
+        // For closed sessions, check if within retention period
+        const sessionTime = new Date(s.updatedAt || s.createdAt).getTime();
+        return sessionTime > cutoffTime;
+      });
+
+      if (activeSessions.length !== sessions.length) {
+        localStorage.setItem(CHAT_SESSIONS_KEY, JSON.stringify(activeSessions));
+      }
+
+      // Clean orphaned messages (messages for sessions that no longer exist)
+      const allMessages = this.getAllMessages();
+      const activeSessionIds = new Set(activeSessions.map(s => s.sessionId));
+      let messagesChanged = false;
+
+      Object.keys(allMessages).forEach(sessionId => {
+        if (!activeSessionIds.has(sessionId)) {
+          delete allMessages[sessionId];
+          messagesChanged = true;
+        }
+      });
+
+      if (messagesChanged) {
+        localStorage.setItem(CHAT_MESSAGES_KEY, JSON.stringify(allMessages));
+      }
+
+      console.log(`[ChatStorage] Cleanup: ${sessions.length - activeSessions.length} old sessions removed`);
+    } catch (e) {
+      console.warn('[ChatStorage] Cleanup error:', e);
+    }
+  }
+
   // Get all stored sessions
   getSessions() {
     try {
@@ -170,6 +241,7 @@ class ChatStorageService {
   clearAll() {
     localStorage.removeItem(CHAT_SESSIONS_KEY);
     localStorage.removeItem(CHAT_MESSAGES_KEY);
+    localStorage.removeItem(LAST_CLEANUP_KEY);
   }
 
   // Get counts by status
@@ -180,6 +252,14 @@ class ChatStorageService {
       waiting: sessions.filter(s => s.status === 'WAITING').length,
       active: sessions.filter(s => s.status === 'ACTIVE').length,
       closed: sessions.filter(s => s.status === 'CLOSED').length,
+    };
+  }
+
+  // Get data retention info
+  getRetentionInfo() {
+    return {
+      retentionMinutes: DATA_RETENTION_MS / 60000,
+      cleanupIntervalMinutes: CLEANUP_INTERVAL_MS / 60000,
     };
   }
 }

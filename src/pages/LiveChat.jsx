@@ -132,8 +132,9 @@ export default function LiveChat() {
     }]);
 
     try {
-      // Use the accountId from user context
-      const result = await chatService.connect(accountId, 'Support Request');
+      // Use the accountId and user name from user context
+      const userName = user?.fullName || user?.firstName || user?.name || 'User';
+      const result = await chatService.connect(accountId, 'Support Request', userName);
 
       if (result.success) {
         setSessionId(result.sessionId);

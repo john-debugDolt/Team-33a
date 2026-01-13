@@ -37,7 +37,7 @@ const ChatList = () => {
         const formattedChats = result.sessions.map((session, index) => ({
           id: session.sessionId || session.id || index,
           sessionId: session.sessionId || session.id,
-          username: session.accountId || session.userId || 'Unknown User',
+          username: session.userName || session.accountId || session.userId || 'Unknown User',
           subject: session.subject || 'General Inquiry',
           message: session.lastMessage || session.subject || 'New chat session',
           time: formatTimeAgo(session.lastMessageAt || session.updatedAt || session.createdAt),
