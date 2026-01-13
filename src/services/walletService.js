@@ -159,7 +159,7 @@ export const walletService = {
 
     // Try API first for cross-browser/device balance sync
     try {
-      const response = await fetch(`/api/wallets/${accountId}/balance`, {
+      const response = await fetch(`/api/wallets/account/${accountId}/balance`, {
         method: 'GET',
         headers,
       });
@@ -279,7 +279,7 @@ export const walletService = {
     }
 
     try {
-      const response = await fetch(`/api/wallets/${accountId}/deposit`, {
+      const response = await fetch(`/api/wallets/account/${accountId}/deposit`, {
         method: 'POST',
         headers,
         body: JSON.stringify({
@@ -370,7 +370,7 @@ export const walletService = {
     }
 
     try {
-      const response = await fetch(`/api/wallets/${accountId}/withdraw`, {
+      const response = await fetch(`/api/wallets/account/${accountId}/withdraw`, {
         method: 'POST',
         headers,
         body: JSON.stringify({
@@ -464,7 +464,7 @@ export const walletService = {
 
     try {
       const pageSize = size || limit;
-      let url = `/api/wallets/${accountId}/transactions?page=${page}&size=${pageSize}`;
+      let url = `/api/wallets/account/${accountId}/transactions?page=${page}&size=${pageSize}`;
       if (type && type !== 'all') {
         url += `&type=${type.toUpperCase()}`;
       }
