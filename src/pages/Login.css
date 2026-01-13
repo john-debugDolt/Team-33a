@@ -379,6 +379,7 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  isolation: isolate;
 }
 
 .auth-alt-btn::before {
@@ -388,6 +389,7 @@
   background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
   opacity: 0;
   transition: opacity 0.3s ease;
+  z-index: -1;
 }
 
 .auth-alt-btn:hover {
@@ -398,11 +400,6 @@
 
 .auth-alt-btn:hover::before {
   opacity: 1;
-}
-
-.auth-alt-btn span {
-  position: relative;
-  z-index: 1;
 }
 
 .auth-link-gold {

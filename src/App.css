@@ -2311,6 +2311,7 @@ body::before {
   transition: all 0.4s var(--ease-out);
   position: relative;
   overflow: hidden;
+  isolation: isolate;
 }
 
 .btn-outline::before {
@@ -2320,6 +2321,7 @@ body::before {
   background: var(--gradient-shine);
   opacity: 0;
   transition: opacity 0.3s ease;
+  z-index: -1;
 }
 
 .btn-outline:hover::before {
