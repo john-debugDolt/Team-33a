@@ -118,7 +118,7 @@ export default function History() {
       {/* Hero Section */}
       <div className="history-hero">
         <h1>{t('transactionHistory')}</h1>
-        <p>{t('startPlaying')}</p>
+        <p>View all your deposits, withdrawals, and bonuses</p>
       </div>
 
       {/* Filters */}
@@ -148,7 +148,7 @@ export default function History() {
         </div>
 
         <div className="filter-summary">
-          <span>{pagination.total} {t('noHistory')}</span>
+          <span>{pagination.total} transactions found</span>
         </div>
       </div>
 

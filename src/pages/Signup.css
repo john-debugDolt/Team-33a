@@ -1,4 +1,364 @@
 /* Signup Page - Uses shared styles from Login.css */
 @import './Login.css';
 
-/* No additional styles needed - shares all styles with Login.css */
+/* ========== Signup Card Override ========== */
+.signup-card {
+  max-width: 480px;
+}
+
+/* ========== Password Strength Indicator ========== */
+.password-strength {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.password-strength.valid {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+.password-strength.invalid {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.strength-valid,
+.strength-invalid {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ========== Form Error Message ========== */
+.form-error {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #ef4444;
+}
+
+/* ========== Double Row Form Layout ========== */
+.form-row-double {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.form-row-double .form-row {
+  margin-bottom: 0;
+}
+
+/* ========== OTP Verification Modal ========== */
+.otp-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: overlayFadeIn 0.3s ease;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.otp-modal {
+  background: linear-gradient(180deg, var(--bg-card) 0%, rgba(15, 23, 42, 0.98) 100%);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 40px 32px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  position: relative;
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.2),
+    0 25px 50px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  animation: modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.otp-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.otp-modal-close:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.otp-modal-close:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.otp-modal-header {
+  margin-bottom: 32px;
+}
+
+.otp-modal-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 20px;
+  background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
+}
+
+.otp-modal-header h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.otp-modal-header p {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.otp-modal-header p strong {
+  color: var(--emerald-500);
+  font-weight: 600;
+}
+
+/* OTP Input Boxes */
+.otp-modal-inputs {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.otp-modal-input {
+  width: 50px;
+  height: 60px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+  caret-color: var(--emerald-500);
+}
+
+.otp-modal-input:focus {
+  outline: none;
+  border-color: var(--emerald-500);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+  transform: scale(1.02);
+}
+
+.otp-modal-input.filled {
+  border-color: var(--emerald-500);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.otp-modal-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Timer Text */
+.otp-timer-text {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.otp-timer-text span {
+  color: var(--emerald-500);
+  font-weight: 600;
+}
+
+/* OTP Actions */
+.otp-modal-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.otp-resend-link {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 12px 20px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.otp-resend-link:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--emerald-500);
+}
+
+.otp-resend-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Loading States */
+.otp-sending,
+.otp-verifying-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.otp-verifying-state {
+  color: var(--emerald-500);
+}
+
+/* ========== Mobile Responsive ========== */
+@media (max-width: 480px) {
+  .form-row-double {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .form-row-double .form-row {
+    margin-bottom: 16px;
+  }
+
+  /* OTP Modal Mobile */
+  .otp-modal-overlay {
+    padding: 16px;
+    align-items: flex-end;
+  }
+
+  .otp-modal {
+    padding: 32px 20px;
+    border-radius: 24px 24px 0 0;
+    max-width: none;
+    margin-bottom: 0;
+    animation: modalSlideUpMobile 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes modalSlideUpMobile {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .otp-modal-close {
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .otp-modal-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .otp-modal-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .otp-modal-header h2 {
+    font-size: 20px;
+  }
+
+  .otp-modal-header p {
+    font-size: 13px;
+  }
+
+  .otp-modal-inputs {
+    gap: 8px;
+  }
+
+  .otp-modal-input {
+    width: 44px;
+    height: 54px;
+    font-size: 20px;
+    border-radius: 12px;
+  }
+
+  .otp-timer-text {
+    font-size: 13px;
+  }
+
+  .otp-resend-link {
+    font-size: 13px;
+    padding: 10px 16px;
+  }
+
+  .otp-sending,
+  .otp-verifying-state {
+    padding: 30px 16px;
+    font-size: 14px;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 360px) {
+  .otp-modal-inputs {
+    gap: 6px;
+  }
+
+  .otp-modal-input {
+    width: 40px;
+    height: 50px;
+    font-size: 18px;
+    border-radius: 10px;
+  }
+}

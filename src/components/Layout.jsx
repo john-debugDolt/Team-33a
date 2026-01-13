@@ -144,10 +144,14 @@ export default function Layout({ children }) {
           <div className="sidebar-user">
             <div className="sidebar-user-info">
               <div className="sidebar-user-avatar">
-                {user?.username?.charAt(0).toUpperCase() || 'U'}
+                {(user?.firstName || user?.fullName || user?.username || 'U').charAt(0).toUpperCase()}
+                <span className="vip-badge-small">VIP</span>
               </div>
               <div className="sidebar-user-details">
-                <span className="sidebar-user-name">{user?.username}</span>
+                <div className="sidebar-user-name-row">
+                  <span className="sidebar-user-name">{user?.firstName || user?.fullName || user?.username}</span>
+                  <span className="vip-level">Bronze</span>
+                </div>
                 <span className="sidebar-user-balance">${user?.balance?.toFixed(2) || '0.00'}</span>
               </div>
             </div>

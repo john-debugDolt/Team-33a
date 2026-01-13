@@ -15,15 +15,27 @@ export default function LiveChat() {
   const [queuePosition, setQueuePosition] = useState(null);
   const [estimatedWait, setEstimatedWait] = useState(null);
   const [chatStarted, setChatStarted] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
+  const [showRating, setShowRating] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [feedback, setFeedback] = useState('');
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = (smooth = true) => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior: smooth ? 'smooth' : 'instant'
+      });
+    }
   };
 
   useEffect(() => {
-    scrollToBottom();
+    // Use instant scroll for initial load, smooth for new messages
+    scrollToBottom(messages.length > 1);
   }, [messages]);
 
   const handleChatEvent = useCallback((event) => {
@@ -33,7 +45,6 @@ export default function LiveChat() {
         break;
       case 'disconnected':
         setConnectionStatus('disconnected');
-        setAgent(null);
         break;
       case 'connection_failed':
         setConnectionStatus('disconnected');
@@ -41,19 +52,26 @@ export default function LiveChat() {
         break;
       case 'message':
         setIsTyping(false);
-        setMessages(prev => [...prev, {
-          id: event.message.id,
-          type: event.message.from === 'agent' ? 'agent' : 'system',
-          text: event.message.text,
-          time: new Date(event.message.time),
-          agentName: event.message.agentName,
-        }]);
+        // API format: { senderType: 'USER'|'AGENT'|'SYSTEM', content, createdAt, messageType }
+        const msg = event.message;
+        const messageType = msg.senderType === 'USER' ? 'user' :
+                           msg.senderType === 'SYSTEM' ? 'system' : 'agent';
+        // Only add if not from current user (we already added user messages locally)
+        if (msg.senderType !== 'USER') {
+          setMessages(prev => [...prev, {
+            id: msg.id || msg.messageId || Date.now(),
+            type: messageType,
+            text: msg.content || msg.text,
+            time: new Date(msg.createdAt || msg.time || Date.now()),
+            agentName: msg.senderId,
+          }]);
+        }
         break;
       case 'agent_join':
         setAgent(event.agent);
         setConnectionStatus('connected');
         setQueuePosition(null);
-        addSystemMessage(`${event.agent.name} has joined the chat.`);
+        addSystemMessage(`${event.agent.name || 'Support Agent'} has joined the chat.`);
         break;
       case 'agent_leave':
         setAgent(null);
@@ -70,8 +88,9 @@ export default function LiveChat() {
       case 'chat_ended':
         setAgent(null);
         setConnectionStatus('disconnected');
-        setChatStarted(false);
-        addSystemMessage('Chat ended. Thank you!');
+        addSystemMessage('Chat ended. Thank you for contacting us!');
+        // Show rating dialog
+        setShowRating(true);
         break;
       default:
         break;
@@ -101,6 +120,8 @@ export default function LiveChat() {
 
     setChatStarted(true);
     setConnectionStatus('connecting');
+    setShowRating(false);
+    setRatingSubmitted(false);
     setMessages([{
       id: 1,
       type: 'system',
@@ -109,22 +130,41 @@ export default function LiveChat() {
     }]);
 
     try {
-      await chatService.connect(user.id);
-      const result = await chatService.startChat(user.id);
+      // Use the accountId from user context
+      const accountId = user.accountId || user.id;
+      const result = await chatService.connect(accountId, 'Support Request');
 
       if (result.success) {
-        if (result.data?.queuePosition) {
-          setQueuePosition(result.data.queuePosition);
-          setEstimatedWait(result.data.estimatedWait);
+        setSessionId(result.sessionId);
+
+        // API returns status: 'WAITING', 'ACTIVE', or 'CLOSED'
+        if (result.status === 'WAITING') {
           setConnectionStatus('waiting');
-          addSystemMessage(`You are #${result.data.queuePosition} in queue.`);
+          addSystemMessage('Connected! Waiting for an agent to join...');
+        } else if (result.status === 'ACTIVE' && result.agentId) {
+          setAgent({ id: result.agentId, name: result.agentId });
+          setConnectionStatus('connected');
+          addSystemMessage('Connected to support agent!');
         } else {
           setConnectionStatus('connected');
           addSystemMessage('Connected! An agent will be with you shortly.');
         }
+
+        // Fetch any existing messages
+        const messagesResult = await chatService.getMessages(result.sessionId);
+        if (messagesResult.success && messagesResult.messages?.length > 0) {
+          const existingMessages = messagesResult.messages.map(msg => ({
+            id: msg.messageId,
+            type: msg.senderType === 'USER' ? 'user' : (msg.senderType === 'SYSTEM' ? 'system' : 'agent'),
+            text: msg.content,
+            time: new Date(msg.createdAt),
+            agentName: msg.senderId,
+          }));
+          setMessages(prev => [...prev, ...existingMessages]);
+        }
       } else {
         setConnectionStatus('disconnected');
-        addSystemMessage('Unable to connect. Please try again later.');
+        addSystemMessage(result.error || 'Unable to connect. Please try again later.');
       }
     } catch (error) {
       console.error('Chat connection error:', error);
@@ -134,17 +174,48 @@ export default function LiveChat() {
   };
 
   const handleEndChat = async () => {
-    await chatService.endChat();
+    const currentSessionId = chatService.getSessionId();
+    await chatService.closeSession(currentSessionId);
     setAgent(null);
     setConnectionStatus('disconnected');
+    setShowRating(true);
+  };
+
+  const handleSubmitRating = async () => {
+    if (rating > 0) {
+      const currentSessionId = sessionId || chatService.getSessionId();
+      if (currentSessionId) {
+        await chatService.rateSession(rating, feedback, currentSessionId);
+      }
+    }
+    setRatingSubmitted(true);
+    // Close rating dialog after a moment
+    setTimeout(() => {
+      setShowRating(false);
+      setChatStarted(false);
+      setMessages([]);
+      setRating(0);
+      setFeedback('');
+      setSessionId(null);
+    }, 2000);
+  };
+
+  const handleSkipRating = () => {
+    setShowRating(false);
     setChatStarted(false);
     setMessages([]);
+    setRating(0);
+    setFeedback('');
+    setSessionId(null);
   };
 
   const handleSend = async (messageText = input) => {
     const text = messageText.trim();
-    if (!text || connectionStatus !== 'connected') return;
+    if (!text || !sessionId) return;
 
+    console.log('Sending message:', { sessionId, text });
+
+    // Add message to UI immediately
     setMessages(prev => [...prev, {
       id: Date.now(),
       type: 'user',
@@ -152,7 +223,12 @@ export default function LiveChat() {
       time: new Date(),
     }]);
     setInput('');
-    await chatService.sendMessage(text, user?.id);
+
+    // Send to server
+    const result = await chatService.sendMessage(text);
+    if (!result.success) {
+      addSystemMessage('Failed to send message. Please try again.');
+    }
   };
 
   const handleInputChange = (e) => {
@@ -274,7 +350,7 @@ export default function LiveChat() {
         </div>
 
         {/* Messages */}
-        <div className="chat-messages">
+        <div className="chat-messages" ref={messagesContainerRef}>
           {messages.map(msg => (
             <div key={msg.id} className={`message message-${msg.type}`}>
               {msg.type === 'agent' && (
@@ -316,7 +392,7 @@ export default function LiveChat() {
 
         {/* Input Area */}
         <div className="chat-input-area">
-          {connectionStatus === 'connecting' ? (
+          {connectionStatus === 'connecting' && !sessionId ? (
             <div className="connecting-state">
               <div className="spinner"></div>
               <span>{t('connecting')}</span>
@@ -328,13 +404,13 @@ export default function LiveChat() {
                 value={input}
                 onChange={handleInputChange}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                placeholder={t('typeMessage')}
-                disabled={connectionStatus !== 'connected'}
+                placeholder={sessionId ? t('typeMessage') : t('connecting')}
+                disabled={!sessionId}
               />
               <button
                 className="send-btn"
                 onClick={() => handleSend()}
-                disabled={!input.trim() || connectionStatus !== 'connected'}
+                disabled={!input.trim() || !sessionId}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="22" y1="2" x2="11" y2="13"/>
@@ -345,6 +421,65 @@ export default function LiveChat() {
           )}
         </div>
       </div>
+
+      {/* Rating Dialog */}
+      {showRating && (
+        <div className="rating-overlay">
+          <div className="rating-dialog">
+            {!ratingSubmitted ? (
+              <>
+                <div className="rating-header">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  <h3>Rate Your Experience</h3>
+                  <p>How was your chat with our support team?</p>
+                </div>
+
+                <div className="rating-stars">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      className={`star-btn ${rating >= star ? 'active' : ''}`}
+                      onClick={() => setRating(star)}
+                    >
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill={rating >= star ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                      </svg>
+                    </button>
+                  ))}
+                </div>
+
+                <textarea
+                  className="rating-feedback"
+                  placeholder="Additional feedback (optional)"
+                  value={feedback}
+                  onChange={(e) => setFeedback(e.target.value)}
+                  rows={3}
+                />
+
+                <div className="rating-buttons">
+                  <button className="rating-submit" onClick={handleSubmitRating} disabled={rating === 0}>
+                    Submit Rating
+                  </button>
+                  <button className="rating-skip" onClick={handleSkipRating}>
+                    Skip
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="rating-success">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                <h3>Thank You!</h3>
+                <p>Your feedback helps us improve.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

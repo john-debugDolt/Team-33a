@@ -263,7 +263,13 @@ export default function Slot() {
                                     onClick={(e) => handlePlayNow(game, e)}
                                     disabled={launchingGame === game.id}
                                   >
-                                    {launchingGame === game.id ? 'Launching...' : 'Play Now'}
+                                    {launchingGame === game.id ? (
+                                      <div className="play-spinner" />
+                                    ) : (
+                                      <svg viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M8 5v14l11-7z"/>
+                                      </svg>
+                                    )}
                                   </button>
                                 </div>
                                 {(game.isHot || game.isNew) && (
@@ -303,7 +309,13 @@ export default function Slot() {
                                     onClick={(e) => handlePlayNow(game, e)}
                                     disabled={launchingGame === game.id}
                                   >
-                                    {launchingGame === game.id ? 'Launching...' : 'Play Now'}
+                                    {launchingGame === game.id ? (
+                                      <div className="play-spinner" />
+                                    ) : (
+                                      <svg viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M8 5v14l11-7z"/>
+                                      </svg>
+                                    )}
                                   </button>
                                 </div>
                                 {(game.isHot || game.isNew) && (
@@ -378,7 +390,7 @@ export default function Slot() {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <path d="M12 5v14M5 12h14"/>
                   </svg>
-                  Deposit
+                  <span>Deposit</span>
                 </button>
               </div>
               <div className="game-player-actions">

@@ -1,0 +1,35 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/otp/:path*",
+      "destination": "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/otp/:path*"
+    },
+    {
+      "source": "/api/accounts/:path*",
+      "destination": "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/accounts/:path*"
+    },
+    {
+      "source": "/api/chat/:path*",
+      "destination": "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/chat/:path*"
+    },
+    {
+      "source": "/api/wallets/:path*",
+      "destination": "http://k8s-team33-walletse-2b6bcd93c2-52fa21111cb7a7e7.elb.ap-southeast-2.amazonaws.com/api/wallets/:path*"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
+        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, X-API-Key" }
+      ]
+    }
+  ]
+}

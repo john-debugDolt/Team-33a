@@ -1,42 +1,23 @@
 /**
  * Live Chat Service
  *
- * Backend Developer Notes:
- * ========================
- * This service connects to a real-time chat backend for customer support.
+ * API Base: http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com
  *
- * Required Endpoints:
- * -------------------
- * WebSocket: ws://your-backend/chat
- *   - On connect: Send { type: 'auth', token: 'user-token', userId: 'user-id' }
- *   - Receive messages: { type: 'message', from: 'agent'|'system', text: string, agentName?: string, time: string }
- *   - Send messages: { type: 'message', text: string }
- *   - Agent join: { type: 'agent_join', agentName: string, agentId: string }
- *   - Agent leave: { type: 'agent_leave' }
- *   - Typing indicator: { type: 'typing', isTyping: boolean }
- *
- * REST Fallback (if WebSocket not available):
- * -------------------
- * POST /chat/messages
- *   Request: { text: string, userId: string }
- *   Response: { success: true, messageId: string }
- *
- * GET /chat/messages
- *   Query: userId, since (timestamp)
- *   Response: { success: true, messages: [{ id, from, text, time, agentName? }] }
- *
- * GET /chat/status
- *   Response: { success: true, queuePosition?: number, estimatedWait?: string, agentAvailable: boolean }
- *
- * POST /chat/start
- *   Request: { userId: string, initialMessage?: string }
- *   Response: { success: true, chatId: string, queuePosition?: number }
+ * Endpoints:
+ * - POST /api/chat/sessions - Start new chat session
+ * - GET /api/chat/sessions/{sessionId} - Get session details
+ * - GET /api/chat/sessions/{sessionId}/messages - Get messages
+ * - POST /api/chat/sessions/{sessionId}/messages - Send message
+ * - POST /api/chat/sessions/{sessionId}/close - Close session
+ * - POST /api/chat/sessions/{sessionId}/rate?rating=X&feedback=Y - Rate session
+ * - GET /api/chat/my-sessions?accountId=X - User chat history
+ * - POST /api/chat/sessions/{sessionId}/read?senderType=X - Mark messages as read
+ * - WebSocket: ws://BASE_URL/ws/chat/{sessionId}
  */
 
-import { apiClient, getStoredData, STORAGE_KEYS } from './api';
-
-const CHAT_WS_URL = import.meta.env.VITE_CHAT_WS_URL || 'ws://localhost:5001/chat';
-const POLL_INTERVAL = 3000; // 3 seconds for polling fallback
+// Use relative URLs for proxy support (Vite dev server or Vercel production)
+const CHAT_API_BASE = '';  // Empty = relative URL, proxied through Vite/Vercel
+const CHAT_WS_BASE = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`;
 
 class ChatService {
   constructor() {
@@ -45,9 +26,10 @@ class ChatService {
     this.isConnected = false;
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
+    this.sessionId = null;
+    this.accountId = null;
     this.pollInterval = null;
     this.lastMessageTime = null;
-    this.chatId = null;
   }
 
   // Subscribe to chat events
@@ -61,25 +43,86 @@ class ChatService {
     this.listeners.forEach(callback => callback(event));
   }
 
-  // Connect to chat (WebSocket with REST fallback)
-  async connect(userId) {
-    // Try WebSocket first
+  /**
+   * Start a new chat session
+   * POST /api/chat/sessions
+   * Body: { accountId: string, subject?: string }
+   */
+  async startSession(accountId, subject = null) {
+    this.accountId = accountId;
+
     try {
-      await this.connectWebSocket(userId);
+      console.log('Starting chat session for account:', accountId);
+
+      const body = { accountId };
+      if (subject) {
+        body.subject = subject;
+      }
+
+      const response = await fetch(`${CHAT_API_BASE}/api/chat/sessions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      console.log('Chat API response status:', response.status);
+      const data = await response.json();
+      console.log('Chat API response data:', data);
+
+      if (response.ok && data.sessionId) {
+        this.sessionId = data.sessionId;
+        return {
+          success: true,
+          sessionId: data.sessionId,
+          accountId: data.accountId,
+          agentId: data.agentId,
+          status: data.status, // WAITING, ACTIVE, CLOSED
+          subject: data.subject,
+          createdAt: data.createdAt,
+          unreadCount: data.unreadCount,
+          ...data,
+        };
+      }
+
+      return {
+        success: false,
+        error: data.message || data.error || 'Failed to start chat session',
+      };
     } catch (error) {
-      console.warn('WebSocket connection failed, using REST polling:', error);
-      await this.startPolling(userId);
+      console.error('Start session error:', error);
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        return {
+          success: false,
+          error: 'Unable to connect to chat server. Please check your connection.',
+        };
+      }
+      return {
+        success: false,
+        error: 'Failed to connect to chat server: ' + error.message,
+      };
     }
   }
 
-  // WebSocket connection
-  connectWebSocket(userId) {
+  /**
+   * Connect WebSocket for real-time messaging
+   * ws://BASE_URL/ws/chat/{sessionId}
+   */
+  connectWebSocket(sessionId) {
     return new Promise((resolve, reject) => {
+      if (!sessionId) {
+        reject(new Error('No session ID'));
+        return;
+      }
+
       try {
-        const token = getStoredData(STORAGE_KEYS.TOKEN);
-        this.ws = new WebSocket(`${CHAT_WS_URL}?token=${token}&userId=${userId}`);
+        const wsUrl = `${CHAT_WS_BASE}/ws/chat/${sessionId}`;
+        console.log('Connecting WebSocket to:', wsUrl);
+        this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {
+          console.log('WebSocket connected');
           this.isConnected = true;
           this.reconnectAttempts = 0;
           this.notify({ type: 'connected' });
@@ -89,16 +132,18 @@ class ChatService {
         this.ws.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
-            this.handleMessage(data);
+            console.log('WebSocket message received:', data);
+            this.handleWebSocketMessage(data);
           } catch (e) {
-            console.error('Failed to parse chat message:', e);
+            console.error('Failed to parse WebSocket message:', e);
           }
         };
 
         this.ws.onclose = () => {
+          console.log('WebSocket disconnected');
           this.isConnected = false;
           this.notify({ type: 'disconnected' });
-          this.attemptReconnect(userId);
+          this.attemptReconnect();
         };
 
         this.ws.onerror = (error) => {
@@ -106,13 +151,13 @@ class ChatService {
           reject(error);
         };
 
-        // Timeout for connection
+        // Connection timeout
         setTimeout(() => {
           if (!this.isConnected) {
             this.ws?.close();
             reject(new Error('WebSocket connection timeout'));
           }
-        }, 5000);
+        }, 10000);
 
       } catch (error) {
         reject(error);
@@ -120,178 +165,449 @@ class ChatService {
     });
   }
 
-  // Handle incoming messages
-  handleMessage(data) {
-    switch (data.type) {
-      case 'message':
-        this.notify({
-          type: 'message',
-          message: {
-            id: data.id || Date.now(),
-            from: data.from,
-            text: data.text,
-            time: data.time || new Date().toISOString(),
-            agentName: data.agentName,
-          }
-        });
-        break;
-
-      case 'agent_join':
-        this.notify({
-          type: 'agent_join',
-          agent: {
-            name: data.agentName,
-            id: data.agentId,
-            avatar: data.avatar,
-          }
-        });
-        break;
-
-      case 'agent_leave':
-        this.notify({ type: 'agent_leave' });
-        break;
-
-      case 'typing':
-        this.notify({ type: 'typing', isTyping: data.isTyping });
-        break;
-
-      case 'queue_update':
-        this.notify({
-          type: 'queue_update',
-          position: data.position,
-          estimatedWait: data.estimatedWait,
-        });
-        break;
-
-      case 'chat_ended':
-        this.notify({ type: 'chat_ended' });
-        break;
-
-      default:
-        console.log('Unknown chat event:', data.type);
+  // Handle WebSocket messages - matches API response format
+  handleWebSocketMessage(data) {
+    // Message format from API:
+    // { messageId, sessionId, senderType: 'USER'|'AGENT'|'SYSTEM', senderId, content, messageType, createdAt, read }
+    if (data.messageId || data.content) {
+      this.notify({
+        type: 'message',
+        message: {
+          id: data.messageId,
+          sessionId: data.sessionId,
+          senderType: data.senderType, // USER, AGENT, SYSTEM
+          senderId: data.senderId,
+          content: data.content,
+          messageType: data.messageType, // TEXT, IMAGE, FILE, SYSTEM_NOTIFICATION
+          createdAt: data.createdAt,
+          read: data.read,
+        }
+      });
+    } else if (data.type === 'typing') {
+      this.notify({ type: 'typing', isTyping: data.isTyping !== false });
+    } else if (data.type === 'session_closed' || data.status === 'CLOSED') {
+      this.notify({ type: 'chat_ended' });
+    } else if (data.agentId && !data.messageId) {
+      // Agent assigned notification
+      this.notify({
+        type: 'agent_join',
+        agent: {
+          id: data.agentId,
+          name: data.agentName || 'Support Agent',
+        }
+      });
     }
   }
 
-  // Attempt to reconnect
-  attemptReconnect(userId) {
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+  // Attempt to reconnect WebSocket
+  attemptReconnect() {
+    if (this.reconnectAttempts < this.maxReconnectAttempts && this.sessionId) {
       this.reconnectAttempts++;
       const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
-      setTimeout(() => this.connect(userId), delay);
+      console.log(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
+      setTimeout(() => {
+        this.connectWebSocket(this.sessionId).catch(console.error);
+      }, delay);
     } else {
       this.notify({ type: 'connection_failed' });
     }
   }
 
-  // REST polling fallback
-  async startPolling(userId) {
-    this.isConnected = true;
-    this.notify({ type: 'connected', mode: 'polling' });
+  /**
+   * Get session details
+   * GET /api/chat/sessions/{sessionId}
+   */
+  async getSession(sessionId = this.sessionId) {
+    if (!sessionId) {
+      return { success: false, error: 'No session ID' };
+    }
 
-    this.pollInterval = setInterval(async () => {
-      await this.pollMessages(userId);
-    }, POLL_INTERVAL);
-  }
-
-  // Poll for new messages
-  async pollMessages(userId) {
     try {
-      const params = new URLSearchParams({ userId });
-      if (this.lastMessageTime) {
-        params.append('since', this.lastMessageTime);
+      const response = await fetch(`${CHAT_API_BASE}/api/chat/sessions/${sessionId}`);
+
+      if (response.status === 404) {
+        return { success: false, error: 'Session not found' };
       }
 
-      const response = await apiClient.get(`/chat/messages?${params}`);
-      if (response.success && response.data?.messages?.length > 0) {
-        response.data.messages.forEach(msg => {
-          this.notify({
-            type: 'message',
-            message: msg
-          });
-        });
-        this.lastMessageTime = response.data.messages[response.data.messages.length - 1].time;
+      const data = await response.json();
+
+      if (response.ok) {
+        return { success: true, data };
       }
+      return { success: false, error: data.message || 'Failed to get session' };
     } catch (error) {
-      console.error('Poll error:', error);
+      console.error('Get session error:', error);
+      return { success: false, error: 'Failed to fetch session details' };
     }
   }
 
-  // Send a message
-  async sendMessage(text, userId) {
+  /**
+   * Get messages for a session
+   * GET /api/chat/sessions/{sessionId}/messages
+   * Returns array of messages
+   */
+  async getMessages(sessionId = this.sessionId) {
+    if (!sessionId) {
+      return { success: false, error: 'No session ID', messages: [] };
+    }
+
+    try {
+      const response = await fetch(`${CHAT_API_BASE}/api/chat/sessions/${sessionId}/messages`);
+      const data = await response.json();
+
+      if (response.ok) {
+        // API returns array directly
+        const messages = Array.isArray(data) ? data : (data.messages || data.data || []);
+        return {
+          success: true,
+          messages: messages,
+        };
+      }
+      return { success: false, error: data.message || 'Failed to get messages', messages: [] };
+    } catch (error) {
+      console.error('Get messages error:', error);
+      return { success: false, error: 'Failed to fetch messages', messages: [] };
+    }
+  }
+
+  /**
+   * Send a message
+   * POST /api/chat/sessions/{sessionId}/messages
+   * Body: { senderId: string, senderType: 'USER'|'AGENT', content: string, messageType?: string }
+   */
+  async sendMessage(content, sessionId = this.sessionId) {
+    if (!sessionId) {
+      return { success: false, error: 'No active session' };
+    }
+
+    const messageBody = {
+      senderId: this.accountId,
+      senderType: 'USER',
+      content: content,
+    };
+
+    // Try WebSocket first if connected
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify({ type: 'message', text }));
-      return { success: true };
+      try {
+        this.ws.send(JSON.stringify(messageBody));
+        return { success: true };
+      } catch (e) {
+        console.warn('WebSocket send failed, using REST:', e);
+      }
     }
 
     // REST fallback
-    return await apiClient.post('/chat/messages', { text, userId, chatId: this.chatId });
-  }
+    try {
+      const response = await fetch(`${CHAT_API_BASE}/api/chat/sessions/${sessionId}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(messageBody),
+      });
 
-  // Start a new chat session
-  async startChat(userId, initialMessage = null) {
-    const response = await apiClient.post('/chat/start', { userId, initialMessage });
-    if (response.success) {
-      this.chatId = response.data?.chatId;
-    }
-    return response;
-  }
+      const data = await response.json();
 
-  // End current chat
-  async endChat() {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify({ type: 'end_chat' }));
-    }
-    await apiClient.post('/chat/end', { chatId: this.chatId });
-    this.chatId = null;
-  }
-
-  // Get queue status
-  async getQueueStatus() {
-    return await apiClient.get('/chat/status');
-  }
-
-  // Get chat history
-  async getChatHistory(userId) {
-    return await apiClient.get(`/chat/history?userId=${userId}`);
-  }
-
-  // Send typing indicator
-  sendTypingIndicator(isTyping) {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify({ type: 'typing', isTyping }));
+      if (response.ok || response.status === 201) {
+        return {
+          success: true,
+          messageId: data.messageId,
+          message: data,
+        };
+      }
+      return { success: false, error: data.message || 'Failed to send message' };
+    } catch (error) {
+      console.error('Send message error:', error);
+      return { success: false, error: 'Failed to send message' };
     }
   }
 
-  // Disconnect
+  /**
+   * Close a chat session
+   * POST /api/chat/sessions/{sessionId}/close
+   */
+  async closeSession(sessionId = this.sessionId) {
+    if (!sessionId) {
+      return { success: false, error: 'No session ID' };
+    }
+
+    try {
+      const response = await fetch(`${CHAT_API_BASE}/api/chat/sessions/${sessionId}/close`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      // Disconnect WebSocket
+      this.disconnect();
+
+      if (response.ok) {
+        return { success: true, data };
+      }
+      return { success: false, error: data.message || 'Failed to close session' };
+    } catch (error) {
+      console.error('Close session error:', error);
+      this.disconnect();
+      return { success: false, error: 'Failed to close session' };
+    }
+  }
+
+  /**
+   * Rate a chat session
+   * POST /api/chat/sessions/{sessionId}/rate?rating=X&feedback=Y
+   * Uses query parameters, NOT JSON body
+   */
+  async rateSession(rating, feedback = '', sessionId = this.sessionId) {
+    if (!sessionId) {
+      return { success: false, error: 'No session ID' };
+    }
+
+    if (rating < 1 || rating > 5) {
+      return { success: false, error: 'Rating must be between 1 and 5' };
+    }
+
+    try {
+      let url = `${CHAT_API_BASE}/api/chat/sessions/${sessionId}/rate?rating=${rating}`;
+      if (feedback) {
+        url += `&feedback=${encodeURIComponent(feedback)}`;
+      }
+
+      const response = await fetch(url, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        return { success: true, data };
+      }
+      return { success: false, error: data.message || 'Failed to rate session' };
+    } catch (error) {
+      console.error('Rate session error:', error);
+      return { success: false, error: 'Failed to rate session' };
+    }
+  }
+
+  /**
+   * Mark messages as read
+   * POST /api/chat/sessions/{sessionId}/read?senderType=AGENT
+   */
+  async markAsRead(senderType = 'AGENT', sessionId = this.sessionId) {
+    if (!sessionId) {
+      return { success: false, error: 'No session ID' };
+    }
+
+    try {
+      const response = await fetch(
+        `${CHAT_API_BASE}/api/chat/sessions/${sessionId}/read?senderType=${senderType}`,
+        { method: 'POST' }
+      );
+
+      if (response.ok) {
+        return { success: true };
+      }
+      return { success: false, error: 'Failed to mark messages as read' };
+    } catch (error) {
+      console.error('Mark as read error:', error);
+      return { success: false, error: 'Failed to mark messages as read' };
+    }
+  }
+
+  /**
+   * Get user's chat history
+   * GET /api/chat/my-sessions?accountId=X
+   */
+  async getChatHistory(accountId = this.accountId) {
+    if (!accountId) {
+      return { success: false, error: 'No account ID', sessions: [] };
+    }
+
+    try {
+      const response = await fetch(`${CHAT_API_BASE}/api/chat/my-sessions?accountId=${accountId}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        // API returns array directly
+        const sessions = Array.isArray(data) ? data : (data.sessions || data.data || []);
+        return {
+          success: true,
+          sessions: sessions,
+        };
+      }
+      return { success: false, error: data.message || 'Failed to get chat history', sessions: [] };
+    } catch (error) {
+      console.error('Get chat history error:', error);
+      return { success: false, error: 'Failed to fetch chat history', sessions: [] };
+    }
+  }
+
+  /**
+   * Start polling for messages (fallback when WebSocket fails)
+   */
+  startPolling(intervalMs = 3000) {
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+    }
+
+    console.log('Starting message polling...');
+
+    this.pollInterval = setInterval(async () => {
+      if (!this.sessionId) return;
+
+      const result = await this.getMessages(this.sessionId);
+      if (result.success && result.messages?.length > 0) {
+        result.messages.forEach(msg => {
+          const msgTime = new Date(msg.createdAt).getTime();
+          // Only process new messages
+          if (!this.lastMessageTime || msgTime > this.lastMessageTime) {
+            // Don't notify for our own messages
+            if (msg.senderType !== 'USER') {
+              this.notify({
+                type: 'message',
+                message: {
+                  id: msg.messageId,
+                  sessionId: msg.sessionId,
+                  senderType: msg.senderType,
+                  senderId: msg.senderId,
+                  content: msg.content,
+                  messageType: msg.messageType,
+                  createdAt: msg.createdAt,
+                  read: msg.read,
+                }
+              });
+            }
+            this.lastMessageTime = msgTime;
+          }
+        });
+      }
+
+      // Also check session status
+      const sessionResult = await this.getSession(this.sessionId);
+      if (sessionResult.success) {
+        if (sessionResult.data.status === 'CLOSED') {
+          this.notify({ type: 'chat_ended' });
+          this.stopPolling();
+        } else if (sessionResult.data.agentId && sessionResult.data.status === 'ACTIVE') {
+          // Agent joined
+          this.notify({
+            type: 'agent_join',
+            agent: { id: sessionResult.data.agentId }
+          });
+        }
+      }
+    }, intervalMs);
+  }
+
+  /**
+   * Stop polling
+   */
+  stopPolling() {
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+      this.pollInterval = null;
+    }
+  }
+
+  /**
+   * Connect to chat - starts session and WebSocket
+   */
+  async connect(accountId, subject = null) {
+    this.accountId = accountId;
+
+    // Start a new session
+    const sessionResult = await this.startSession(accountId, subject);
+    if (!sessionResult.success) {
+      return sessionResult;
+    }
+
+    // Try to connect WebSocket
+    try {
+      await this.connectWebSocket(sessionResult.sessionId);
+    } catch (error) {
+      console.warn('WebSocket failed, using polling:', error);
+      // Fallback to polling
+      this.isConnected = true;
+      this.notify({ type: 'connected', mode: 'polling' });
+      this.startPolling();
+    }
+
+    return sessionResult;
+  }
+
+  /**
+   * Resume an existing session
+   */
+  async resumeSession(sessionId, accountId) {
+    this.sessionId = sessionId;
+    this.accountId = accountId;
+
+    // Get session details
+    const sessionResult = await this.getSession(sessionId);
+    if (!sessionResult.success) {
+      return sessionResult;
+    }
+
+    // Check if session is still active
+    if (sessionResult.data.status === 'CLOSED') {
+      return { success: false, error: 'Session is already closed' };
+    }
+
+    // Try to connect WebSocket
+    try {
+      await this.connectWebSocket(sessionId);
+    } catch (error) {
+      console.warn('WebSocket failed, using polling:', error);
+      this.isConnected = true;
+      this.notify({ type: 'connected', mode: 'polling' });
+      this.startPolling();
+    }
+
+    return { success: true, ...sessionResult.data };
+  }
+
+  /**
+   * Disconnect from chat
+   */
   disconnect() {
     if (this.ws) {
       this.ws.close();
       this.ws = null;
     }
-    if (this.pollInterval) {
-      clearInterval(this.pollInterval);
-      this.pollInterval = null;
-    }
+    this.stopPolling();
     this.isConnected = false;
-    this.chatId = null;
+    this.sessionId = null;
+    this.lastMessageTime = null;
+  }
+
+  /**
+   * Send typing indicator via WebSocket
+   */
+  sendTypingIndicator(isTyping) {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({
+        type: 'typing',
+        isTyping,
+        senderId: this.accountId,
+        senderType: 'USER',
+      }));
+    }
+  }
+
+  // Getters
+  getSessionId() {
+    return this.sessionId;
+  }
+
+  getAccountId() {
+    return this.accountId;
+  }
+
+  getConnectionStatus() {
+    return this.isConnected;
   }
 }
 
 // Singleton instance
 export const chatService = new ChatService();
-
-// Export for backwards compatibility during development
-// Remove these when backend is fully implemented
-export const getSmartResponse = (message) => ({
-  text: "Connecting you to a support agent...",
-  matched: false,
-  topic: null
-});
-
-export const getSuggestions = () => [
-  'How do I deposit?',
-  'Check withdrawal status',
-  'Account verification help'
-];
 
 export default chatService;

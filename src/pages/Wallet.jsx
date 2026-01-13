@@ -6,6 +6,8 @@ import { useTranslation } from '../context/TranslationContext'
 import { walletService } from '../services/walletService'
 import { ButtonSpinner } from '../components/LoadingSpinner/LoadingSpinner'
 import AuthPrompt from '../components/AuthPrompt/AuthPrompt'
+import DepositModal from '../components/DepositModal/DepositModal'
+import WithdrawModal from '../components/WithdrawModal/WithdrawModal'
 
 const checkInDays = [
   { day: 1, reward: 10 },
@@ -35,6 +37,8 @@ export default function Wallet() {
 
   const [checkInLoading, setCheckInLoading] = useState(false)
   const [transactions, setTransactions] = useState([])
+  const [showDepositModal, setShowDepositModal] = useState(false)
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false)
   const [checkInStatus, setCheckInStatus] = useState({
     currentDay: 1,
     checkedDays: [],
@@ -147,7 +151,7 @@ export default function Wallet() {
         <div className="wallet-hero-bg"></div>
         <div className="wallet-hero-content">
           <div className="balance-info">
-            <span className="wallet-username">{user?.username || t('guest')}</span>
+            <span className="wallet-username">{user?.firstName || user?.fullName || user?.username || t('guest')}</span>
             <span className="balance-label">{t('balance')}</span>
             <div className="balance-amount-large">
               <span className="currency-sign">$</span>
@@ -191,7 +195,7 @@ export default function Wallet() {
 
         {/* Quick Actions */}
         <div className="quick-actions">
-          <button className="quick-action-btn" onClick={() => showToast('Deposit feature coming soon!', 'info')}>
+          <button className="quick-action-btn" onClick={() => setShowDepositModal(true)}>
             <div className="action-icon deposit">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 19V5M5 12l7 7 7-7"/>
@@ -199,7 +203,7 @@ export default function Wallet() {
             </div>
             <span>{t('deposit')}</span>
           </button>
-          <button className="quick-action-btn" onClick={() => showToast('Withdraw feature coming soon!', 'info')}>
+          <button className="quick-action-btn" onClick={() => setShowWithdrawModal(true)}>
             <div className="action-icon withdraw">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 5v14M5 12l7-7 7 7"/>
@@ -373,6 +377,24 @@ export default function Wallet() {
         </div>
 
       </div>
+
+      {/* Deposit Modal */}
+      <DepositModal
+        isOpen={showDepositModal}
+        onClose={() => {
+          setShowDepositModal(false)
+          loadWalletData() // Refresh transactions after deposit
+        }}
+      />
+
+      {/* Withdraw Modal */}
+      <WithdrawModal
+        isOpen={showWithdrawModal}
+        onClose={() => {
+          setShowWithdrawModal(false)
+          loadWalletData() // Refresh transactions after withdrawal
+        }}
+      />
     </div>
   )
 }

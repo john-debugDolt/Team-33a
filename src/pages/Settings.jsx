@@ -18,11 +18,12 @@ export default function Settings() {
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(false);
 
-  // Profile form
+  // Profile form - use external API fields (firstName, lastName, email, phone)
   const [profileForm, setProfileForm] = useState({
-    username: user?.username || '',
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
     email: user?.email || '',
-    phone: user?.phone || '',
+    phone: user?.phone || user?.phoneNumber || '',
   });
 
   // Password form
@@ -139,14 +140,25 @@ export default function Settings() {
               <p className="section-desc">{t('accountSettings')}</p>
 
               <form onSubmit={handleProfileUpdate}>
-                <div className="form-group">
-                  <label>{t('username')}</label>
-                  <input
-                    type="text"
-                    value={profileForm.username}
-                    onChange={(e) => setProfileForm({ ...profileForm, username: e.target.value })}
-                    placeholder={t('enterUsername')}
-                  />
+                <div className="form-row-inline">
+                  <div className="form-group">
+                    <label>{t('firstName') || 'First Name'}</label>
+                    <input
+                      type="text"
+                      value={profileForm.firstName}
+                      onChange={(e) => setProfileForm({ ...profileForm, firstName: e.target.value })}
+                      placeholder="Enter first name"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>{t('lastName') || 'Last Name'}</label>
+                    <input
+                      type="text"
+                      value={profileForm.lastName}
+                      onChange={(e) => setProfileForm({ ...profileForm, lastName: e.target.value })}
+                      placeholder="Enter last name"
+                    />
+                  </div>
                 </div>
 
                 <div className="form-group">
@@ -156,7 +168,10 @@ export default function Settings() {
                     value={profileForm.email}
                     onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
                     placeholder="Enter email"
+                    disabled
+                    className="input-disabled"
                   />
+                  <span className="input-hint">Email cannot be changed</span>
                 </div>
 
                 <div className="form-group">
@@ -166,7 +181,10 @@ export default function Settings() {
                     value={profileForm.phone}
                     onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
                     placeholder={t('enterPhone')}
+                    disabled
+                    className="input-disabled"
                   />
+                  <span className="input-hint">Phone number is verified and cannot be changed</span>
                 </div>
 
                 <button type="submit" className="save-btn" disabled={loading}>
