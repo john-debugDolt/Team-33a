@@ -5,11 +5,6 @@ import { walletService } from '../../services/walletService'
 import { ButtonSpinner } from '../LoadingSpinner/LoadingSpinner'
 import '../DepositModal/DepositModal.css'
 
-const withdrawMethods = [
-  { id: 'bank_transfer', name: 'Bank Transfer', icon: '🏦', time: '1-3 business days' },
-  { id: 'payid', name: 'PayID', icon: '⚡', time: 'Instant' },
-]
-
 const quickAmounts = [50, 100, 200, 500]
 
 export default function WithdrawModal({ isOpen, onClose }) {
@@ -17,7 +12,6 @@ export default function WithdrawModal({ isOpen, onClose }) {
   const { showToast } = useToast()
 
   const [amount, setAmount] = useState('')
-  const [withdrawMethod, setWithdrawMethod] = useState('bank_transfer')
   const [bankDetails, setBankDetails] = useState({
     accountName: '',
     bsb: '',
@@ -53,21 +47,17 @@ export default function WithdrawModal({ isOpen, onClose }) {
       return
     }
 
-    if (withdrawMethod === 'bank_transfer') {
-      if (!bankDetails.accountName || !bankDetails.bsb || !bankDetails.accountNumber) {
-        showToast('Please fill in all bank details', 'error')
-        return
-      }
+    if (!bankDetails.accountName || !bankDetails.bsb || !bankDetails.accountNumber) {
+      showToast('Please fill in all bank details', 'error')
+      return
     }
 
     setLoading(true)
     setStep('processing')
 
-    const selectedMethod = withdrawMethods.find(m => m.id === withdrawMethod)
-
     // Create pending withdrawal request for admin approval
-    const result = await walletService.requestWithdrawal(withdrawAmount, selectedMethod?.name || 'Bank Transfer', {
-      bank: selectedMethod?.name || 'Bank Transfer',
+    const result = await walletService.requestWithdrawal(withdrawAmount, 'Bank Transfer', {
+      bank: 'Bank Transfer',
       accountName: bankDetails.accountName,
       accountNumber: bankDetails.accountNumber,
       bsb: bankDetails.bsb
@@ -186,50 +176,31 @@ export default function WithdrawModal({ isOpen, onClose }) {
               </div>
             </div>
 
-            <div className="payment-section">
-              <label>Withdrawal Method</label>
-              <div className="payment-methods">
-                {withdrawMethods.map(method => (
-                  <button
-                    key={method.id}
-                    className={`payment-method-btn ${withdrawMethod === method.id ? 'active' : ''}`}
-                    onClick={() => setWithdrawMethod(method.id)}
-                  >
-                    <span className="method-icon">{method.icon}</span>
-                    <span className="method-name">{method.name}</span>
-                    <span className="method-fee">{method.time}</span>
-                  </button>
-                ))}
-              </div>
+            <div className="bank-section">
+              <label>Bank Details</label>
+              <input
+                type="text"
+                className="bank-input"
+                placeholder="Account Name"
+                value={bankDetails.accountName}
+                onChange={(e) => setBankDetails({ ...bankDetails, accountName: e.target.value })}
+              />
+              <input
+                type="text"
+                className="bank-input"
+                placeholder="BSB (e.g., 123-456)"
+                value={bankDetails.bsb}
+                onChange={(e) => setBankDetails({ ...bankDetails, bsb: e.target.value })}
+                maxLength={7}
+              />
+              <input
+                type="text"
+                className="bank-input"
+                placeholder="Account Number"
+                value={bankDetails.accountNumber}
+                onChange={(e) => setBankDetails({ ...bankDetails, accountNumber: e.target.value })}
+              />
             </div>
-
-            {withdrawMethod === 'bank_transfer' && (
-              <div className="bank-section">
-                <label>Bank Details</label>
-                <input
-                  type="text"
-                  className="bank-input"
-                  placeholder="Account Name"
-                  value={bankDetails.accountName}
-                  onChange={(e) => setBankDetails({ ...bankDetails, accountName: e.target.value })}
-                />
-                <input
-                  type="text"
-                  className="bank-input"
-                  placeholder="BSB (e.g., 123-456)"
-                  value={bankDetails.bsb}
-                  onChange={(e) => setBankDetails({ ...bankDetails, bsb: e.target.value })}
-                  maxLength={7}
-                />
-                <input
-                  type="text"
-                  className="bank-input"
-                  placeholder="Account Number"
-                  value={bankDetails.accountNumber}
-                  onChange={(e) => setBankDetails({ ...bankDetails, accountNumber: e.target.value })}
-                />
-              </div>
-            )}
 
             <div className="withdraw-summary">
               <div className="summary-row">

@@ -5,11 +5,6 @@ import { walletService } from '../../services/walletService'
 import { ButtonSpinner } from '../LoadingSpinner/LoadingSpinner'
 import './DepositModal.css'
 
-const paymentMethods = [
-  { id: 'bank_transfer', name: 'Bank Transfer', icon: '🏦', fee: '0%' },
-  { id: 'payid', name: 'PayID', icon: '⚡', fee: '0%' },
-]
-
 const quickAmounts = [50, 100, 200, 500, 1000]
 
 export default function DepositModal({ isOpen, onClose }) {
@@ -17,7 +12,6 @@ export default function DepositModal({ isOpen, onClose }) {
   const { showToast } = useToast()
 
   const [amount, setAmount] = useState('')
-  const [paymentMethod, setPaymentMethod] = useState('bank_transfer')
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState('amount') // 'amount', 'processing', 'success'
 
@@ -43,12 +37,10 @@ export default function DepositModal({ isOpen, onClose }) {
     setLoading(true)
     setStep('processing')
 
-    const selectedMethod = paymentMethods.find(m => m.id === paymentMethod)
-
     // Create pending deposit request for admin approval
-    const result = await walletService.requestDeposit(depositAmount, selectedMethod?.name || 'Bank Transfer', {
-      bank: selectedMethod?.name || 'N/A',
-      paymentMethod: selectedMethod?.name
+    const result = await walletService.requestDeposit(depositAmount, 'Bank Transfer', {
+      bank: 'Bank Transfer',
+      paymentMethod: 'Bank Transfer'
     })
 
     if (result.success) {
@@ -142,23 +134,6 @@ export default function DepositModal({ isOpen, onClose }) {
                     onClick={() => handleQuickAmount(val)}
                   >
                     ${val}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="payment-section">
-              <label>Payment Method</label>
-              <div className="payment-methods">
-                {paymentMethods.map(method => (
-                  <button
-                    key={method.id}
-                    className={`payment-method-btn ${paymentMethod === method.id ? 'active' : ''}`}
-                    onClick={() => setPaymentMethod(method.id)}
-                  >
-                    <span className="method-icon">{method.icon}</span>
-                    <span className="method-name">{method.name}</span>
-                    <span className="method-fee">{method.fee} fee</span>
                   </button>
                 ))}
               </div>

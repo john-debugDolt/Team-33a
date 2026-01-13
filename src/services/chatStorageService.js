@@ -42,6 +42,7 @@ class ChatStorageService {
     const sessionData = {
       sessionId: session.sessionId,
       accountId: session.accountId,
+      userName: session.userName || null, // Store user's display name
       agentId: session.agentId || null,
       status: session.status || 'WAITING',
       subject: session.subject || 'Support Request',
