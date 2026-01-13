@@ -206,16 +206,29 @@ export const walletService = {
     let wallet = localWallet;
     if (!wallet) {
       // Create wallet if doesn't exist
+      // IMPORTANT: Check user object for existing balance (games may have updated it)
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const existingBalance = (user.accountId === accountId && user.balance != null)
+        ? Number(user.balance)
+        : DEFAULT_BALANCE;
+
       const walletId = generateWalletId();
       wallet = {
         walletId,
         accountId,
-        balance: DEFAULT_BALANCE,
+        balance: existingBalance,
         currency: 'AUD',
         transactions: [],
         createdAt: new Date().toISOString(),
       };
       saveLocalWallet(accountId, wallet);
+    } else {
+      // Sync wallet balance with user balance if user has a higher balance (from game updates)
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (user.accountId === accountId && user.balance != null && user.balance > wallet.balance) {
+        wallet.balance = user.balance;
+        saveLocalWallet(accountId, wallet);
+      }
     }
 
     return {
