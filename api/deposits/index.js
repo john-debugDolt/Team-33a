@@ -1,13 +1,11 @@
-// Vercel Serverless Function - OTP API
+// Vercel Serverless Function - Deposits API (root endpoint)
 const BACKEND_URL = 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com';
 
 export default async function handler(req, res) {
-  const { path } = req.query;
-  const apiPath = Array.isArray(path) ? path.join('/') : path || '';
   const queryString = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
-  const targetUrl = `${BACKEND_URL}/api/otp/${apiPath}${queryString}`;
+  const targetUrl = `${BACKEND_URL}/api/deposits${queryString}`;
 
-  console.log(`[OTP] ${req.method} -> ${targetUrl}`);
+  console.log(`[Deposits] ${req.method} -> ${targetUrl}`);
 
   try {
     const options = {
@@ -15,7 +13,6 @@ export default async function handler(req, res) {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'X-API-Key': req.headers['x-api-key'] || '',
       },
     };
 
@@ -34,7 +31,7 @@ export default async function handler(req, res) {
       return res.status(response.status).send(text);
     }
   } catch (error) {
-    console.error('[OTP] Error:', error.message);
+    console.error('[Deposits] Error:', error.message);
     return res.status(500).json({ success: false, error: 'Backend connection failed' });
   }
 }

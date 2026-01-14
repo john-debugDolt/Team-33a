@@ -1,18 +1,16 @@
-// Vercel Serverless Function to proxy deposits API requests
-const DEPOSITS_API_URL = 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com';
+// Vercel Serverless Function - Deposits API (with path)
+const BACKEND_URL = 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com';
 
 export default async function handler(req, res) {
   const { path } = req.query;
   const apiPath = Array.isArray(path) ? path.join('/') : path || '';
-
-  // Build the target URL
   const queryString = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
-  const targetUrl = `${DEPOSITS_API_URL}/api/deposits/${apiPath}${queryString}`;
+  const targetUrl = `${BACKEND_URL}/api/deposits/${apiPath}${queryString}`;
 
-  console.log(`Proxying ${req.method} request to: ${targetUrl}`);
+  console.log(`[Deposits] ${req.method} -> ${targetUrl}`);
 
   try {
-    const fetchOptions = {
+    const options = {
       method: req.method,
       headers: {
         'Content-Type': 'application/json',
@@ -21,33 +19,23 @@ export default async function handler(req, res) {
     };
 
     if (['POST', 'PUT', 'PATCH'].includes(req.method) && req.body) {
-      fetchOptions.body = JSON.stringify(req.body);
+      options.body = JSON.stringify(req.body);
     }
 
-    const response = await fetch(targetUrl, fetchOptions);
-
-    // Handle non-JSON responses
+    const response = await fetch(targetUrl, options);
     const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
+
+    if (contentType?.includes('application/json')) {
       const data = await response.json();
-      res.status(response.status).json(data);
+      return res.status(response.status).json(data);
     } else {
       const text = await response.text();
-      res.status(response.status).send(text);
+      return res.status(response.status).send(text);
     }
-
   } catch (error) {
-    console.error('Deposits proxy error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to connect to deposits server',
-      details: error.message,
-    });
+    console.error('[Deposits] Error:', error.message);
+    return res.status(500).json({ success: false, error: 'Backend connection failed' });
   }
 }
 
-export const config = {
-  api: {
-    bodyParser: true,
-  },
-};
+export const config = { api: { bodyParser: true } };
