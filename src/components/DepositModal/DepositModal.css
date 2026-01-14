@@ -827,6 +827,275 @@
   }
 }
 
+/* Back Button */
+.modal-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 16px;
+  transition: color 0.2s ease;
+}
+
+.modal-back-btn:hover {
+  color: var(--text-primary);
+}
+
+/* Bank Icon in Modal Header */
+.modal-icon.bank {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35);
+}
+
+/* Bank Details Card */
+.bank-details-card {
+  background: #0f1410;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.bank-name-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.bank-name-header svg {
+  color: #3b82f6;
+}
+
+.bank-detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.bank-detail-row:last-of-type {
+  border-bottom: none;
+}
+
+.bank-detail-row.payid {
+  background: rgba(16, 185, 129, 0.08);
+  margin: 12px -20px;
+  padding: 16px 20px;
+  border-radius: 0;
+}
+
+.bank-detail-row.payid:last-of-type {
+  margin-bottom: -20px;
+  border-radius: 0 0 16px 16px;
+}
+
+.detail-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.payid-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-value-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.detail-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.copy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.copy-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-primary);
+}
+
+.copy-btn.copied {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: var(--emerald-500);
+  color: var(--emerald-500);
+}
+
+.transfer-amount-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.transfer-amount-display span:first-child {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.transfer-amount-display .amount {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--emerald-500);
+}
+
+/* Transfer Instructions */
+.transfer-instructions {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.instruction-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.instruction-item:not(:last-child) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.instruction-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--emerald-500);
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.instruction-item span:last-child {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.instruction-item strong {
+  color: var(--text-primary);
+}
+
+/* Mobile styles for bank details */
+@media (max-width: 480px) {
+  .modal-back-btn {
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  .bank-details-card {
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+
+  .bank-name-header {
+    font-size: 14px;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+  }
+
+  .bank-detail-row {
+    padding: 10px 0;
+  }
+
+  .bank-detail-row.payid {
+    margin: 10px -14px;
+    padding: 12px 14px;
+  }
+
+  .detail-label {
+    font-size: 10px;
+  }
+
+  .detail-value {
+    font-size: 14px;
+  }
+
+  .copy-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .transfer-amount-display {
+    padding-top: 12px;
+    margin-top: 12px;
+  }
+
+  .transfer-amount-display .amount {
+    font-size: 20px;
+  }
+
+  .transfer-instructions {
+    padding: 12px;
+    margin-bottom: 14px;
+  }
+
+  .instruction-item {
+    padding: 8px 0;
+    gap: 10px;
+  }
+
+  .instruction-number {
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+  }
+
+  .instruction-item span:last-child {
+    font-size: 12px;
+  }
+}
+
 /* Extra small phones */
 @media (max-width: 360px) {
   .deposit-modal,
