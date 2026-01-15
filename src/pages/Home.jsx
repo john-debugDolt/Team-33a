@@ -406,7 +406,7 @@ export default function Home() {
   ]
 
   // Handle spin
-  const handleSpin = () => {
+  const handleSpin = async () => {
     if (!isAuthenticated) {
       showToast('Please login to spin the wheel!', 'warning')
       return
@@ -430,12 +430,30 @@ export default function Home() {
       }
     }
 
-    setTimeout(() => {
+    // Wait for spin animation
+    setTimeout(async () => {
+      const prize = spinPrizes[prizeIndex]
       setIsSpinning(false)
-      setSpinResult(spinPrizes[prizeIndex])
+      setSpinResult(prize)
       setCanSpin(false)
       localStorage.setItem('lastSpinDate', new Date().toDateString())
-      showToast(`Congratulations! You won ${spinPrizes[prizeIndex].label}!`, 'success')
+
+      // Credit the prize to user's balance
+      try {
+        const result = await walletService.spinWheel(user?.accountId, prize.value)
+        if (result.success) {
+          // Update balance in context
+          if (typeof updateBalance === 'function') {
+            updateBalance(result.newBalance)
+          }
+          showToast(`Congratulations! You won ${prize.label}! Balance updated.`, 'success')
+        } else {
+          showToast(`You won ${prize.label}! ${result.error || ''}`, 'success')
+        }
+      } catch (error) {
+        console.error('Failed to credit spin winnings:', error)
+        showToast(`Congratulations! You won ${prize.label}!`, 'success')
+      }
     }, 4000)
   }
 

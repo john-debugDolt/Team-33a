@@ -67,7 +67,7 @@ export default function Wallet() {
     }
 
     // Load check-in status
-    const checkInResult = await walletService.getCheckInStatus()
+    const checkInResult = await walletService.getCheckInStatus(user?.accountId)
     if (checkInResult.success && checkInResult.data) {
       const data = checkInResult.data
       setCheckInStatus({
@@ -105,7 +105,7 @@ export default function Wallet() {
     if (!checkInStatus.canCheckIn || checkInLoading) return
 
     setCheckInLoading(true)
-    const result = await walletService.checkIn()
+    const result = await walletService.checkIn(user?.accountId)
 
     if (result.success) {
       showToast(result.message || `Claimed $${result.data?.reward || checkInStatus.nextReward} bonus!`, 'success')

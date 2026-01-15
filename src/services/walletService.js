@@ -520,28 +520,293 @@ export const walletService = {
     }
   },
 
-  // Check-in status (stub - may not exist on external API)
-  async getCheckInStatus() {
+  // Daily check-in rewards by day
+  _checkInRewards: [10, 20, 30, 50, 75, 100, 200],
+
+  // Get check-in data from localStorage
+  _getCheckInData(accountId) {
+    try {
+      const key = `team33_checkin_${accountId}`;
+      const data = JSON.parse(localStorage.getItem(key) || '{}');
+      return data;
+    } catch {
+      return {};
+    }
+  },
+
+  // Save check-in data to localStorage
+  _saveCheckInData(accountId, data) {
+    const key = `team33_checkin_${accountId}`;
+    localStorage.setItem(key, JSON.stringify(data));
+  },
+
+  // Check if it's a new day since last check-in
+  _isNewDay(lastCheckIn) {
+    if (!lastCheckIn) return true;
+    const last = new Date(lastCheckIn);
+    const now = new Date();
+    return last.toDateString() !== now.toDateString();
+  },
+
+  // Check-in status - returns current streak and availability
+  async getCheckInStatus(accountId) {
+    if (!accountId) {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      accountId = user.accountId;
+    }
+
+    if (!accountId) {
+      return { success: false, error: 'No account ID' };
+    }
+
+    const checkInData = this._getCheckInData(accountId);
+    const isNewDay = this._isNewDay(checkInData.lastCheckIn);
+
+    // Check if streak is broken (more than 24 hours since last check-in)
+    let currentStreak = checkInData.currentStreak || 0;
+    let currentDay = checkInData.currentDay || 1;
+
+    if (checkInData.lastCheckIn) {
+      const lastDate = new Date(checkInData.lastCheckIn);
+      const now = new Date();
+      const daysDiff = Math.floor((now - lastDate) / (1000 * 60 * 60 * 24));
+
+      // If more than 1 day missed, reset streak
+      if (daysDiff > 1) {
+        currentStreak = 0;
+        currentDay = 1;
+      }
+    }
+
+    // Calculate next reward (day index is 0-based)
+    const nextRewardIndex = Math.min(currentDay - 1, this._checkInRewards.length - 1);
+    const nextReward = this._checkInRewards[nextRewardIndex];
+
     return {
       success: true,
       data: {
-        canCheckIn: false,
-        isCheckedToday: true,
+        currentDay,
+        currentStreak,
+        checkedDays: checkInData.checkedDays || [],
+        canCheckIn: isNewDay,
+        isCheckedToday: !isNewDay,
+        nextReward,
+        lastCheckIn: checkInData.lastCheckIn,
       },
     };
   },
 
-  // Check-in (stub - may not exist on external API)
-  async checkIn() {
+  // Perform daily check-in and credit bonus to balance
+  async checkIn(accountId) {
+    if (!accountId) {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      accountId = user.accountId;
+    }
+
+    if (!accountId) {
+      return { success: false, error: 'Please log in to check in' };
+    }
+
+    // Get current status
+    const status = await this.getCheckInStatus(accountId);
+    if (!status.success) {
+      return status;
+    }
+
+    if (!status.data.canCheckIn) {
+      return {
+        success: false,
+        error: 'You have already checked in today. Come back tomorrow!',
+      };
+    }
+
+    // Calculate reward
+    const checkInData = this._getCheckInData(accountId);
+    let currentStreak = checkInData.currentStreak || 0;
+    let currentDay = checkInData.currentDay || 1;
+
+    // Check if streak is broken
+    if (checkInData.lastCheckIn) {
+      const lastDate = new Date(checkInData.lastCheckIn);
+      const now = new Date();
+      const daysDiff = Math.floor((now - lastDate) / (1000 * 60 * 60 * 24));
+      if (daysDiff > 1) {
+        currentStreak = 0;
+        currentDay = 1;
+      }
+    }
+
+    const rewardIndex = Math.min(currentDay - 1, this._checkInRewards.length - 1);
+    const reward = this._checkInRewards[rewardIndex];
+
+    // Credit the reward to balance
+    const depositResult = await this.deposit(reward, 'daily_bonus', accountId);
+
+    if (!depositResult.success) {
+      // Try direct balance update if deposit fails
+      const balanceResult = await this.getBalance(accountId);
+      if (balanceResult.success) {
+        const newBalance = (balanceResult.balance || 0) + reward;
+        await this.updateBalance(newBalance, accountId);
+      }
+    }
+
+    // Update check-in data
+    const newCheckedDays = [...(checkInData.checkedDays || [])];
+    if (!newCheckedDays.includes(currentDay)) {
+      newCheckedDays.push(currentDay);
+    }
+
+    // Move to next day (cycle back to 1 after day 7)
+    const nextDay = currentDay >= 7 ? 1 : currentDay + 1;
+    const newStreak = currentStreak + 1;
+
+    // If completed 7 days, reset for next week
+    const finalCheckedDays = currentDay >= 7 ? [] : newCheckedDays;
+
+    this._saveCheckInData(accountId, {
+      currentDay: nextDay,
+      currentStreak: newStreak,
+      checkedDays: finalCheckedDays,
+      lastCheckIn: new Date().toISOString(),
+    });
+
+    // Record transaction
+    await this.recordTransaction({
+      type: 'bonus',
+      amount: reward,
+      description: `Day ${currentDay} check-in bonus`,
+      accountId,
+    });
+
+    // Get updated balance
+    const newBalanceResult = await this.getBalance(accountId);
+
     return {
-      success: false,
-      error: 'Daily check-in not available',
+      success: true,
+      message: `🎉 Day ${currentDay} bonus claimed! +$${reward}`,
+      data: {
+        reward,
+        currentDay: nextDay,
+        currentStreak: newStreak,
+        checkedDays: finalCheckedDays,
+        balance: newBalanceResult.success ? newBalanceResult.balance : null,
+      },
     };
   },
 
   // Alias for backwards compatibility
-  async dailyCheckIn() {
-    return this.checkIn();
+  async dailyCheckIn(accountId) {
+    return this.checkIn(accountId);
+  },
+
+  // Daily spin wheel - credit winnings to balance
+  async spinWheel(accountId, prizeAmount) {
+    if (!accountId) {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      accountId = user.accountId;
+    }
+
+    if (!accountId) {
+      return { success: false, error: 'Please log in to spin' };
+    }
+
+    // Check if already spun today
+    const lastSpinKey = `team33_lastspin_${accountId}`;
+    const lastSpin = localStorage.getItem(lastSpinKey);
+    const today = new Date().toDateString();
+
+    if (lastSpin === today) {
+      return {
+        success: false,
+        error: 'You have already used your free spin today!',
+      };
+    }
+
+    // Credit the prize
+    const depositResult = await this.deposit(prizeAmount, 'spin_bonus', accountId);
+
+    if (!depositResult.success) {
+      // Try direct balance update
+      const balanceResult = await this.getBalance(accountId);
+      if (balanceResult.success) {
+        const newBalance = (balanceResult.balance || 0) + prizeAmount;
+        await this.updateBalance(newBalance, accountId);
+      }
+    }
+
+    // Mark as spun today
+    localStorage.setItem(lastSpinKey, today);
+
+    // Record transaction
+    await this.recordTransaction({
+      type: 'bonus',
+      amount: prizeAmount,
+      description: 'Daily spin wheel prize',
+      accountId,
+    });
+
+    // Get updated balance
+    const newBalanceResult = await this.getBalance(accountId);
+
+    const newBalance = newBalanceResult.success ? newBalanceResult.balance : null;
+    return {
+      success: true,
+      message: `🎰 You won $${prizeAmount}!`,
+      newBalance: newBalance,
+      data: {
+        prize: prizeAmount,
+        balance: newBalance,
+      },
+    };
+  },
+
+  // Check if user can spin today
+  canSpinToday(accountId) {
+    if (!accountId) {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      accountId = user.accountId;
+    }
+
+    if (!accountId) return false;
+
+    const lastSpinKey = `team33_lastspin_${accountId}`;
+    const lastSpin = localStorage.getItem(lastSpinKey);
+    const today = new Date().toDateString();
+
+    return lastSpin !== today;
+  },
+
+  // Record a transaction to localStorage
+  async recordTransaction({ type, amount, description, accountId }) {
+    if (!accountId) {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      accountId = user.accountId;
+    }
+
+    if (!accountId) return;
+
+    const localWallet = getLocalWallet(accountId);
+    if (localWallet) {
+      const transaction = {
+        id: generateTransactionId(),
+        type,
+        amount,
+        description,
+        status: 'completed',
+        createdAt: new Date().toISOString(),
+      };
+
+      localWallet.transactions = localWallet.transactions || [];
+      localWallet.transactions.unshift(transaction);
+
+      // Keep only last 100 transactions
+      if (localWallet.transactions.length > 100) {
+        localWallet.transactions = localWallet.transactions.slice(0, 100);
+      }
+
+      saveLocalWallet(accountId, localWallet);
+    }
   },
 
   // Transfer (stub - may not exist on external API)
