@@ -2975,3 +2975,246 @@ input[type="date"] {
     transform: translateX(0);
   }
 }
+
+/* ========== EXTRA PADDING & FIT TO SCREEN ========== */
+
+/* Full width container on mobile */
+@media (max-width: 768px) {
+  .admin-layout {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  /* Content padding for breathing room */
+  .content-inner {
+    padding: 16px;
+    max-width: 100%;
+  }
+
+  /* Cards with proper margins */
+  .card {
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
+  }
+
+  /* Page wrapper padding */
+  .dashboard-page,
+  .setting-page,
+  .members-page,
+  .rebate-page,
+  .commission-page,
+  .manage-bank-page,
+  .manage-staff-page,
+  .game-kiosk-page,
+  .game-setting-page,
+  .display-page,
+  .theme-page,
+  .sms-page,
+  .referrer-page,
+  .promotion-page {
+    padding: 16px;
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  /* Table container fit screen */
+  .table-wrapper {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  /* Form inputs full width */
+  .form-row {
+    padding: 0;
+  }
+
+  .form-input,
+  .form-select {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Filter section full width */
+  .filter-section {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    box-sizing: border-box;
+  }
+
+  /* Stats grid fit screen */
+  .stats-grid {
+    width: 100%;
+    padding: 0;
+  }
+
+  /* Quick stats */
+  .quick-stats {
+    width: 100%;
+    padding: 0;
+  }
+
+  .quick-stat {
+    flex: 1 1 100%;
+  }
+
+  /* Chat filters */
+  .chat-filters {
+    padding: 12px 16px;
+  }
+
+  /* Pagination centered */
+  .pagination {
+    padding: 12px 16px;
+    justify-content: center;
+  }
+
+  /* Filters row */
+  .filters-row {
+    padding: 12px 16px;
+  }
+}
+
+/* Extra small screens - tighter padding */
+@media (max-width: 480px) {
+  .content-inner {
+    padding: 12px;
+  }
+
+  .dashboard-page,
+  .setting-page,
+  .members-page,
+  .rebate-page,
+  .commission-page,
+  .manage-bank-page,
+  .manage-staff-page,
+  .game-kiosk-page,
+  .game-setting-page,
+  .display-page,
+  .theme-page,
+  .sms-page,
+  .referrer-page,
+  .promotion-page {
+    padding: 12px;
+  }
+
+  .card-header {
+    padding: 12px 14px;
+  }
+
+  .card-body {
+    padding: 14px;
+  }
+
+  .filter-section {
+    padding: 14px;
+  }
+
+  .chat-filters {
+    padding: 10px 12px;
+  }
+
+  .filters-row {
+    padding: 10px 12px;
+  }
+
+  .pagination {
+    padding: 10px 12px;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 360px) {
+  .content-inner {
+    padding: 10px;
+  }
+
+  .dashboard-page,
+  .setting-page {
+    padding: 10px;
+  }
+
+  .card-header {
+    padding: 10px 12px;
+  }
+
+  .card-body {
+    padding: 12px;
+  }
+}
+
+/* Ensure no horizontal overflow */
+* {
+  max-width: 100%;
+}
+
+img, video, iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Fix table overflow */
+@media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  .data-table {
+    min-width: 0;
+  }
+}
+
+/* Responsive text */
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 16px;
+    padding: 8px 0 12px 0;
+  }
+
+  .card-title {
+    font-size: 14px;
+  }
+
+  .stat-info h4 {
+    font-size: 9px;
+  }
+
+  .stat-info p {
+    font-size: 15px;
+  }
+}
+
+/* Button spacing on mobile */
+@media (max-width: 768px) {
+  .btn + .btn {
+    margin-left: 0;
+    margin-top: 8px;
+  }
+
+  .page-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .page-actions .btn {
+    width: 100%;
+  }
+}
+
+/* Modal/Dialog fit screen */
+@media (max-width: 768px) {
+  .modal,
+  .dialog {
+    width: calc(100% - 32px);
+    max-width: none;
+    margin: 16px;
+  }
+}
