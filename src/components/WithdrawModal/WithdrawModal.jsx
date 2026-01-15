@@ -13,10 +13,13 @@ export default function WithdrawModal({ isOpen, onClose }) {
 
   const [amount, setAmount] = useState('')
   const [bankDetails, setBankDetails] = useState({
-    accountName: '',
+    bankName: '',
+    accountHolderName: '',
     bsb: '',
     accountNumber: '',
+    payId: '',
   })
+  const [usePayId, setUsePayId] = useState(false)
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState('amount') // 'amount', 'processing', 'success'
 
@@ -37,8 +40,8 @@ export default function WithdrawModal({ isOpen, onClose }) {
   const handleWithdraw = async () => {
     const withdrawAmount = parseFloat(amount)
 
-    if (!withdrawAmount || withdrawAmount < 20) {
-      showToast('Minimum withdrawal is $20', 'error')
+    if (!withdrawAmount || withdrawAmount < 10) {
+      showToast('Minimum withdrawal is $10', 'error')
       return
     }
 
@@ -47,8 +50,17 @@ export default function WithdrawModal({ isOpen, onClose }) {
       return
     }
 
-    if (!bankDetails.accountName || !bankDetails.bsb || !bankDetails.accountNumber) {
-      showToast('Please fill in all bank details', 'error')
+    // Validate bank details - either BSB + Account Number OR PayID required
+    const hasBankAccount = bankDetails.bsb && bankDetails.accountNumber
+    const hasPayId = bankDetails.payId
+
+    if (!hasBankAccount && !hasPayId) {
+      showToast('Please provide bank details (BSB + Account Number) or PayID', 'error')
+      return
+    }
+
+    if (!bankDetails.accountHolderName) {
+      showToast('Please enter the account holder name', 'error')
       return
     }
 
@@ -57,10 +69,11 @@ export default function WithdrawModal({ isOpen, onClose }) {
 
     // Create pending withdrawal request for admin approval
     const result = await walletService.requestWithdrawal(withdrawAmount, 'Bank Transfer', {
-      bank: 'Bank Transfer',
-      accountName: bankDetails.accountName,
-      accountNumber: bankDetails.accountNumber,
-      bsb: bankDetails.bsb
+      bankName: bankDetails.bankName || 'Bank Transfer',
+      accountHolderName: bankDetails.accountHolderName,
+      accountNumber: bankDetails.accountNumber || undefined,
+      bsb: bankDetails.bsb?.replace('-', '') || undefined,
+      payId: bankDetails.payId || undefined
     })
 
     if (result.success) {
@@ -78,7 +91,8 @@ export default function WithdrawModal({ isOpen, onClose }) {
   const handleClose = () => {
     setAmount('')
     setStep('amount')
-    setBankDetails({ accountName: '', bsb: '', accountNumber: '' })
+    setBankDetails({ bankName: '', accountHolderName: '', bsb: '', accountNumber: '', payId: '' })
+    setUsePayId(false)
     onClose()
   }
 
@@ -134,13 +148,13 @@ export default function WithdrawModal({ isOpen, onClose }) {
               <span className="balance-value">${balance.toFixed(2)}</span>
             </div>
 
-            {balance < 20 && (
+            {balance < 10 && (
               <div className="balance-warning">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="10"/>
                   <path d="M12 8v4M12 16h.01"/>
                 </svg>
-                <span>Minimum withdrawal is $20. Your balance is too low.</span>
+                <span>Minimum withdrawal is $10. Your balance is too low.</span>
               </div>
             )}
 
@@ -153,7 +167,7 @@ export default function WithdrawModal({ isOpen, onClose }) {
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="0.00"
-                  min="20"
+                  min="10"
                   max={balance}
                 />
               </div>
@@ -181,25 +195,79 @@ export default function WithdrawModal({ isOpen, onClose }) {
               <input
                 type="text"
                 className="bank-input"
-                placeholder="Account Name"
-                value={bankDetails.accountName}
-                onChange={(e) => setBankDetails({ ...bankDetails, accountName: e.target.value })}
+                placeholder="Account Holder Name *"
+                value={bankDetails.accountHolderName}
+                onChange={(e) => setBankDetails({ ...bankDetails, accountHolderName: e.target.value })}
               />
               <input
                 type="text"
                 className="bank-input"
-                placeholder="BSB (e.g., 123-456)"
-                value={bankDetails.bsb}
-                onChange={(e) => setBankDetails({ ...bankDetails, bsb: e.target.value })}
-                maxLength={7}
+                placeholder="Bank Name (e.g., Commonwealth Bank)"
+                value={bankDetails.bankName}
+                onChange={(e) => setBankDetails({ ...bankDetails, bankName: e.target.value })}
               />
-              <input
-                type="text"
-                className="bank-input"
-                placeholder="Account Number"
-                value={bankDetails.accountNumber}
-                onChange={(e) => setBankDetails({ ...bankDetails, accountNumber: e.target.value })}
-              />
+
+              <div className="payment-method-toggle" style={{ display: 'flex', gap: '10px', margin: '10px 0' }}>
+                <button
+                  type="button"
+                  className={`toggle-btn ${!usePayId ? 'active' : ''}`}
+                  onClick={() => setUsePayId(false)}
+                  style={{
+                    padding: '8px 16px',
+                    border: '1px solid #ddd',
+                    borderRadius: '6px',
+                    background: !usePayId ? '#10b981' : '#fff',
+                    color: !usePayId ? '#fff' : '#666',
+                    cursor: 'pointer'
+                  }}
+                >
+                  BSB + Account
+                </button>
+                <button
+                  type="button"
+                  className={`toggle-btn ${usePayId ? 'active' : ''}`}
+                  onClick={() => setUsePayId(true)}
+                  style={{
+                    padding: '8px 16px',
+                    border: '1px solid #ddd',
+                    borderRadius: '6px',
+                    background: usePayId ? '#10b981' : '#fff',
+                    color: usePayId ? '#fff' : '#666',
+                    cursor: 'pointer'
+                  }}
+                >
+                  PayID
+                </button>
+              </div>
+
+              {!usePayId ? (
+                <>
+                  <input
+                    type="text"
+                    className="bank-input"
+                    placeholder="BSB (6 digits, e.g., 062000) *"
+                    value={bankDetails.bsb}
+                    onChange={(e) => setBankDetails({ ...bankDetails, bsb: e.target.value.replace(/[^0-9-]/g, '') })}
+                    maxLength={7}
+                  />
+                  <input
+                    type="text"
+                    className="bank-input"
+                    placeholder="Account Number (6-10 digits) *"
+                    value={bankDetails.accountNumber}
+                    onChange={(e) => setBankDetails({ ...bankDetails, accountNumber: e.target.value.replace(/[^0-9]/g, '') })}
+                    maxLength={10}
+                  />
+                </>
+              ) : (
+                <input
+                  type="text"
+                  className="bank-input"
+                  placeholder="PayID (email or phone) *"
+                  value={bankDetails.payId}
+                  onChange={(e) => setBankDetails({ ...bankDetails, payId: e.target.value })}
+                />
+              )}
             </div>
 
             <div className="withdraw-summary">
@@ -220,13 +288,13 @@ export default function WithdrawModal({ isOpen, onClose }) {
             <button
               className="withdraw-submit-btn"
               onClick={handleWithdraw}
-              disabled={loading || !amount || parseFloat(amount) < 20 || parseFloat(amount) > balance}
+              disabled={loading || !amount || parseFloat(amount) < 10 || parseFloat(amount) > balance}
             >
               {loading ? <ButtonSpinner /> : `Withdraw $${parseFloat(amount || 0).toFixed(2)}`}
             </button>
 
             <p className="withdraw-note">
-              Minimum withdrawal $20. Withdrawals require admin approval.
+              Min $10, Max $50,000. Withdrawals require admin approval.
             </p>
           </>
         )}

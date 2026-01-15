@@ -140,16 +140,31 @@ export default function Signup() {
 
       const { accountId, userId } = registerResult
 
-      // 2. Create wallet for the account
-      const walletResult = await walletService.createWallet(accountId)
-      if (!walletResult.success) {
-        console.warn('Wallet creation failed:', walletResult.error)
+      // 2. Create wallet for the account (non-blocking - continue even if it fails)
+      let walletId = null
+      try {
+        const walletResult = await walletService.createWallet(accountId)
+        if (walletResult.success) {
+          walletId = walletResult.walletId
+        } else {
+          console.warn('Wallet creation failed:', walletResult.error)
+        }
+      } catch (walletError) {
+        console.warn('Wallet service error:', walletError)
       }
-      const walletId = walletResult.walletId
+      // Generate local walletId if API failed
+      if (!walletId) {
+        walletId = `WLT-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
+      }
 
-      // 3. Get wallet balance
-      const balanceResult = await walletService.getBalance(accountId)
-      const balance = balanceResult.success ? balanceResult.balance : 0
+      // 3. Get wallet balance (non-blocking)
+      let balance = 0
+      try {
+        const balanceResult = await walletService.getBalance(accountId)
+        balance = balanceResult.success ? balanceResult.balance : 0
+      } catch (balanceError) {
+        console.warn('Balance fetch error:', balanceError)
+      }
 
       // 4. Store user data and login
       const userData = {

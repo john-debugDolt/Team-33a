@@ -80,9 +80,14 @@ export default function DepositModal({ isOpen, onClose }) {
       paymentMethod: 'Bank Transfer',
       bankAccountNumber: bankDetails?.accountNumber,
       bankBSB: bankDetails?.bsb,
+      bankId: bankDetails?.id, // Include bank ID for tracking
     })
 
     if (result.success) {
+      // Increment bank usage for rotation
+      if (bankDetails?.id) {
+        bankService.incrementBankUsage(bankDetails.id)
+      }
       setStep('success')
       showToast(result.message || 'Deposit request submitted! Awaiting admin approval.', 'success')
       notifyTransactionUpdate() // Refresh transaction history

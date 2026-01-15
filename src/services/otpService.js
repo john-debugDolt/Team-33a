@@ -4,7 +4,7 @@ const API_KEY = 'team33-admin-secret-key-change-in-prod';
 
 // Dev bypass - use code "000000" to skip OTP
 const DEV_BYPASS_CODE = '000000';
-const BYPASS_ENABLED = true; // Set to false to use real OTP API
+const BYPASS_ENABLED = false; // Set to true for dev bypass with code "000000"
 
 class OTPService {
   constructor() {

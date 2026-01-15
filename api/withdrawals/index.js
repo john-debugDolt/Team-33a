@@ -1,14 +1,11 @@
-// Vercel Serverless Function - Wallets API (with path)
-// Access through accounts microservice, NOT wallet service directly
+// Vercel Serverless Function - Withdrawals API (root endpoint)
 const BACKEND_URL = 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com';
 
 export default async function handler(req, res) {
-  const { path } = req.query;
-  const apiPath = Array.isArray(path) ? path.join('/') : path || '';
   const queryString = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
-  const targetUrl = `${BACKEND_URL}/api/wallets/${apiPath}${queryString}`;
+  const targetUrl = `${BACKEND_URL}/api/withdrawals${queryString}`;
 
-  console.log(`[Wallets] ${req.method} -> ${targetUrl}`);
+  console.log(`[Withdrawals] ${req.method} -> ${targetUrl}`);
 
   try {
     const options = {
@@ -18,6 +15,11 @@ export default async function handler(req, res) {
         'Accept': 'application/json',
       },
     };
+
+    // Forward authorization header if present
+    if (req.headers.authorization) {
+      options.headers['Authorization'] = req.headers.authorization;
+    }
 
     if (['POST', 'PUT', 'PATCH'].includes(req.method) && req.body) {
       options.body = JSON.stringify(req.body);
@@ -34,7 +36,7 @@ export default async function handler(req, res) {
       return res.status(response.status).send(text);
     }
   } catch (error) {
-    console.error('[Wallets] Error:', error.message);
+    console.error('[Withdrawals] Error:', error.message);
     return res.status(500).json({ success: false, error: 'Backend connection failed' });
   }
 }

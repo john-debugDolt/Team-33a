@@ -1,5 +1,6 @@
 // Vercel Serverless Function - Wallets API (root endpoint)
-const BACKEND_URL = 'http://k8s-team33-walletse-2b6bcd93c2-52fa21111cb7a7e7.elb.ap-southeast-2.amazonaws.com';
+// Access through accounts microservice, NOT wallet service directly
+const BACKEND_URL = 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com';
 
 export default async function handler(req, res) {
   const queryString = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';

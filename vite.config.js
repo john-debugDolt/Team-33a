@@ -45,9 +45,27 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
-      // Proxy Wallet API to wallet service (different server!)
+      // Proxy Withdrawals API to external server
+      '/api/withdrawals': {
+        target: 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
+        changeOrigin: true,
+        secure: false,
+      },
+      // Proxy Admin Withdrawals API to external server
+      '/api/admin/withdrawals': {
+        target: 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
+        changeOrigin: true,
+        secure: false,
+      },
+      // Proxy Wallet API through accounts microservice (NOT wallet service directly)
       '/api/wallets': {
-        target: 'http://k8s-team33-walletse-2b6bcd93c2-52fa21111cb7a7e7.elb.ap-southeast-2.amazonaws.com',
+        target: 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
+        changeOrigin: true,
+        secure: false,
+      },
+      // Proxy Banks API to external server
+      '/api/banks': {
+        target: 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
         changeOrigin: true,
         secure: false,
       },

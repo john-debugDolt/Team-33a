@@ -1,7 +1,47 @@
-// Bank Service - Fetch bank details for deposits
+// Bank Service - Fetch bank details for deposits with rotation logic
+
+const ROTATION_THRESHOLD = 3; // Switch bank after 3 deposits
+const ROTATION_KEY = 'team33_bank_rotation';
 
 export const bankService = {
-  // Get all available banks for deposits
+  // Get rotation data from localStorage
+  getRotationData() {
+    try {
+      const data = localStorage.getItem(ROTATION_KEY);
+      if (data) {
+        const parsed = JSON.parse(data);
+        // Reset if data is older than 24 hours
+        if (Date.now() - parsed.timestamp > 24 * 60 * 60 * 1000) {
+          return { counts: {}, timestamp: Date.now() };
+        }
+        return parsed;
+      }
+    } catch (e) {
+      console.error('Failed to parse rotation data:', e);
+    }
+    return { counts: {}, timestamp: Date.now() };
+  },
+
+  // Save rotation data to localStorage
+  saveRotationData(data) {
+    try {
+      localStorage.setItem(ROTATION_KEY, JSON.stringify({
+        ...data,
+        timestamp: Date.now()
+      }));
+    } catch (e) {
+      console.error('Failed to save rotation data:', e);
+    }
+  },
+
+  // Increment bank usage count
+  incrementBankUsage(bankId) {
+    const data = this.getRotationData();
+    data.counts[bankId] = (data.counts[bankId] || 0) + 1;
+    this.saveRotationData(data);
+  },
+
+  // Get all available banks for deposits with smart rotation
   async getAvailableBanks() {
     try {
       const response = await fetch('/api/banks', {
@@ -18,16 +58,53 @@ export const bankService = {
 
       const data = await response.json();
 
-      // Filter to only active banks and sort by lowest transaction amount
+      // Filter to only active banks
       const activeBanks = Array.isArray(data)
         ? data.filter(bank => bank.status === 'ACTIVE')
         : [];
 
+      if (activeBanks.length === 0) {
+        return {
+          success: true,
+          banks: [],
+          recommendedBank: null,
+        };
+      }
+
+      // Get rotation data
+      const rotationData = this.getRotationData();
+
+      // Sort banks by:
+      // 1. First, by local usage count (fewer uses = higher priority)
+      // 2. Then by totalTransactedAmount (lower = higher priority)
+      const sortedBanks = activeBanks.sort((a, b) => {
+        const countA = rotationData.counts[a.id] || 0;
+        const countB = rotationData.counts[b.id] || 0;
+
+        // If one bank has reached threshold and other hasn't, prefer the other
+        if (countA >= ROTATION_THRESHOLD && countB < ROTATION_THRESHOLD) return 1;
+        if (countB >= ROTATION_THRESHOLD && countA < ROTATION_THRESHOLD) return -1;
+
+        // If both under or over threshold, sort by total transacted amount
+        const amountA = a.totalTransactedAmount || 0;
+        const amountB = b.totalTransactedAmount || 0;
+        return amountA - amountB;
+      });
+
+      // Select the recommended bank (first in sorted list)
+      const recommendedBank = sortedBanks[0];
+
+      console.log('[BankService] Bank rotation:', {
+        rotationCounts: rotationData.counts,
+        selectedBank: recommendedBank?.bankName,
+        selectedBankCount: rotationData.counts[recommendedBank?.id] || 0,
+        threshold: ROTATION_THRESHOLD
+      });
+
       return {
         success: true,
-        banks: activeBanks,
-        // Return the first bank as the recommended one (lowest transaction amount)
-        recommendedBank: activeBanks[0] || null,
+        banks: sortedBanks,
+        recommendedBank: recommendedBank || null,
       };
     } catch (error) {
       console.error('Bank service error:', error);

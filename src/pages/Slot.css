@@ -552,6 +552,50 @@
   height: 14px;
 }
 
+/* Mobile Floating Exit Button */
+.mobile-exit-btn {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 14px 32px;
+  background: rgba(239, 68, 68, 0.95);
+  backdrop-filter: blur(8px);
+  border: none;
+  border-radius: 50px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.5);
+  transition: all 0.2s;
+}
+
+.mobile-exit-btn:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+@media (max-width: 768px) {
+  .mobile-exit-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .mobile-exit-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Hide the header exit button on mobile since we have floating one */
+  .game-player-exit {
+    display: none;
+  }
+}
+
 /* Game Frame - FULLSCREEN */
 .game-player-frame {
   width: 100%;

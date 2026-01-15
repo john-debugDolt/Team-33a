@@ -52,6 +52,14 @@ export default function Wallet() {
   const loadWalletData = useCallback(async () => {
     if (!isAuthenticated) return
 
+    // Sync balance from API/localStorage
+    if (user?.accountId) {
+      const balanceResult = await walletService.getBalance(user.accountId)
+      if (balanceResult.success && balanceResult.balance !== undefined) {
+        updateBalance(balanceResult.balance)
+      }
+    }
+
     // Load transactions
     const txResult = await walletService.getTransactions({ limit: 5 })
     if (txResult.success) {
@@ -71,7 +79,7 @@ export default function Wallet() {
         lastCheckIn: data.lastCheckIn,
       })
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, user?.accountId, updateBalance])
 
   // Load wallet data on mount
   useEffect(() => {

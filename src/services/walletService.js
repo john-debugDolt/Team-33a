@@ -759,54 +759,97 @@ export const walletService = {
     }
 
     const withdrawAmount = Number(amount);
-    if (withdrawAmount < 20) {
-      return { success: false, error: 'Minimum withdrawal is $20' };
+    if (withdrawAmount < 10) {
+      return { success: false, error: 'Minimum withdrawal is $10' };
+    }
+    if (withdrawAmount > 50000) {
+      return { success: false, error: 'Maximum withdrawal is $50,000' };
     }
 
-    // Check current balance
-    const balanceResult = await this.getBalance(accountId);
-    if (!balanceResult.success) {
-      return { success: false, error: 'Could not verify balance' };
+    // Validate bank details - either BSB + Account Number OR PayID required
+    const hasBankAccount = bankDetails.bsb && bankDetails.accountNumber;
+    const hasPayId = bankDetails.payId;
+
+    if (!hasBankAccount && !hasPayId) {
+      return { success: false, error: 'Please provide bank account details (BSB + Account Number) or PayID' };
     }
 
-    const currentBalance = balanceResult.balance || 0;
-    if (currentBalance < withdrawAmount) {
+    try {
+      // Call the withdrawal API
+      const response = await fetch('/api/withdrawals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          accountId: accountId,
+          amount: withdrawAmount,
+          bankName: bankDetails.bankName || bankDetails.bank || 'Bank Transfer',
+          accountHolderName: bankDetails.accountHolderName || bankDetails.accountName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+          bsb: bankDetails.bsb || undefined,
+          accountNumber: bankDetails.accountNumber || undefined,
+          payId: bankDetails.payId || undefined
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        return {
+          success: true,
+          withdrawId: data.withdrawId,
+          status: data.status,
+          balanceBefore: data.balanceBefore,
+          balanceAfter: data.balanceAfter,
+          message: data.message || 'Withdrawal request submitted. Awaiting admin approval.'
+        };
+      }
+
+      // Handle specific errors
+      if (data.message?.includes('Insufficient balance')) {
+        return {
+          success: false,
+          error: data.message,
+          currentBalance: parseFloat(data.message.match(/Available: ([\d.]+)/)?.[1] || 0)
+        };
+      }
+
       return {
         success: false,
-        error: `Insufficient funds. Current balance: $${currentBalance.toFixed(2)}`,
-        currentBalance,
-        requestedAmount: withdrawAmount
+        error: data.message || 'Withdrawal request failed'
+      };
+
+    } catch (error) {
+      console.error('Withdrawal API error:', error);
+
+      // Fallback to localStorage if API fails
+      const transaction = {
+        id: generateTransactionId(),
+        accountId: accountId,
+        username: user.firstName ? `${user.firstName} ${user.lastName}` : user.username || accountId,
+        phone: user.phoneNumber || user.phone || '',
+        type: 'WITHDRAWAL',
+        amount: withdrawAmount,
+        bank: bankDetails.bankName || bankDetails.bank || 'N/A',
+        bankAccount: bankDetails.accountNumber || '',
+        bankName: bankDetails.accountHolderName || bankDetails.accountName || '',
+        bsb: bankDetails.bsb || '',
+        payId: bankDetails.payId || '',
+        paymentMethod: paymentMethod,
+        status: 'PENDING',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        notes: bankDetails.notes || ''
+      };
+
+      const pending = getPendingTransactions();
+      pending.unshift(transaction);
+      savePendingTransactions(pending);
+
+      return {
+        success: true,
+        transaction,
+        message: 'Withdrawal request submitted (offline mode). Awaiting admin approval.'
       };
     }
-
-    const transaction = {
-      id: generateTransactionId(),
-      accountId: accountId,
-      username: user.firstName ? `${user.firstName} ${user.lastName}` : user.username || accountId,
-      phone: user.phoneNumber || user.phone || '',
-      type: 'WITHDRAWAL',
-      amount: withdrawAmount,
-      bank: bankDetails.bank || 'N/A',
-      bankAccount: bankDetails.accountNumber || '',
-      bankName: bankDetails.accountName || '',
-      bsb: bankDetails.bsb || '',
-      paymentMethod: paymentMethod,
-      status: 'PENDING',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      notes: bankDetails.notes || ''
-    };
-
-    // Save to pending transactions
-    const pending = getPendingTransactions();
-    pending.unshift(transaction);
-    savePendingTransactions(pending);
-
-    return {
-      success: true,
-      transaction,
-      message: 'Withdrawal request submitted. Awaiting admin approval.'
-    };
   },
 
   // Get user's pending transactions

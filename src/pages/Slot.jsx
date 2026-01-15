@@ -137,6 +137,33 @@ export default function Slot() {
     return () => window.removeEventListener('message', handleGameMessage)
   }, [embeddedGame, user?.accountId, updateBalance, notifyTransactionUpdate])
 
+  // Poll balance from API while game is running (every 10 seconds)
+  useEffect(() => {
+    if (!embeddedGame || !user?.accountId) return
+
+    const pollBalance = async () => {
+      try {
+        const result = await walletService.getBalance(user.accountId)
+        if (result.success && result.balance !== undefined) {
+          // Only update if balance changed
+          if (result.balance !== user?.balance) {
+            updateBalance(result.balance)
+          }
+        }
+      } catch (error) {
+        console.error('Balance poll error:', error)
+      }
+    }
+
+    // Poll immediately when game starts
+    pollBalance()
+
+    // Then poll every 10 seconds
+    const interval = setInterval(pollBalance, 10000)
+
+    return () => clearInterval(interval)
+  }, [embeddedGame, user?.accountId, user?.balance, updateBalance])
+
   // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -197,6 +224,24 @@ export default function Slot() {
 
   const handleGameClick = (game) => {
     setSelectedGame(game)
+  }
+
+  // Close game and sync balance from API
+  const closeGame = async () => {
+    // Sync balance from API before closing
+    if (user?.accountId) {
+      try {
+        const result = await walletService.getBalance(user.accountId)
+        if (result.success && result.balance !== undefined) {
+          updateBalance(result.balance)
+        }
+      } catch (error) {
+        console.error('Balance sync error on close:', error)
+      }
+    }
+    setEmbeddedGame(null)
+    setShowExitConfirm(false)
+    notifyTransactionUpdate()
   }
 
   const handlePlayNow = async (game, e) => {
@@ -440,9 +485,8 @@ export default function Slot() {
                 </div>
                 <button
                   className="game-player-deposit"
-                  onClick={() => {
-                    setEmbeddedGame(null)
-                    setShowExitConfirm(false)
+                  onClick={async () => {
+                    await closeGame()
                     navigate('/wallet')
                   }}
                 >
@@ -480,6 +524,19 @@ export default function Slot() {
               />
             </div>
 
+            {/* Mobile Floating Exit Button */}
+            <button
+              className="mobile-exit-btn"
+              onClick={() => setShowExitConfirm(true)}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              EXIT GAME
+            </button>
+
             {/* Exit Confirmation Dialog */}
             {showExitConfirm && (
               <div className="exit-confirm-overlay">
@@ -495,10 +552,7 @@ export default function Slot() {
                   <div className="exit-confirm-buttons">
                     <button
                       className="exit-btn-yes"
-                      onClick={() => {
-                        setEmbeddedGame(null)
-                        setShowExitConfirm(false)
-                      }}
+                      onClick={closeGame}
                     >
                       Yes, Exit
                     </button>
