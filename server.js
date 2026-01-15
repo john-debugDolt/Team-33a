@@ -26,13 +26,17 @@ app.use('/api', createProxyMiddleware({
 // Serve static files
 app.use(express.static(join(__dirname, 'dist')));
 
-// SPA fallback
-app.get('*', (req, res) => {
-  if (req.path.startsWith('/admin')) {
-    res.sendFile(join(__dirname, 'dist', 'admin.html'));
-  } else {
-    res.sendFile(join(__dirname, 'dist', 'index.html'));
-  }
+// Admin panel routes
+app.get('/admin', (req, res) => {
+  res.sendFile(join(__dirname, 'dist', 'admin.html'));
+});
+app.get('/admin/(.*)', (req, res) => {
+  res.sendFile(join(__dirname, 'dist', 'admin.html'));
+});
+
+// SPA fallback - catch all other routes
+app.use((req, res) => {
+  res.sendFile(join(__dirname, 'dist', 'index.html'));
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
