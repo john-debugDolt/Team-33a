@@ -2,6 +2,27 @@
 const API_KEY = 'team33-admin-secret-key-2024';
 const LOCAL_ACCOUNTS_KEY = 'team33_local_accounts';
 
+// Format phone number to international format (Australian +61)
+const formatPhoneNumber = (phone) => {
+  if (!phone) return phone;
+  let cleaned = phone.replace(/\s+/g, '').replace(/-/g, '');
+
+  // Already in international format
+  if (cleaned.startsWith('+')) return cleaned;
+
+  // Convert Australian format (0XXX) to +61XXX
+  if (cleaned.startsWith('0')) {
+    return '+61' + cleaned.substring(1);
+  }
+
+  // If just digits without 0, assume needs +61
+  if (/^\d+$/.test(cleaned) && cleaned.length >= 9) {
+    return '+61' + cleaned;
+  }
+
+  return cleaned;
+};
+
 // Generate unique Account ID (ACC-XXXXXX format)
 const generateAccountId = () => {
   const timestamp = Date.now().toString(36).toUpperCase();
@@ -167,15 +188,19 @@ class AccountService {
 
   // Get account by phone (for login)
   async getAccountByPhone(phoneNumber) {
-    // Check local accounts first
-    const localAccount = this.findLocalAccountByPhone(phoneNumber);
+    // Format phone to international format
+    const formattedPhone = formatPhoneNumber(phoneNumber);
+
+    // Check local accounts first (try both formats)
+    const localAccount = this.findLocalAccountByPhone(formattedPhone) ||
+                         this.findLocalAccountByPhone(phoneNumber);
     if (localAccount) {
       return { success: true, account: localAccount, isLocal: true };
     }
 
     // Try external API
     try {
-      const response = await fetch(`/api/accounts/phone/${encodeURIComponent(phoneNumber)}`, {
+      const response = await fetch(`/api/accounts/phone/${encodeURIComponent(formattedPhone)}`, {
         method: 'GET',
         headers: this.headers,
       });
@@ -193,8 +218,12 @@ class AccountService {
 
   // Login with phone and password
   async loginWithPhone(phoneNumber, password) {
-    // Check local accounts first
-    const localAccount = this.findLocalAccountByPhone(phoneNumber);
+    // Format phone to international format
+    const formattedPhone = formatPhoneNumber(phoneNumber);
+
+    // Check local accounts first (try both formats)
+    const localAccount = this.findLocalAccountByPhone(formattedPhone) ||
+                         this.findLocalAccountByPhone(phoneNumber);
     if (localAccount) {
       if (localAccount.password === password) {
         return {
@@ -209,7 +238,7 @@ class AccountService {
 
     // Try external API - check if account exists by phone
     try {
-      const encodedPhone = encodeURIComponent(phoneNumber);
+      const encodedPhone = encodeURIComponent(formattedPhone);
       const response = await fetch(`/api/accounts/phone/${encodedPhone}`, {
         method: 'GET',
         headers: this.headers,
