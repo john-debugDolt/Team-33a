@@ -309,7 +309,7 @@ export const transactionService = {
 
   /**
    * Approve a deposit transaction
-   * Uses: PUT /api/admin/deposits/{requestId}/approve
+   * Uses: POST /api/admin/deposits/{requestId}/approve
    * Backend automatically credits the user's wallet balance
    * @param {string} transactionId - Deposit ID to approve
    * @param {string} adminNotes - Optional admin notes
@@ -336,7 +336,7 @@ export const transactionService = {
 
         // Call approve API - backend handles wallet credit internally
         const response = await fetch(`/api/admin/deposits/${transactionId}/approve`, {
-          method: 'PUT',
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'X-API-Key': API_KEY
@@ -421,7 +421,7 @@ export const transactionService = {
 
   /**
    * Reject a transaction
-   * Uses: PUT /api/admin/deposits/{requestId}/reject
+   * Uses: POST /api/admin/deposits/{requestId}/reject
    * @param {string} transactionId - Transaction ID to reject
    * @param {string} reason - Rejection reason
    * @returns {Promise<Object>} - Result
@@ -431,7 +431,7 @@ export const transactionService = {
     if (transactionId.startsWith('DEP')) {
       try {
         const response = await fetch(`/api/admin/deposits/${transactionId}/reject`, {
-          method: 'PUT',
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'X-API-Key': API_KEY
