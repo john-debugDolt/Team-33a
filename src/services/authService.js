@@ -1,35 +1,7 @@
 import { apiClient, STORAGE_KEYS, getStoredData, setStoredData, removeStoredData } from './api';
 
-// Demo account for testing
-const DEMO_ACCOUNT = {
-  username: 'demo',
-  password: 'demo123',
-  user: {
-    id: 'demo-user-001',
-    username: 'demo',
-    email: 'demo@team33.com',
-    phone: '+1234567890',
-    balance: 1000,
-    availableBalance: 1000,
-    pendingBalance: 0,
-    createdAt: new Date().toISOString()
-  }
-};
-
 export const authService = {
   async login(username, password) {
-    // Check for demo account first
-    if (username === DEMO_ACCOUNT.username && password === DEMO_ACCOUNT.password) {
-      const demoToken = 'demo-token-' + Date.now();
-      setStoredData(STORAGE_KEYS.USER, DEMO_ACCOUNT.user);
-      setStoredData(STORAGE_KEYS.TOKEN, demoToken);
-      return {
-        success: true,
-        data: { user: DEMO_ACCOUNT.user, token: demoToken },
-        message: 'Login successful'
-      };
-    }
-
     const response = await apiClient.post('/auth/login', { username, password });
 
     if (response.success && response.data) {
@@ -75,14 +47,6 @@ export const authService = {
     const token = getStoredData(STORAGE_KEYS.TOKEN);
     if (!token) {
       return { success: false, data: null, message: 'Not authenticated' };
-    }
-
-    // Handle demo account session
-    if (token.startsWith('demo-token-')) {
-      const storedUser = getStoredData(STORAGE_KEYS.USER);
-      if (storedUser) {
-        return { success: true, data: { user: storedUser, token } };
-      }
     }
 
     const response = await apiClient.get('/auth/me');

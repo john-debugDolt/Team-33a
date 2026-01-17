@@ -1,30 +1,67 @@
-import { useState } from 'react';
-import { FiSearch, FiSave, FiRefreshCw } from 'react-icons/fi';
+import { useState, useEffect } from 'react';
+import { FiSave, FiRefreshCw, FiAlertCircle, FiCheck, FiInbox } from 'react-icons/fi';
+
+const REBATE_SETTINGS_KEY = 'team33_rebate_settings';
+
+const defaultSettings = {
+  slotRebate: 0.5,
+  liveRebate: 0.3,
+  sportsRebate: 0.4,
+  minBet: 100,
+  maxRebate: 10000
+};
 
 const Rebate = () => {
-  const [settings, setSettings] = useState({
-    slotRebate: 0.5,
-    liveRebate: 0.3,
-    sportsRebate: 0.4,
-    minBet: 100,
-    maxRebate: 10000
-  });
+  const [settings, setSettings] = useState(defaultSettings);
+  const [saved, setSaved] = useState(false);
 
-  const rebateHistory = [
-    { id: 1, user: 'player001', game: 'Slot Games', turnover: '฿50,000', rebate: '฿250', date: '2024-01-15', status: 'Paid' },
-    { id: 2, user: 'player002', game: 'Live Casino', turnover: '฿100,000', rebate: '฿300', date: '2024-01-15', status: 'Paid' },
-    { id: 3, user: 'player003', game: 'Sports', turnover: '฿30,000', rebate: '฿120', date: '2024-01-15', status: 'Pending' },
-    { id: 4, user: 'player004', game: 'Slot Games', turnover: '฿200,000', rebate: '฿1,000', date: '2024-01-14', status: 'Paid' },
-    { id: 5, user: 'player005', game: 'Live Casino', turnover: '฿80,000', rebate: '฿240', date: '2024-01-14', status: 'Paid' },
-  ];
+  // Load settings from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(REBATE_SETTINGS_KEY);
+      if (stored) {
+        setSettings({ ...defaultSettings, ...JSON.parse(stored) });
+      }
+    } catch (e) {
+      console.error('Error loading rebate settings:', e);
+    }
+  }, []);
+
+  // Save settings
+  const handleSave = () => {
+    try {
+      localStorage.setItem(REBATE_SETTINGS_KEY, JSON.stringify(settings));
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (e) {
+      alert('Failed to save settings');
+    }
+  };
 
   return (
     <div className="rebate-page">
       <div className="page-header">
         <h1 className="page-title">Rebate Management</h1>
-        <button className="btn btn-primary">
-          <FiRefreshCw /> Calculate Rebates
+        <button className="btn btn-primary" onClick={handleSave}>
+          {saved ? <><FiCheck /> Saved!</> : <><FiSave /> Save Settings</>}
         </button>
+      </div>
+
+      {/* Notice Banner */}
+      <div style={{
+        padding: '12px 16px',
+        background: '#fef3c7',
+        border: '1px solid #fcd34d',
+        borderRadius: '8px',
+        marginBottom: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        color: '#92400e',
+        fontSize: '13px'
+      }}>
+        <FiAlertCircle />
+        <span>Rebate calculations require backend API integration. Settings are stored locally.</span>
       </div>
 
       {/* Rebate Settings */}
@@ -36,57 +73,60 @@ const Rebate = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
             <div className="form-group">
               <label className="form-label">Slot Games Rebate (%)</label>
-            <input
-              type="number"
-              className="form-input"
-              value={settings.slotRebate}
-              onChange={(e) => setSettings({ ...settings, slotRebate: e.target.value })}
-              step="0.1"
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Live Casino Rebate (%)</label>
-            <input
-              type="number"
-              className="form-input"
-              value={settings.liveRebate}
-              onChange={(e) => setSettings({ ...settings, liveRebate: e.target.value })}
-              step="0.1"
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Sports Rebate (%)</label>
-            <input
-              type="number"
-              className="form-input"
-              value={settings.sportsRebate}
-              onChange={(e) => setSettings({ ...settings, sportsRebate: e.target.value })}
-              step="0.1"
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Minimum Bet (฿)</label>
-            <input
-              type="number"
-              className="form-input"
-              value={settings.minBet}
-              onChange={(e) => setSettings({ ...settings, minBet: e.target.value })}
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Max Rebate per Day (฿)</label>
-            <input
-              type="number"
-              className="form-input"
-              value={settings.maxRebate}
-              onChange={(e) => setSettings({ ...settings, maxRebate: e.target.value })}
-            />
-          </div>
-          </div>
-          <div style={{ marginTop: '20px' }}>
-            <button className="btn btn-primary">
-              <FiSave /> Save Settings
-            </button>
+              <input
+                type="number"
+                className="form-input"
+                value={settings.slotRebate}
+                onChange={(e) => setSettings({ ...settings, slotRebate: Number(e.target.value) })}
+                step="0.1"
+                min="0"
+                max="100"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Live Casino Rebate (%)</label>
+              <input
+                type="number"
+                className="form-input"
+                value={settings.liveRebate}
+                onChange={(e) => setSettings({ ...settings, liveRebate: Number(e.target.value) })}
+                step="0.1"
+                min="0"
+                max="100"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Sports Rebate (%)</label>
+              <input
+                type="number"
+                className="form-input"
+                value={settings.sportsRebate}
+                onChange={(e) => setSettings({ ...settings, sportsRebate: Number(e.target.value) })}
+                step="0.1"
+                min="0"
+                max="100"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Minimum Bet ($)</label>
+              <input
+                type="number"
+                className="form-input"
+                value={settings.minBet}
+                onChange={(e) => setSettings({ ...settings, minBet: Number(e.target.value) })}
+                min="0"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Max Rebate per Day ($)</label>
+              <input
+                type="number"
+                className="form-input"
+                value={settings.maxRebate}
+                onChange={(e) => setSettings({ ...settings, maxRebate: Number(e.target.value) })}
+                min="0"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -95,10 +135,9 @@ const Rebate = () => {
       <div className="card">
         <div className="card-header">
           <h3 className="card-title">Rebate History</h3>
-          <div className="search-box" style={{ width: '250px' }}>
-            <FiSearch className="search-icon" />
-            <input type="text" placeholder="Search user..." />
-          </div>
+          <button className="btn btn-secondary btn-sm" disabled>
+            <FiRefreshCw /> Refresh
+          </button>
         </div>
         <div className="table-wrapper">
           <table className="data-table">
@@ -113,23 +152,14 @@ const Rebate = () => {
                 <th>Status</th>
               </tr>
             </thead>
-          <tbody>
-            {rebateHistory.map((item) => (
-              <tr key={item.id}>
-                <td>{item.id}</td>
-                <td style={{ fontWeight: 600 }}>{item.user}</td>
-                <td>{item.game}</td>
-                <td>{item.turnover}</td>
-                <td style={{ fontWeight: 600, color: '#16a34a' }}>{item.rebate}</td>
-                <td>{item.date}</td>
-                <td>
-                  <span className={`badge ${item.status === 'Paid' ? 'badge-success' : 'badge-warning'}`}>
-                    {item.status}
-                  </span>
+            <tbody>
+              <tr>
+                <td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                  <FiInbox size={32} style={{ marginBottom: '10px', opacity: 0.5 }} />
+                  <p style={{ margin: 0 }}>Rebate history will appear here when backend API is connected</p>
                 </td>
               </tr>
-            ))}
-          </tbody>
+            </tbody>
           </table>
         </div>
       </div>

@@ -5,7 +5,7 @@ export default function PlaceholderPage({ title, icon }) {
       <div className="placeholder-content">
         <div className="placeholder-icon">{icon}</div>
         <h2>{title}</h2>
-        <p>This feature is coming soon. The page is under development.</p>
+        <p>This module requires backend API integration to function.</p>
         <div className="placeholder-features">
           <div className="feature-item">
             <span className="feature-check">✓</span>
