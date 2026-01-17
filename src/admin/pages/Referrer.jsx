@@ -1,19 +1,34 @@
-import { FiSearch, FiUsers, FiDollarSign, FiUserPlus } from 'react-icons/fi';
+import { useState, useEffect } from 'react';
+import { FiSearch, FiUsers, FiDollarSign, FiUserPlus, FiInbox } from 'react-icons/fi';
+
+const REFERRER_KEY = 'team33_referrers';
 
 const Referrer = () => {
-  const referrers = [
-    { id: 1, username: 'agent001', referrals: 45, totalDeposit: '฿250,000', commission: '฿12,500', status: 'Active', level: 'Gold' },
-    { id: 2, username: 'agent002', referrals: 32, totalDeposit: '฿180,000', commission: '฿9,000', status: 'Active', level: 'Silver' },
-    { id: 3, username: 'agent003', referrals: 28, totalDeposit: '฿150,000', commission: '฿7,500', status: 'Active', level: 'Silver' },
-    { id: 4, username: 'agent004', referrals: 15, totalDeposit: '฿80,000', commission: '฿4,000', status: 'Inactive', level: 'Bronze' },
-    { id: 5, username: 'agent005', referrals: 67, totalDeposit: '฿500,000', commission: '฿25,000', status: 'Active', level: 'Diamond' },
-    { id: 6, username: 'agent006', referrals: 22, totalDeposit: '฿120,000', commission: '฿6,000', status: 'Active', level: 'Bronze' },
-  ];
+  const [referrers, setReferrers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [levelFilter, setLevelFilter] = useState('All');
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(REFERRER_KEY);
+      if (stored) setReferrers(JSON.parse(stored));
+    } catch (e) {
+      console.error('Error loading referrers:', e);
+    }
+  }, []);
+
+  const filteredReferrers = referrers.filter(ref => {
+    const matchSearch = ref.username?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchStatus = statusFilter === 'All' || ref.status === statusFilter;
+    const matchLevel = levelFilter === 'All' || ref.level === levelFilter;
+    return matchSearch && matchStatus && matchLevel;
+  });
 
   const stats = [
-    { icon: <FiUsers />, label: 'Total Referrers', value: '156', color: 'blue' },
-    { icon: <FiUserPlus />, label: 'Total Referrals', value: '2,458', color: 'green' },
-    { icon: <FiDollarSign />, label: 'Total Commission Paid', value: '฿450,000', color: 'gold' },
+    { icon: <FiUsers />, label: 'Total Referrers', value: referrers.length.toString(), color: 'blue' },
+    { icon: <FiUserPlus />, label: 'Total Referrals', value: referrers.reduce((sum, r) => sum + (r.referrals || 0), 0).toLocaleString(), color: 'green' },
+    { icon: <FiDollarSign />, label: 'Total Commission Paid', value: '$0', color: 'gold' },
   ];
 
   return (
@@ -43,11 +58,11 @@ const Referrer = () => {
         <div className="filters-row">
           <div className="search-box">
             <FiSearch className="search-icon" />
-            <input type="text" placeholder="Search referrer..." />
+            <input type="text" placeholder="Search referrer..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           </div>
           <div className="filter-group">
             <label>Status:</label>
-            <select>
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
               <option>All</option>
               <option>Active</option>
               <option>Inactive</option>
@@ -55,7 +70,7 @@ const Referrer = () => {
           </div>
           <div className="filter-group">
             <label>Level:</label>
-            <select>
+            <select value={levelFilter} onChange={(e) => setLevelFilter(e.target.value)}>
               <option>All</option>
               <option>Diamond</option>
               <option>Gold</option>
@@ -63,7 +78,6 @@ const Referrer = () => {
               <option>Bronze</option>
             </select>
           </div>
-          <button className="btn btn-secondary">Search</button>
         </div>
       </div>
 
@@ -84,34 +98,43 @@ const Referrer = () => {
             </tr>
           </thead>
           <tbody>
-            {referrers.map((ref) => (
-              <tr key={ref.id}>
-                <td>{ref.id}</td>
-                <td style={{ fontWeight: 600 }}>{ref.username}</td>
-                <td>
-                  <span className={`badge ${
-                    ref.level === 'Diamond' ? 'badge-info' :
-                    ref.level === 'Gold' ? 'badge-warning' :
-                    ref.level === 'Silver' ? 'badge-secondary' : 'badge-success'
-                  }`} style={ref.level === 'Silver' ? { background: '#e5e7eb', color: '#374151' } : {}}>
-                    {ref.level}
-                  </span>
-                </td>
-                <td>{ref.referrals}</td>
-                <td>{ref.totalDeposit}</td>
-                <td style={{ fontWeight: 600, color: '#16a34a' }}>{ref.commission}</td>
-                <td>
-                  <span className={`badge ${ref.status === 'Active' ? 'badge-success' : 'badge-danger'}`}>
-                    {ref.status}
-                  </span>
-                </td>
-                <td>
-                  <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }}>
-                    View Details
-                  </button>
+            {filteredReferrers.length === 0 ? (
+              <tr>
+                <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                  <FiInbox size={32} style={{ marginBottom: '10px', opacity: 0.5 }} />
+                  <p style={{ margin: 0 }}>No referrers found. Referrer data will appear when backend API is connected.</p>
                 </td>
               </tr>
-            ))}
+            ) : (
+              filteredReferrers.map((ref) => (
+                <tr key={ref.id}>
+                  <td>{ref.id}</td>
+                  <td style={{ fontWeight: 600 }}>{ref.username}</td>
+                  <td>
+                    <span className={`badge ${
+                      ref.level === 'Diamond' ? 'badge-info' :
+                      ref.level === 'Gold' ? 'badge-warning' :
+                      ref.level === 'Silver' ? 'badge-secondary' : 'badge-success'
+                    }`} style={ref.level === 'Silver' ? { background: '#e5e7eb', color: '#374151' } : {}}>
+                      {ref.level}
+                    </span>
+                  </td>
+                  <td>{ref.referrals}</td>
+                  <td>${ref.totalDeposit?.toLocaleString() || 0}</td>
+                  <td style={{ fontWeight: 600, color: '#16a34a' }}>${ref.commission?.toLocaleString() || 0}</td>
+                  <td>
+                    <span className={`badge ${ref.status === 'Active' ? 'badge-success' : 'badge-danger'}`}>
+                      {ref.status}
+                    </span>
+                  </td>
+                  <td>
+                    <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }}>
+                      View Details
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
           </table>
         </div>
