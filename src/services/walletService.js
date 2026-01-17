@@ -143,6 +143,8 @@ export const walletService = {
   },
 
   // Get wallet balance
+  // Uses backend API: GET /api/accounts/{accountId}/balance
+  // Backend handles all balance changes - we just fetch and display
   async getBalance(accountId) {
     // If no accountId provided, try to get from localStorage
     if (!accountId) {
@@ -154,52 +156,66 @@ export const walletService = {
       return { success: false, error: 'No account ID' };
     }
 
-    // Check for local wallet (for fallback)
+    // Check for local wallet (for fallback/cache)
     const localWallet = getLocalWallet(accountId);
 
-    // Try API first for cross-browser/device balance sync
+    // Try backend API first - this is the source of truth
     try {
-      const response = await fetch(`/api/wallets/account/${accountId}/balance`, {
+      const response = await fetch(`/api/accounts/${accountId}/balance`, {
         method: 'GET',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
       });
 
       if (response.ok) {
         const data = await response.json();
-        const apiBalance = data.balance || 0;
-        const localBalance = localWallet?.balance || 0;
+        // Backend returns: { accountId, balance, currency }
+        const apiBalance = data.balance != null ? Number(data.balance) : null;
+        const currency = data.currency || 'AUD';
 
-        // Use the HIGHER balance to prevent losing money from race conditions
-        // This handles cases where:
-        // 1. Admin approved deposit locally but backend API hasn't synced
-        // 2. Backend wallet doesn't exist yet
-        const finalBalance = Math.max(apiBalance, localBalance);
+        // If API returns valid balance, use it and update local cache
+        if (apiBalance != null) {
+          // Update local wallet cache
+          if (localWallet) {
+            localWallet.balance = apiBalance;
+            localWallet.updatedAt = new Date().toISOString();
+            saveLocalWallet(accountId, localWallet);
+          } else {
+            // Create local cache
+            saveLocalWallet(accountId, {
+              accountId,
+              balance: apiBalance,
+              currency,
+              transactions: [],
+              createdAt: new Date().toISOString(),
+            });
+          }
 
-        // Only update local wallet if API has a higher balance
-        if (localWallet && apiBalance > localBalance) {
-          localWallet.balance = apiBalance;
-          localWallet.updatedAt = new Date().toISOString();
-          saveLocalWallet(accountId, localWallet);
+          // Update user object in localStorage
+          const user = JSON.parse(localStorage.getItem('user') || '{}');
+          if (user.accountId === accountId) {
+            user.balance = apiBalance;
+            localStorage.setItem('user', JSON.stringify(user));
+          }
+
+          return {
+            success: true,
+            data: {
+              balance: apiBalance,
+              currency: currency,
+              total: apiBalance,
+              available: apiBalance,
+            },
+            balance: apiBalance,
+            currency: currency,
+            source: 'api',
+          };
         }
-
-        return {
-          success: true,
-          data: {
-            balance: finalBalance,
-            currency: data.currency || 'AUD',
-            total: finalBalance,
-            available: finalBalance,
-          },
-          balance: finalBalance,
-          currency: data.currency || 'AUD',
-          source: apiBalance >= localBalance ? 'api' : 'local-priority',
-        };
       }
 
-      // API returned error - fall through to localStorage fallback
-      console.log('Wallet API error, falling back to localStorage');
+      // API returned error or null balance - fall through to localStorage fallback
+      console.log('Balance API returned null or error, using localStorage cache');
     } catch (error) {
-      console.log('Wallet API unavailable, using localStorage:', error.message);
+      console.log('Balance API unavailable, using localStorage cache:', error.message);
     }
 
     // Fallback to localStorage (for offline mode or API errors)

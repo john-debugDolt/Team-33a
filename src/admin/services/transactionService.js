@@ -6,7 +6,6 @@
  */
 
 const API_KEY = 'team33-admin-secret-key-2024';
-const WALLETS_API_KEY = 'team33-admin-secret-key-2024';
 
 // LocalStorage keys for withdrawals (no API yet)
 const PENDING_TRANSACTIONS_KEY = 'team33_pending_transactions';
@@ -14,42 +13,9 @@ const ALL_TRANSACTIONS_KEY = 'team33_all_transactions';
 const USER_CACHE_KEY = 'team33_user_cache';
 
 /**
- * Directly update wallet balance via Wallets API
- * This ensures the backend wallet is updated regardless of browser/device
+ * NOTE: Wallet balance is now updated internally by the backend when deposits/withdrawals are approved.
+ * No need to call a separate wallet API - backend handles it automatically.
  */
-const updateWalletViaAPI = async (accountId, amount, type = 'DEPOSIT') => {
-  try {
-    const endpoint = type === 'DEPOSIT'
-      ? `/api/wallets/${accountId}/deposit`
-      : `/api/wallets/${accountId}/withdraw`;
-
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': WALLETS_API_KEY
-      },
-      body: JSON.stringify({
-        amount: Number(amount),
-        description: `Admin ${type.toLowerCase()} approval`,
-        reference: `ADMIN-${Date.now()}`
-      })
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      console.log(`Wallet ${type} successful:`, data);
-      return { success: true, newBalance: data.balanceAfter };
-    } else {
-      const error = await response.json().catch(() => ({}));
-      console.error(`Wallet ${type} failed:`, error);
-      return { success: false, error: error.error || 'Wallet API failed' };
-    }
-  } catch (error) {
-    console.error(`Wallet API error:`, error);
-    return { success: false, error: error.message };
-  }
-};
 
 /**
  * Get user info cache from localStorage
@@ -343,6 +309,8 @@ export const transactionService = {
 
   /**
    * Approve a deposit transaction
+   * Uses: PUT /api/admin/deposits/{requestId}/approve
+   * Backend automatically credits the user's wallet balance
    * @param {string} transactionId - Deposit ID to approve
    * @param {string} adminNotes - Optional admin notes
    * @returns {Promise<Object>} - Result
@@ -351,7 +319,7 @@ export const transactionService = {
     // Check if it's a deposit (starts with DEP)
     if (transactionId.startsWith('DEP')) {
       try {
-        // First get the deposit details if not provided
+        // Get deposit details for local UI update
         let accountId = depositInfo?.accountId;
         let amount = depositInfo?.amount;
 
@@ -366,28 +334,24 @@ export const transactionService = {
           }
         }
 
+        // Call approve API - backend handles wallet credit internally
         const response = await fetch(`/api/admin/deposits/${transactionId}/approve`, {
-          method: 'POST',
+          method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
             'X-API-Key': API_KEY
           },
           body: JSON.stringify({
             adminId: 'admin1',
-            notes: adminNotes || 'Approved via admin panel'
+            adminNotes: adminNotes || 'Approved via admin panel'
           })
         });
 
         if (response.ok) {
           const data = await response.json();
 
-          // Update wallet via backend API (for cross-browser/device sync)
-          if (accountId && amount) {
-            const walletResult = await updateWalletViaAPI(accountId, amount, 'DEPOSIT');
-            console.log('Wallet API update result:', walletResult);
-          }
-
-          // Also update local balance so UI reflects change immediately (same browser)
+          // Update local cache for immediate UI feedback (same browser)
+          // Backend has already credited the actual balance
           if (accountId && amount) {
             await this.updateUserBalance(accountId, amount, 'DEPOSIT');
           }
@@ -407,18 +371,6 @@ export const transactionService = {
         }
       } catch (error) {
         console.error('Error approving deposit:', error);
-        // Still update local balance even if API fails
-        if (accountId && amount) {
-          const localUpdate = await this.updateUserBalance(accountId, amount, 'DEPOSIT');
-          if (localUpdate.success) {
-            return {
-              success: true,
-              depositId: transactionId,
-              status: 'COMPLETED',
-              message: 'Deposit approved locally (API unavailable)'
-            };
-          }
-        }
         return { success: false, error: `Network error: ${error.message}` };
       }
     }
@@ -469,6 +421,7 @@ export const transactionService = {
 
   /**
    * Reject a transaction
+   * Uses: PUT /api/admin/deposits/{requestId}/reject
    * @param {string} transactionId - Transaction ID to reject
    * @param {string} reason - Rejection reason
    * @returns {Promise<Object>} - Result
@@ -478,14 +431,14 @@ export const transactionService = {
     if (transactionId.startsWith('DEP')) {
       try {
         const response = await fetch(`/api/admin/deposits/${transactionId}/reject`, {
-          method: 'POST',
+          method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
             'X-API-Key': API_KEY
           },
           body: JSON.stringify({
             adminId: 'admin1',
-            reason: reason || 'Rejected via admin panel'
+            adminNotes: reason || 'Rejected via admin panel'
           })
         });
 

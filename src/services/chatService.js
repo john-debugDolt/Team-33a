@@ -17,9 +17,19 @@
 
 import { chatStorageService } from './chatStorageService';
 
-// Use relative URLs for proxy support (Vite dev server or Vercel production)
-const CHAT_API_BASE = '';  // Empty = relative URL, proxied through Vite/Vercel
-const CHAT_WS_BASE = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`;
+// Backend URLs
+const BACKEND_HOST = 'k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com';
+
+// Use relative URLs for API (proxied through Vite/Vercel)
+const CHAT_API_BASE = '';
+
+// WebSocket: Connect directly to backend (Vercel doesn't proxy WebSocket)
+// Note: Backend is HTTP only, so we use ws:// not wss://
+// On HTTPS sites, browsers block ws:// (mixed content), so we'll fall back to polling
+const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+const CHAT_WS_BASE = isSecure
+  ? null  // Force polling on HTTPS (Vercel) since backend doesn't support WSS
+  : `ws://${BACKEND_HOST}`;
 
 class ChatService {
   constructor() {
@@ -128,6 +138,13 @@ class ChatService {
     return new Promise((resolve, reject) => {
       if (!sessionId) {
         reject(new Error('No session ID'));
+        return;
+      }
+
+      // Skip WebSocket on HTTPS (Vercel) - backend doesn't support WSS
+      if (!CHAT_WS_BASE) {
+        console.log('WebSocket disabled on HTTPS - using polling instead');
+        reject(new Error('WebSocket not available on HTTPS'));
         return;
       }
 
