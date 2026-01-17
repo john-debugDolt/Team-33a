@@ -75,6 +75,12 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      // Proxy Games API to Team33 game server
+      '/api/games': {
+        target: 'https://api.team33.mx',
+        changeOrigin: true,
+        secure: true,
+      },
       // Proxy WebSocket for chat
       '/ws/chat': {
         target: 'ws://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',

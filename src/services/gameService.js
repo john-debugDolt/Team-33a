@@ -265,7 +265,7 @@ export const gameService = {
 
   /**
    * Request game launch URL from backend
-   * Uses Team33 Game Launch API (HTTPS)
+   * Uses Team33 Game Launch API (proxied through vercel.json/vite.config.js to avoid CORS)
    */
   async requestGameUrl(gameId, userId) {
     const game = getLocalGameById(gameId);
@@ -273,7 +273,8 @@ export const gameService = {
       return { success: false, error: 'Game not found' };
     }
 
-    const GAME_LAUNCH_API = 'https://api.team33.mx/api/games/launch';
+    // Use proxied route to avoid CORS issues (configured in vite.config.js and vercel.json)
+    const GAME_LAUNCH_API = '/api/games/launch';
 
     // Get user's actual accountId from localStorage
     const user = JSON.parse(localStorage.getItem('team33_user') || localStorage.getItem('user') || '{}');
