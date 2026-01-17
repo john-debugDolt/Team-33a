@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FiSearch, FiInbox, FiCheck, FiX, FiClock, FiRefreshCw, FiEye } from 'react-icons/fi';
 import { transactionService } from '../services/transactionService';
+import { formatDateTime } from '../utils/dateUtils';
 
 const Transactions = () => {
   const [formData, setFormData] = useState({
@@ -126,18 +127,8 @@ const Transactions = () => {
     }
   };
 
-  // Format date
-  const formatDate = (dateString) => {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleString('en-AU', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  // Format date - use utility function
+  const formatDate = (dateString) => formatDateTime(dateString);
 
   return (
     <div className="content-inner">

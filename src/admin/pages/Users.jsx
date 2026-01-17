@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FiSearch, FiMessageSquare, FiCreditCard, FiRefreshCw, FiX, FiUser, FiPhone, FiCalendar, FiDollarSign } from 'react-icons/fi';
+import { formatDateTime } from '../utils/dateUtils';
 
 const API_KEY = 'team33-admin-secret-key-2024';
 
@@ -52,24 +53,46 @@ const Users = () => {
         // Handle both array and object responses
         const usersArray = Array.isArray(data) ? data : (data.accounts || data.users || data.data || []);
 
-        // Transform API data to our format
-        const transformedUsers = usersArray.map(user => ({
-          accountId: user.accountId,
-          createdAt: user.createdAt, // Keep raw date for sorting
-          date: user.createdAt ? new Date(user.createdAt).toLocaleString() : '-',
-          name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.accountId,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          mobile: user.phoneNumber || '-',
-          email: user.email || '-',
-          bankAccount: user.bankAccount || '-',
-          bank: user.bank || '-',
-          status: user.status || 'ACTIVE',
-          balance: user.balance || 0,
-          depositCount: user.depositCount || 0,
-          depositTotal: user.depositTotal || '0.00',
-          withdrawCount: user.withdrawCount || 0,
-          withdrawTotal: user.withdrawTotal || '0.00',
+        // Transform API data to our format and fetch real wallet balances
+        const transformedUsers = await Promise.all(usersArray.map(async (user) => {
+          // Fetch real wallet balance for this user
+          let realBalance = user.balance || 0;
+          try {
+            const walletRes = await fetch(`/api/wallets/account/${user.accountId}`, {
+              headers: { 'X-API-Key': API_KEY }
+            });
+            if (walletRes.ok) {
+              const walletData = await walletRes.json();
+              // Handle both single wallet and array of wallets
+              if (Array.isArray(walletData) && walletData.length > 0) {
+                realBalance = walletData[0].balance || 0;
+              } else if (walletData.balance !== undefined) {
+                realBalance = walletData.balance;
+              }
+            }
+          } catch (e) {
+            // Use default balance if wallet fetch fails
+            console.log('Could not fetch wallet for', user.accountId);
+          }
+
+          return {
+            accountId: user.accountId,
+            createdAt: user.createdAt, // Keep raw date for sorting
+            date: formatDateTime(user.createdAt),
+            name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.accountId,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            mobile: user.phoneNumber || '-',
+            email: user.email || '-',
+            bankAccount: user.bankAccount || '-',
+            bank: user.bank || '-',
+            status: user.status || 'ACTIVE',
+            balance: realBalance,
+            depositCount: user.depositCount || 0,
+            depositTotal: user.depositTotal || '0.00',
+            withdrawCount: user.withdrawCount || 0,
+            withdrawTotal: user.withdrawTotal || '0.00',
+          };
         }));
 
         // Sort by registration date (newest first)
@@ -436,7 +459,7 @@ const Users = () => {
                   <tbody>
                     {userTransactions.map((tx, index) => (
                       <tr key={tx.id || index}>
-                        <td>{tx.date ? new Date(tx.date).toLocaleString() : '-'}</td>
+                        <td>{formatDateTime(tx.date)}</td>
                         <td>
                           <span className={`badge ${tx.type === 'DEPOSIT' ? 'badge-success' : 'badge-warning'}`}>
                             {tx.type}
