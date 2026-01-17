@@ -432,10 +432,18 @@ export const transactionService = {
             message: data.message || 'Deposit approved and credited to wallet'
           };
         } else {
-          const error = await response.json().catch(() => ({}));
+          const errorText = await response.text();
+          console.error('Deposit approval failed:', response.status, errorText);
+          let errorMessage = `Error ${response.status}: `;
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorMessage += errorJson.message || errorJson.error || errorJson.detail || JSON.stringify(errorJson);
+          } catch {
+            errorMessage += errorText || 'Failed to approve deposit';
+          }
           return {
             success: false,
-            error: error.message || 'Failed to approve deposit'
+            error: errorMessage
           };
         }
       } catch (error) {
@@ -490,10 +498,18 @@ export const transactionService = {
             message: data.message || 'Withdrawal approved and processed'
           };
         } else {
-          const error = await response.json().catch(() => ({}));
+          const errorText = await response.text();
+          console.error('Withdrawal approval failed:', response.status, errorText);
+          let errorMessage = `Error ${response.status}: `;
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorMessage += errorJson.message || errorJson.error || errorJson.detail || JSON.stringify(errorJson);
+          } catch {
+            errorMessage += errorText || 'Failed to approve withdrawal';
+          }
           return {
             success: false,
-            error: error.message || 'Failed to approve withdrawal'
+            error: errorMessage
           };
         }
       } catch (error) {
