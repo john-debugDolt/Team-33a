@@ -124,22 +124,18 @@ const BankTx = () => {
       }
 
       try {
-        // Fetch all deposits from API (pending, completed, rejected)
+        // Fetch pending and completed deposits in PARALLEL for speed
         console.log('[BankTx] Fetching deposits for bank:', selectedBank);
 
-        const pendingResponse = await fetch(`/api/admin/deposits/pending`, {
-          headers: { 'X-API-Key': API_KEY }
-        });
-        console.log('[BankTx] Pending response status:', pendingResponse.status);
-        const pendingRes = pendingResponse.ok ? await pendingResponse.json() : [];
-        console.log('[BankTx] Pending deposits:', pendingRes);
+        const [pendingResponse, completedResponse] = await Promise.all([
+          fetch(`/api/admin/deposits/pending`, { headers: { 'X-API-Key': API_KEY } }),
+          fetch(`/api/admin/deposits/status/COMPLETED`, { headers: { 'X-API-Key': API_KEY } })
+        ]);
 
-        const completedResponse = await fetch(`/api/admin/deposits/status/COMPLETED`, {
-          headers: { 'X-API-Key': API_KEY }
-        });
-        console.log('[BankTx] Completed response status:', completedResponse.status);
-        const completedRes = completedResponse.ok ? await completedResponse.json() : [];
-        console.log('[BankTx] Completed deposits:', completedRes);
+        const [pendingRes, completedRes] = await Promise.all([
+          pendingResponse.ok ? pendingResponse.json() : [],
+          completedResponse.ok ? completedResponse.json() : []
+        ]);
 
         let allDeposits = [...pendingRes, ...completedRes];
         console.log('[BankTx] All deposits before filter:', allDeposits.length);

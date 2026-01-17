@@ -15,10 +15,22 @@ const Users = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch users from API
+  // Fetch users from API with caching
   const fetchUsers = async () => {
     setLoading(true);
     setError(null);
+
+    // Show cached data immediately for faster UX
+    const cached = localStorage.getItem('admin_users_cache');
+    if (cached) {
+      try {
+        const cachedUsers = JSON.parse(cached);
+        if (Array.isArray(cachedUsers) && cachedUsers.length > 0) {
+          setUsers(cachedUsers);
+          setFilteredUsers(cachedUsers);
+        }
+      } catch (e) { /* ignore parse errors */ }
+    }
 
     try {
       const response = await fetch('/api/admin/accounts', {
@@ -27,11 +39,8 @@ const Users = () => {
         }
       });
 
-      console.log('Admin accounts response status:', response.status);
-
       if (response.ok) {
         const data = await response.json();
-        console.log('Admin accounts data:', data);
 
         // Handle both array and object responses
         const usersArray = Array.isArray(data) ? data : (data.accounts || data.users || data.data || []);
@@ -56,6 +65,8 @@ const Users = () => {
 
         setUsers(transformedUsers);
         setFilteredUsers(transformedUsers);
+        // Cache for faster subsequent loads
+        localStorage.setItem('admin_users_cache', JSON.stringify(transformedUsers));
       } else {
         const errorText = await response.text();
         console.error('Admin accounts error:', response.status, errorText);
