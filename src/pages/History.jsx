@@ -43,20 +43,28 @@ export default function History() {
   const fetchTransactions = async () => {
     if (!isAuthenticated) return;
     setLoading(true);
-    const result = await walletService.getTransactions({
-      page: pagination.page,
-      limit: 10,
-      type: filters.type,
-      status: filters.status,
-    });
+    try {
+      const result = await walletService.getTransactions({
+        page: pagination.page - 1, // API uses 0-based pagination
+        limit: 10,
+        type: filters.type,
+        status: filters.status,
+      });
 
-    if (result.success) {
-      setTransactions(result.data.transactions);
-      setPagination(prev => ({
-        ...prev,
-        totalPages: result.data.pagination.totalPages,
-        total: result.data.pagination.total,
-      }));
+      if (result.success) {
+        setTransactions(result.data.transactions || []);
+        setPagination(prev => ({
+          ...prev,
+          totalPages: result.data.pagination?.totalPages || 1,
+          total: result.data.pagination?.total || 0,
+        }));
+      } else {
+        console.log('Failed to fetch transactions:', result.error);
+        setTransactions([]);
+      }
+    } catch (error) {
+      console.error('Transaction fetch error:', error);
+      setTransactions([]);
     }
     setLoading(false);
   };
@@ -87,15 +95,26 @@ export default function History() {
   };
 
   const getTypeIcon = (type) => {
+    const normalizedType = (type || '').toLowerCase();
     const icons = {
       deposit: '↓',
       withdraw: '↑',
+      withdrawal: '↑',
       bonus: '🎁',
+      daily_bonus: '🎁',
+      spin_bonus: '🎁',
       bet: '🎰',
+      game_loss: '🎰',
       win: '💰',
+      game_win: '💰',
       transfer: '↔️',
     };
-    return icons[type] || '•';
+    return icons[normalizedType] || '•';
+  };
+
+  const isPositiveTransaction = (type) => {
+    const normalizedType = (type || '').toLowerCase();
+    return ['deposit', 'bonus', 'win', 'daily_bonus', 'spin_bonus', 'game_win'].includes(normalizedType);
   };
 
   const getStatusClass = (status) => {
@@ -167,23 +186,27 @@ export default function History() {
         ) : (
           <>
             <div className="transactions-list">
-              {transactions.map(tx => (
-                <div key={tx.id} className="transaction-item">
+              {transactions.map((tx, index) => (
+                <div key={tx.id || tx.reference || index} className="transaction-item">
                   <div className="transaction-icon">
-                    <span className={`type-icon type-${tx.type}`}>
+                    <span className={`type-icon type-${(tx.type || '').toLowerCase()}`}>
                       {getTypeIcon(tx.type)}
                     </span>
                   </div>
                   <div className="transaction-info">
-                    <span className="transaction-desc">{tx.description}</span>
+                    <span className="transaction-desc">{tx.description || `${tx.type || 'Transaction'}`}</span>
                     <span className="transaction-date">{formatDate(tx.createdAt)}</span>
                   </div>
                   <div className="transaction-amount-wrap">
-                    <span className={`transaction-amount ${['deposit', 'bonus', 'win'].includes(tx.type) ? 'positive' : 'negative'}`}>
-                      {['deposit', 'bonus', 'win'].includes(tx.type) ? '+' : '-'}${tx.amount.toFixed(2)}
+                    <span className={`transaction-amount ${isPositiveTransaction(tx.type) ? 'positive' : 'negative'}`}>
+                      {isPositiveTransaction(tx.type) ? '+' : '-'}${(Number(tx.amount) || 0).toFixed(2)}
                     </span>
-                    <span className={`transaction-status ${getStatusClass(tx.status)}`}>
-                      {tx.status === 'completed' ? t('completed') : tx.status === 'pending' ? t('pending') : t('failed')}
+                    <span className={`transaction-status ${getStatusClass((tx.status || 'pending').toLowerCase())}`}>
+                      {(tx.status || '').toLowerCase() === 'completed' || (tx.status || '').toLowerCase() === 'approved'
+                        ? t('completed')
+                        : (tx.status || '').toLowerCase() === 'pending' || (tx.status || '').toLowerCase() === 'pending_review'
+                          ? t('pending')
+                          : t('failed')}
                     </span>
                   </div>
                 </div>

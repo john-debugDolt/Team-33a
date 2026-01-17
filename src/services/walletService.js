@@ -446,10 +446,10 @@ export const walletService = {
     }
   },
 
-  // Get transaction history
-  async getTransactions({ page = 0, limit = 20, size = 20, type = null, accountId = null } = {}) {
+  // Get transaction history - fetches from deposits and withdrawals APIs
+  async getTransactions({ page = 0, limit = 20, size = 20, type = null, status = null, accountId = null } = {}) {
     if (!accountId) {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const user = JSON.parse(localStorage.getItem('team33_user') || localStorage.getItem('user') || '{}');
       accountId = user.accountId;
     }
 
@@ -457,83 +457,154 @@ export const walletService = {
       return { success: false, error: 'No account ID' };
     }
 
-    // For local accounts, get transactions from localStorage
-    if (isLocalAccount(accountId)) {
-      const wallet = getLocalWallet(accountId);
-      let transactions = wallet?.transactions || [];
+    const pageSize = size || limit;
+    let allTransactions = [];
 
-      // Filter by type if specified
-      if (type && type !== 'all') {
-        transactions = transactions.filter(t => t.type === type.toUpperCase());
+    // Get local wallet transactions first (for local accounts or as cache)
+    const wallet = getLocalWallet(accountId);
+    const localTransactions = wallet?.transactions || [];
+
+    // Get pending transactions from localStorage
+    const pendingTx = getPendingTransactions().filter(tx => tx.accountId === accountId);
+
+    // Try to fetch from backend APIs
+    try {
+      const fetchPromises = [];
+
+      // Fetch deposits if type is 'all' or 'deposit'
+      if (!type || type === 'all' || type === 'deposit') {
+        fetchPromises.push(
+          fetch(`/api/deposits/account/${accountId}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          }).then(async res => {
+            if (res.ok) {
+              const data = await res.json();
+              // Handle both array and object with content/deposits field
+              const deposits = Array.isArray(data) ? data : (data.content || data.deposits || []);
+              return deposits.map(d => ({
+                id: d.depositId || d.id || `DEP-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+                type: 'deposit',
+                amount: Number(d.amount) || 0,
+                status: (d.status || 'pending').toLowerCase(),
+                description: `Deposit ${d.status === 'COMPLETED' || d.status === 'APPROVED' ? 'completed' : d.status === 'PENDING_REVIEW' ? 'pending approval' : d.status?.toLowerCase() || 'processing'}`,
+                createdAt: d.createdAt || d.timestamp || new Date().toISOString(),
+                reference: d.depositId || d.reference,
+                source: 'api'
+              }));
+            }
+            return [];
+          }).catch(err => {
+            console.log('Deposits API unavailable:', err.message);
+            return [];
+          })
+        );
       }
 
-      const pageSize = size || limit;
-      const startIndex = page * pageSize;
-      const paginatedTransactions = transactions.slice(startIndex, startIndex + pageSize);
+      // Fetch withdrawals if type is 'all' or 'withdraw'
+      if (!type || type === 'all' || type === 'withdraw') {
+        fetchPromises.push(
+          fetch(`/api/withdrawals/account/${accountId}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          }).then(async res => {
+            if (res.ok) {
+              const data = await res.json();
+              // Handle both array and object with content/withdrawals field
+              const withdrawals = Array.isArray(data) ? data : (data.content || data.withdrawals || []);
+              return withdrawals.map(w => ({
+                id: w.withdrawId || w.id || `WD-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+                type: 'withdraw',
+                amount: Number(w.amount) || 0,
+                status: (w.status || 'pending').toLowerCase(),
+                description: `Withdrawal ${w.status === 'COMPLETED' || w.status === 'APPROVED' ? 'completed' : w.status === 'PENDING_REVIEW' ? 'pending approval' : w.status?.toLowerCase() || 'processing'}`,
+                createdAt: w.createdAt || w.timestamp || new Date().toISOString(),
+                reference: w.withdrawId || w.reference,
+                bankName: w.bankName,
+                source: 'api'
+              }));
+            }
+            return [];
+          }).catch(err => {
+            console.log('Withdrawals API unavailable:', err.message);
+            return [];
+          })
+        );
+      }
 
-      return {
-        success: true,
-        data: {
-          transactions: paginatedTransactions,
-          pagination: {
-            page,
-            totalPages: Math.ceil(transactions.length / pageSize),
-            total: transactions.length,
-          },
-        },
+      // Wait for all API calls
+      const results = await Promise.all(fetchPromises);
+      results.forEach(txList => {
+        allTransactions = [...allTransactions, ...txList];
+      });
+
+    } catch (error) {
+      console.log('API fetch error, using local data:', error.message);
+    }
+
+    // Add local transactions (filter out duplicates by reference/id)
+    const apiIds = new Set(allTransactions.map(t => t.id || t.reference));
+    const uniqueLocalTx = localTransactions.filter(t => !apiIds.has(t.id) && !apiIds.has(t.reference));
+    allTransactions = [...allTransactions, ...uniqueLocalTx];
+
+    // Add pending transactions (filter out duplicates)
+    const existingIds = new Set(allTransactions.map(t => t.id));
+    const uniquePendingTx = pendingTx.filter(t => !existingIds.has(t.id)).map(t => ({
+      ...t,
+      type: t.type?.toLowerCase() === 'withdrawal' ? 'withdraw' : t.type?.toLowerCase() || 'deposit',
+      status: (t.status || 'pending').toLowerCase(),
+    }));
+    allTransactions = [...allTransactions, ...uniquePendingTx];
+
+    // Filter by type if specified
+    if (type && type !== 'all') {
+      const typeMap = {
+        'deposit': ['deposit', 'DEPOSIT'],
+        'withdraw': ['withdraw', 'withdrawal', 'WITHDRAWAL'],
+        'bonus': ['bonus', 'BONUS', 'daily_bonus', 'spin_bonus'],
+        'bet': ['bet', 'BET', 'game_loss', 'GAME_LOSS'],
+        'win': ['win', 'WIN', 'game_win', 'GAME_WIN'],
+      };
+      const validTypes = typeMap[type] || [type, type.toUpperCase()];
+      allTransactions = allTransactions.filter(t => validTypes.includes(t.type));
+    }
+
+    // Filter by status if specified
+    if (status && status !== 'all') {
+      allTransactions = allTransactions.filter(t => {
+        const txStatus = (t.status || '').toLowerCase();
+        if (status === 'completed') return txStatus === 'completed' || txStatus === 'approved';
+        if (status === 'pending') return txStatus === 'pending' || txStatus === 'pending_review';
+        if (status === 'failed') return txStatus === 'failed' || txStatus === 'rejected';
+        return txStatus === status.toLowerCase();
+      });
+    }
+
+    // Sort by date (newest first)
+    allTransactions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    // Paginate
+    const startIndex = page * pageSize;
+    const paginatedTransactions = allTransactions.slice(startIndex, startIndex + pageSize);
+
+    return {
+      success: true,
+      data: {
         transactions: paginatedTransactions,
         pagination: {
           page,
-          size: pageSize,
-          totalElements: transactions.length,
-          totalPages: Math.ceil(transactions.length / pageSize),
+          totalPages: Math.ceil(allTransactions.length / pageSize),
+          total: allTransactions.length,
         },
-      };
-    }
-
-    try {
-      const pageSize = size || limit;
-      let url = `/api/wallets/account/${accountId}/transactions?page=${page}&size=${pageSize}`;
-      if (type && type !== 'all') {
-        url += `&type=${type.toUpperCase()}`;
-      }
-
-      const response = await fetch(url, {
-        method: 'GET',
-        headers,
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        return { success: false, error: error.error || 'Failed to fetch transactions' };
-      }
-
-      const data = await response.json();
-      return {
-        success: true,
-        data: {
-          transactions: data.content,
-          pagination: {
-            page: data.page,
-            totalPages: data.totalPages,
-            total: data.totalElements,
-          },
-        },
-        transactions: data.content,
-        pagination: {
-          page: data.page,
-          size: data.size,
-          totalElements: data.totalElements,
-          totalPages: data.totalPages,
-        },
-      };
-    } catch (error) {
-      console.error('Get transactions error:', error);
-      return {
-        success: false,
-        error: 'Failed to fetch transaction history',
-      };
-    }
+      },
+      transactions: paginatedTransactions,
+      pagination: {
+        page,
+        size: pageSize,
+        totalElements: allTransactions.length,
+        totalPages: Math.ceil(allTransactions.length / pageSize),
+      },
+    };
   },
 
   // Daily check-in rewards by day

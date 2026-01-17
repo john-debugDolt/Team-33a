@@ -344,41 +344,48 @@ export default function Wallet() {
                   <p>{t('noTransactions')}</p>
                 </div>
               ) : (
-                transactions.map((tx, index) => (
-                  <div
-                    key={tx.id}
-                    className="tx-row"
-                    style={{ animationDelay: `${index * 0.05}s` }}
-                  >
-                    <div className={`tx-icon-modern ${tx.type}`}>
-                      {tx.type === 'deposit' || tx.type === 'bonus' ? (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M12 19V5M5 12l7 7 7-7"/>
-                        </svg>
-                      ) : (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M12 5v14M5 12l7-7 7 7"/>
-                        </svg>
-                      )}
+                transactions.map((tx, index) => {
+                  const txType = (tx.type || '').toLowerCase()
+                  const isPositive = ['deposit', 'bonus', 'win', 'daily_bonus', 'spin_bonus', 'game_win'].includes(txType)
+                  const txStatus = (tx.status || 'pending').toLowerCase()
+                  const statusDisplay = txStatus === 'completed' || txStatus === 'approved' ? 'completed' : txStatus === 'pending' || txStatus === 'pending_review' ? 'pending' : 'failed'
+
+                  return (
+                    <div
+                      key={tx.id || tx.reference || index}
+                      className="tx-row"
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      <div className={`tx-icon-modern ${txType}`}>
+                        {isPositive ? (
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M12 19V5M5 12l7 7 7-7"/>
+                          </svg>
+                        ) : (
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M12 5v14M5 12l7-7 7 7"/>
+                          </svg>
+                        )}
+                      </div>
+                      <div className="tx-info">
+                        <span className="tx-title">
+                          {tx.description || (txType === 'deposit' ? t('deposit') : txType === 'withdraw' || txType === 'withdrawal' ? t('withdraw') : t('bonuses'))}
+                        </span>
+                        <span className="tx-datetime">
+                          {new Date(tx.createdAt).toLocaleDateString()} • {new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <div className="tx-right">
+                        <span className={`tx-amount-modern ${isPositive ? 'deposit' : 'withdraw'}`}>
+                          {isPositive ? '+' : '-'}${(Number(tx.amount) || 0).toFixed(2)}
+                        </span>
+                        <span className={`tx-status-badge ${statusDisplay}`}>
+                          {statusDisplay === 'completed' ? t('completed') : statusDisplay === 'pending' ? t('pending') : t('failed')}
+                        </span>
+                      </div>
                     </div>
-                    <div className="tx-info">
-                      <span className="tx-title">
-                        {tx.type === 'deposit' ? t('deposit') : tx.type === 'withdraw' ? t('withdraw') : t('bonuses')}
-                      </span>
-                      <span className="tx-datetime">
-                        {new Date(tx.createdAt).toLocaleDateString()} • {new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                    <div className="tx-right">
-                      <span className={`tx-amount-modern ${tx.type === 'withdraw' ? 'withdraw' : 'deposit'}`}>
-                        {tx.type === 'withdraw' ? '-' : '+'}${tx.amount.toFixed(2)}
-                      </span>
-                      <span className={`tx-status-badge ${tx.status}`}>
-                        {tx.status === 'completed' ? t('completed') : tx.status === 'pending' ? t('pending') : t('failed')}
-                      </span>
-                    </div>
-                  </div>
-                ))
+                  )
+                })
               )}
             </div>
           </div>
