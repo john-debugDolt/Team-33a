@@ -3,20 +3,23 @@
  * Handles chat functionality for admin/agent panel
  *
  * API Endpoints:
- * - GET /api/chat/sessions - Get all chat sessions (admin) - NOT IMPLEMENTED IN BACKEND
+ * - GET /api/chat/sessions - Get all chat sessions (admin)
  * - GET /api/chat/sessions/{sessionId} - Get session details
  * - GET /api/chat/sessions/{sessionId}/messages - Get messages
  * - POST /api/chat/sessions/{sessionId}/messages - Send message as AGENT
  * - POST /api/chat/sessions/{sessionId}/close - Close session
  * - POST /api/chat/sessions/{sessionId}/read?senderType=USER - Mark user messages as read
  *
- * NOTE: Since backend doesn't have GET /api/chat/sessions, we use localStorage as workaround
+ * Chat history is fetched from the backend API and persists until manually deleted
  */
 
 import { chatStorageService } from '../../services/chatStorageService';
 
 const CHAT_API_BASE = '';
-const CHAT_WS_BASE = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`;
+const BACKEND_HOST = 'k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com';
+// WebSocket: use ws:// for HTTP backend
+const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+const CHAT_WS_BASE = isSecure ? null : `ws://${BACKEND_HOST}`;
 
 class AdminChatService {
   constructor() {
@@ -42,11 +45,11 @@ class AdminChatService {
 
   /**
    * Get all chat sessions for admin
-   * Tries backend API first, falls back to localStorage if not available
+   * Fetches from backend API - all sessions persist until manually deleted
    */
   async getAllSessions(status = null) {
     try {
-      // Try backend API first (in case GET /api/chat/sessions is now implemented)
+      // Fetch from backend API
       const url = status
         ? `${CHAT_API_BASE}/api/chat/sessions?status=${status}`
         : `${CHAT_API_BASE}/api/chat/sessions`;
@@ -57,13 +60,18 @@ class AdminChatService {
         const data = await response.json();
         const sessions = Array.isArray(data) ? data : (data.sessions || data.data || []);
 
-        // Merge with local storage data to get userName (backend may not have it)
+        // Enrich with local data for userName display
         const enrichedSessions = sessions.map(session => {
           const localSession = chatStorageService.getSession(session.sessionId);
           return {
             ...session,
             userName: localSession?.userName || session.userName || session.accountId,
           };
+        });
+
+        // Cache sessions locally for offline access
+        enrichedSessions.forEach(session => {
+          chatStorageService.saveSession(session);
         });
 
         return {
@@ -73,16 +81,23 @@ class AdminChatService {
         };
       }
 
-      // If API returns 404 or other error, fall back to localStorage
-      throw new Error('API not available');
-    } catch (error) {
-      // Fallback to localStorage
-      console.log('Using localStorage fallback for chat sessions');
+      // If API fails, try localStorage cache
+      console.log('API returned error, using cached data');
       const sessions = chatStorageService.getSessionsByStatus(status);
       return {
         success: true,
         sessions: sessions,
-        source: 'localStorage',
+        source: 'cache',
+      };
+    } catch (error) {
+      console.error('Failed to fetch sessions:', error);
+      // Use cached data on network error
+      const sessions = chatStorageService.getSessionsByStatus(status);
+      return {
+        success: sessions.length > 0,
+        sessions: sessions,
+        source: 'cache',
+        error: sessions.length === 0 ? 'Unable to connect to chat server' : null,
       };
     }
   }

@@ -5,7 +5,17 @@ import { resolve } from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  logLevel: 'info',  // Options: 'info' | 'warn' | 'error' | 'silent'
+  clearScreen: true,  // Clear terminal on start
   build: {
+    sourcemap: false,  // No source maps in production (hides code structure)
+    minify: 'terser',  // Better minification
+    terserOptions: {
+      compress: {
+        drop_console: true,  // Remove console.log in production
+        drop_debugger: true,  // Remove debugger statements
+      },
+    },
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
@@ -14,6 +24,8 @@ export default defineConfig({
     },
   },
   server: {
+    host: 'localhost',  // Only show localhost, hide network IP
+    strictPort: true,
     proxy: {
       // Proxy chat API to external chat server
       '/api/chat': {

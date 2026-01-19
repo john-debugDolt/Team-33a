@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiMessageSquare, FiVolume2, FiVolumeX, FiUser, FiClock, FiRefreshCw } from 'react-icons/fi';
+import { FiMessageSquare, FiVolume2, FiVolumeX, FiUser, FiClock, FiRefreshCw, FiTrash2 } from 'react-icons/fi';
 import { adminChatService } from '../services/adminChatService';
+import { chatStorageService } from '../../services/chatStorageService';
 
 const ChatList = () => {
   const navigate = useNavigate();
@@ -10,8 +11,29 @@ const ChatList = () => {
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [dataSource, setDataSource] = useState('');
 
   const filters = ['ALL', 'WAITING', 'ACTIVE', 'CLOSED'];
+
+  // Delete a chat session
+  const handleDeleteChat = async (e, chat) => {
+    e.stopPropagation(); // Prevent navigation
+    if (!confirm(`Delete chat with ${chat.username}? This cannot be undone.`)) return;
+
+    try {
+      // Close session first if not already closed
+      if (chat.status !== 'CLOSED') {
+        await adminChatService.closeSession(chat.sessionId);
+      }
+      // Remove from local cache
+      chatStorageService.deleteSession(chat.sessionId);
+      // Refresh list
+      fetchSessions();
+    } catch (err) {
+      console.error('Delete chat error:', err);
+      alert('Failed to delete chat');
+    }
+  };
 
   // Format time ago
   const formatTimeAgo = (dateString) => {
@@ -50,7 +72,8 @@ const ChatList = () => {
         formattedChats.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
         setChats(formattedChats);
-        setError(null);
+        setDataSource(result.source || '');
+        setError(result.error || null);
       } else {
         setError(result.error || 'Failed to fetch sessions');
       }
@@ -181,6 +204,20 @@ const ChatList = () => {
         </div>
       )}
 
+      {/* Data source indicator */}
+      {dataSource && dataSource !== 'api' && chats.length > 0 && (
+        <div style={{
+          padding: '8px 15px',
+          background: '#fef3c7',
+          color: '#92400e',
+          fontSize: '12px',
+          marginBottom: '10px',
+          borderRadius: '6px'
+        }}>
+          Showing cached data. Live server data may differ.
+        </div>
+      )}
+
       {/* Chat List */}
       <div className="content-inner">
         {loading && chats.length === 0 ? (
@@ -265,25 +302,44 @@ const ChatList = () => {
                     {chat.message}
                   </p>
                 </div>
-                <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '15px' }}>
-                  <div className="text-muted" style={{ fontSize: '12px', marginBottom: '4px' }}>
+                <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '15px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
+                  <div className="text-muted" style={{ fontSize: '12px' }}>
                     <FiClock size={12} style={{ marginRight: '4px' }} />
                     {chat.time}
                   </div>
-                  {chat.unread > 0 && (
-                    <span
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    {chat.unread > 0 && (
+                      <span
+                        style={{
+                          background: '#dc2626',
+                          color: '#fff',
+                          borderRadius: '10px',
+                          padding: '2px 8px',
+                          fontSize: '11px',
+                          fontWeight: '600'
+                        }}
+                      >
+                        {chat.unread}
+                      </span>
+                    )}
+                    <button
+                      onClick={(e) => handleDeleteChat(e, chat)}
+                      title="Delete chat"
                       style={{
-                        background: '#dc2626',
-                        color: '#fff',
-                        borderRadius: '10px',
-                        padding: '2px 8px',
-                        fontSize: '11px',
-                        fontWeight: '600'
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        borderRadius: '4px',
+                        color: '#9ca3af',
+                        transition: 'all 0.15s'
                       }}
+                      onMouseEnter={(e) => { e.target.style.color = '#dc2626'; e.target.style.background = '#fee2e2'; }}
+                      onMouseLeave={(e) => { e.target.style.color = '#9ca3af'; e.target.style.background = 'transparent'; }}
                     >
-                      {chat.unread}
-                    </span>
-                  )}
+                      <FiTrash2 size={14} />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
