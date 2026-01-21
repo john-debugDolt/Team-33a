@@ -65,6 +65,10 @@
       "destination": "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/chat/:path*"
     },
     {
+      "source": "/api/admin",
+      "destination": "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/admin"
+    },
+    {
       "source": "/api/admin/:path*",
       "destination": "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/admin/:path*"
     },

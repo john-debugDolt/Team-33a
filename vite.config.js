@@ -51,26 +51,14 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
-      // Proxy Admin Deposits API to external server
-      '/api/admin/deposits': {
-        target: 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
-        changeOrigin: true,
-        secure: false,
-      },
       // Proxy Withdrawals API to external server
       '/api/withdrawals': {
         target: 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
         changeOrigin: true,
         secure: false,
       },
-      // Proxy Admin Withdrawals API to external server
-      '/api/admin/withdrawals': {
-        target: 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
-        changeOrigin: true,
-        secure: false,
-      },
-      // Proxy Admin Accounts API to external server
-      '/api/admin/accounts': {
+      // Proxy all Admin APIs to external server (accounts, deposits, withdrawals, etc.)
+      '/api/admin': {
         target: 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
         changeOrigin: true,
         secure: false,
