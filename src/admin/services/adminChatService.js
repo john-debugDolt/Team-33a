@@ -17,9 +17,9 @@ import { chatStorageService } from '../../services/chatStorageService';
 
 const CHAT_API_BASE = '';
 const BACKEND_HOST = 'k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com';
-// WebSocket: use ws:// for HTTP backend
+// WebSocket: use wss:// for secure connections
 const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
-const CHAT_WS_BASE = isSecure ? null : `ws://${BACKEND_HOST}`;
+const CHAT_WS_BASE = isSecure ? `wss://${BACKEND_HOST}` : `ws://${BACKEND_HOST}`;
 
 class AdminChatService {
   constructor() {

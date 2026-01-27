@@ -29,51 +29,51 @@ export default defineConfig({
     proxy: {
       // Proxy chat API to external chat server
       '/api/chat': {
-        target: 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
+        target: 'https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
         changeOrigin: true,
-        secure: false,
+        secure: true,
       },
       // Proxy OTP API to external server
       '/api/otp': {
-        target: 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
+        target: 'https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
         changeOrigin: true,
-        secure: false,
+        secure: true,
       },
       // Proxy Accounts API to external server
       '/api/accounts': {
-        target: 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
+        target: 'https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
         changeOrigin: true,
-        secure: false,
+        secure: true,
       },
       // Proxy Deposits API to external server
       '/api/deposits': {
-        target: 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
+        target: 'https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
         changeOrigin: true,
-        secure: false,
+        secure: true,
       },
       // Proxy Withdrawals API to external server
       '/api/withdrawals': {
-        target: 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
+        target: 'https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
         changeOrigin: true,
-        secure: false,
+        secure: true,
       },
       // Proxy all Admin APIs to external server (accounts, deposits, withdrawals, etc.)
       '/api/admin': {
-        target: 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
+        target: 'https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
         changeOrigin: true,
-        secure: false,
+        secure: true,
       },
       // Proxy Wallet API through accounts microservice (NOT wallet service directly)
       '/api/wallets': {
-        target: 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
+        target: 'https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
         changeOrigin: true,
-        secure: false,
+        secure: true,
       },
       // Proxy Banks API to external server
       '/api/banks': {
-        target: 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
+        target: 'https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
         changeOrigin: true,
-        secure: false,
+        secure: true,
       },
       // Proxy Games API to Team33 game server
       '/api/games': {
@@ -83,7 +83,7 @@ export default defineConfig({
       },
       // Proxy WebSocket for chat
       '/ws/chat': {
-        target: 'ws://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
+        target: 'wss://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
         ws: true,
         changeOrigin: true,
       },
