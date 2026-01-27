@@ -1,26 +1,31 @@
 /**
  * API Configuration
  *
- * Backend Developer Notes:
- * ========================
- * Set VITE_API_URL in .env file to point to your backend.
+ * Environment Variables:
+ * ======================
+ * VITE_API_KEY - API key for authenticated endpoints (required for production)
  *
- * Required Endpoints:
- * -------------------
- * POST /games/launch
- *   Request:  { gameId: number, gameSlug: string, userId: string|null }
- *   Response: { success: boolean, gameUrl: string } or { success: false, error: string }
+ * API Routing:
+ * ============
+ * All API calls use relative URLs (/api/...) which are proxied:
+ * - Development: vite.config.js proxy rules
+ * - Production: vercel.json rewrite rules
  *
- * GET /games
- *   Query: page, limit, provider, search, gameType, isHot, isNew
- *   Response: { success: true, data: { games: [], pagination: {} } }
- *
- * GET /banners
- *   Response: { success: true, data: { banners: [{ id, image, name, link }] } }
- *
- * All endpoints should return { success: boolean, data?: any, error?: string }
+ * Backend Endpoints (proxied through /api):
+ * - Accounts: /api/accounts/* -> k8s-team33-accounts ELB
+ * - Deposits: /api/deposits/* -> k8s-team33-accounts ELB
+ * - Withdrawals: /api/withdrawals/* -> k8s-team33-accounts ELB
+ * - Banks: /api/banks/* -> k8s-team33-accounts ELB
+ * - Chat: /api/chat/* -> k8s-team33-accounts ELB
+ * - OTP: /api/otp/* -> k8s-team33-accounts ELB
+ * - Games: /api/games/* -> api.team33.mx
  */
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+
+// API key from environment variable (set in Vercel dashboard or .env file)
+export const API_KEY = import.meta.env.VITE_API_KEY || '';
+
+// Base URL is empty - all requests use relative URLs that get proxied
+const API_BASE_URL = '';
 
 // LocalStorage keys
 export const STORAGE_KEYS = {

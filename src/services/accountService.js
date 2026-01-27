@@ -1,5 +1,6 @@
 // Account Service - User account management via external API with localStorage fallback
-const API_KEY = 'team33-admin-secret-key-2024';
+import { API_KEY } from './api';
+
 const LOCAL_ACCOUNTS_KEY = 'team33_local_accounts';
 
 // Format phone number to international format (Australian +61)

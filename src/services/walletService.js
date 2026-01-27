@@ -1,6 +1,7 @@
 // Wallet Service - Wallet management via external API with localStorage fallback
 // API calls use relative URLs which are proxied by Vite (dev) or Vercel serverless functions (prod)
-const API_KEY = 'team33-admin-secret-key-2024';
+import { API_KEY } from './api';
+
 const LOCAL_WALLETS_KEY = 'team33_local_wallets';
 const PENDING_TRANSACTIONS_KEY = 'team33_pending_transactions';
 const DEFAULT_BALANCE = 0; // Users must deposit via agent/admin

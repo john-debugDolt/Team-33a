@@ -1,6 +1,7 @@
 // OTP Service - Phone verification via SMS
+import { API_KEY } from './api';
+
 const OTP_API_BASE = '/api/otp';
-const API_KEY = 'team33-admin-secret-key-2024';
 
 // Dev bypass - use code "000000" to skip OTP
 const DEV_BYPASS_CODE = '000000';

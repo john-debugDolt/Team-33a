@@ -4,8 +4,7 @@
  * Uses real API endpoints for deposits
  * API calls use relative URLs which are proxied by Vite (dev) or Vercel serverless functions (prod)
  */
-
-const API_KEY = 'team33-admin-secret-key-2024';
+import { API_KEY } from '../../services/api';
 
 // LocalStorage keys for withdrawals (no API yet)
 const PENDING_TRANSACTIONS_KEY = 'admin_pending_transactions';
