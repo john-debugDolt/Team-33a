@@ -74,11 +74,7 @@
       "destination": "https://api.team33.mx/api/games/:path*"
     },
     {
-      "source": "/admin.html",
-      "destination": "/admin.html"
-    },
-    {
-      "source": "/((?!api/|admin\\.html).*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ],
