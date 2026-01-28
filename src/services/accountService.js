@@ -1,5 +1,5 @@
 // Account Service - User account management via external API with localStorage fallback
-import { STORAGE_KEYS, getStoredData } from './api';
+import { STORAGE_KEYS, getStoredData, API_KEY } from './api';
 
 const LOCAL_ACCOUNTS_KEY = 'team33_local_accounts';
 
@@ -43,11 +43,12 @@ class AccountService {
     return getStoredData(STORAGE_KEYS.TOKEN);
   }
 
-  // Get headers with JWT token authentication
+  // Get headers with API key AND JWT token (if available)
   getHeaders() {
     const token = this.getAuthToken();
     return {
       'Content-Type': 'application/json',
+      ...(API_KEY && { 'X-API-Key': API_KEY }),
       ...(token && { 'Authorization': `Bearer ${token}` }),
     };
   }

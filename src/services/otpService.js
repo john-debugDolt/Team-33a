@@ -1,5 +1,5 @@
 // OTP Service - Phone verification via SMS
-import { STORAGE_KEYS, getStoredData } from './api';
+import { STORAGE_KEYS, getStoredData, API_KEY } from './api';
 
 const OTP_API_BASE = '/api/otp';
 
@@ -13,11 +13,12 @@ class OTPService {
     return getStoredData(STORAGE_KEYS.TOKEN);
   }
 
-  // Get headers with JWT token authentication
+  // Get headers with API key AND JWT token (if available)
   getHeaders() {
     const token = this.getAuthToken();
     return {
       'Content-Type': 'application/json',
+      ...(API_KEY && { 'X-API-Key': API_KEY }),
       ...(token && { 'Authorization': `Bearer ${token}` }),
     };
   }
