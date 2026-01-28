@@ -172,7 +172,7 @@ export const walletService = {
     try {
       const response = await fetch(`/api/accounts/${accountId}/balance`, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
       });
 
       if (response.ok) {
@@ -485,7 +485,7 @@ export const walletService = {
         fetchPromises.push(
           fetch(`/api/deposits/account/${accountId}`, {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getHeaders(),
           }).then(async res => {
             if (res.ok) {
               const data = await res.json();
@@ -515,7 +515,7 @@ export const walletService = {
         fetchPromises.push(
           fetch(`/api/withdrawals/account/${accountId}`, {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getHeaders(),
           }).then(async res => {
             if (res.ok) {
               const data = await res.json();
@@ -1035,7 +1035,7 @@ export const walletService = {
       // Step 1: Initiate deposit via API (use relative URL for Vercel proxy)
       const initiateResponse = await fetch(`/api/deposits/initiate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({
           accountId: accountId,
           amount: depositAmount
@@ -1053,7 +1053,7 @@ export const walletService = {
       // Step 2: Verify deposit to move to PENDING_REVIEW
       const verifyResponse = await fetch(`/api/deposits/verify`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ depositId })
       });
 
@@ -1133,7 +1133,7 @@ export const walletService = {
       // Call the withdrawal API
       const response = await fetch('/api/withdrawals', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({
           accountId: accountId,
           amount: withdrawAmount,
