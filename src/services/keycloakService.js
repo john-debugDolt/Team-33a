@@ -4,20 +4,19 @@
  */
 
 // Keycloak configuration from environment variables
-const KEYCLOAK_URL_EXTERNAL = import.meta.env.VITE_KEYCLOAK_URL || 'http://k8s-team33-keycloak-320152ed2f-65380cdab2265c8a.elb.ap-southeast-2.amazonaws.com';
 const KEYCLOAK_REALM = import.meta.env.VITE_KEYCLOAK_REALM || 'Team33Casino';
 const KEYCLOAK_CLIENT_ID = import.meta.env.VITE_KEYCLOAK_CLIENT_ID || 'Team33admin';
-const KEYCLOAK_CLIENT_SECRET = import.meta.env.VITE_KEYCLOAK_CLIENT_SECRET || '';
+const KEYCLOAK_CLIENT_SECRET = import.meta.env.VITE_KEYCLOAK_CLIENT_SECRET || 'lxPLoQaJ7PCYJEJZwRuzelt0RHpKlCH0';
 
-// Use proxy URL in development to avoid CORS issues
-const isDev = import.meta.env.DEV;
-const KEYCLOAK_URL = isDev ? '/auth/keycloak' : KEYCLOAK_URL_EXTERNAL;
+// ALWAYS use proxy URL to avoid CORS and mixed-content issues
+// Dev: Vite proxy handles it, Prod: Vercel rewrites handle it
+const KEYCLOAK_URL = '/auth/keycloak';
 
-// Storage keys
-const ADMIN_TOKEN_KEY = 'team33_admin_token';
-const ADMIN_REFRESH_TOKEN_KEY = 'team33_admin_refresh_token';
-const ADMIN_USER_KEY = 'team33_admin_user';
-const TOKEN_EXPIRY_KEY = 'team33_admin_token_expiry';
+// Storage keys - use standard keys so all services can access the token
+const TOKEN_KEY = 'team33_token';
+const REFRESH_TOKEN_KEY = 'team33_refresh_token';
+const USER_KEY = 'team33_admin_user';
+const TOKEN_EXPIRY_KEY = 'team33_token_expiry';
 
 // Token endpoint
 const getTokenEndpoint = () =>
@@ -62,6 +61,59 @@ class KeycloakService {
   }
 
   /**
+   * Get token using client credentials (for service-to-service auth)
+   * Call this after OTP verification to get a JWT for API calls
+   */
+  async getServiceToken() {
+    console.log('[Keycloak] Getting service token via client credentials...');
+
+    try {
+      const response = await fetch(getTokenEndpoint(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          grant_type: 'client_credentials',
+          client_id: KEYCLOAK_CLIENT_ID,
+          client_secret: KEYCLOAK_CLIENT_SECRET,
+        }),
+      });
+
+      const data = await response.json();
+      console.log('[Keycloak] Response status:', response.status);
+
+      if (!response.ok) {
+        console.error('[Keycloak] Token error:', data);
+        return {
+          success: false,
+          error: data.error_description || data.error || 'Failed to get token',
+        };
+      }
+
+      console.log('[Keycloak] Token received, expires in:', data.expires_in);
+
+      // Store token
+      this.storeTokens(data);
+
+      // Setup auto-refresh
+      this.setupTokenRefresh(data.expires_in);
+
+      return {
+        success: true,
+        accessToken: data.access_token,
+        expiresIn: data.expires_in,
+      };
+    } catch (error) {
+      console.error('[Keycloak] Network error:', error);
+      return {
+        success: false,
+        error: `Network error: ${error.message}`,
+      };
+    }
+  }
+
+  /**
    * Login with username and password (Resource Owner Password Grant)
    */
   async login(username, password) {
@@ -96,7 +148,7 @@ class KeycloakService {
       const user = extractUserFromToken(data.access_token);
 
       // Store user info
-      localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(user));
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
 
       // Setup auto-refresh
       this.setupTokenRefresh(data.expires_in);
@@ -119,9 +171,9 @@ class KeycloakService {
    * Store tokens in localStorage
    */
   storeTokens(tokenData) {
-    localStorage.setItem(ADMIN_TOKEN_KEY, tokenData.access_token);
+    localStorage.setItem(TOKEN_KEY, tokenData.access_token);
     if (tokenData.refresh_token) {
-      localStorage.setItem(ADMIN_REFRESH_TOKEN_KEY, tokenData.refresh_token);
+      localStorage.setItem(REFRESH_TOKEN_KEY, tokenData.refresh_token);
     }
     // Store expiry time (current time + expires_in seconds)
     const expiryTime = Date.now() + (tokenData.expires_in * 1000);
@@ -132,14 +184,14 @@ class KeycloakService {
    * Get stored access token
    */
   getAccessToken() {
-    return localStorage.getItem(ADMIN_TOKEN_KEY);
+    return localStorage.getItem(TOKEN_KEY);
   }
 
   /**
    * Get stored refresh token
    */
   getRefreshToken() {
-    return localStorage.getItem(ADMIN_REFRESH_TOKEN_KEY);
+    return localStorage.getItem(REFRESH_TOKEN_KEY);
   }
 
   /**
@@ -191,7 +243,7 @@ class KeycloakService {
 
       // Update user info
       const user = extractUserFromToken(data.access_token);
-      localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(user));
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
 
       // Setup next refresh
       this.setupTokenRefresh(data.expires_in);
@@ -228,17 +280,31 @@ class KeycloakService {
   }
 
   /**
-   * Get valid access token (refreshes if needed)
+   * Get valid access token (refreshes if needed, or gets service token)
    */
   async getValidToken() {
-    if (this.isTokenExpired()) {
-      const result = await this.refreshToken();
-      if (!result.success) {
-        return null;
-      }
-      return result.accessToken;
+    // If token exists and not expired, use it
+    if (!this.isTokenExpired()) {
+      return this.getAccessToken();
     }
-    return this.getAccessToken();
+
+    // Try to refresh using refresh token
+    const refreshToken = this.getRefreshToken();
+    if (refreshToken) {
+      const result = await this.refreshToken();
+      if (result.success) {
+        return result.accessToken;
+      }
+    }
+
+    // No refresh token or refresh failed - get new service token
+    console.log('[Keycloak] Getting new service token...');
+    const serviceResult = await this.getServiceToken();
+    if (serviceResult.success) {
+      return serviceResult.accessToken;
+    }
+
+    return null;
   }
 
   /**
@@ -248,9 +314,9 @@ class KeycloakService {
     if (this.tokenRefreshTimer) {
       clearTimeout(this.tokenRefreshTimer);
     }
-    localStorage.removeItem(ADMIN_TOKEN_KEY);
-    localStorage.removeItem(ADMIN_REFRESH_TOKEN_KEY);
-    localStorage.removeItem(ADMIN_USER_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
     localStorage.removeItem(TOKEN_EXPIRY_KEY);
   }
 
@@ -259,7 +325,7 @@ class KeycloakService {
    */
   getCurrentUser() {
     try {
-      const userJson = localStorage.getItem(ADMIN_USER_KEY);
+      const userJson = localStorage.getItem(USER_KEY);
       return userJson ? JSON.parse(userJson) : null;
     } catch {
       return null;
@@ -300,14 +366,17 @@ class KeycloakService {
   }
 
   /**
-   * Initialize service - check for existing session and setup refresh
+   * Initialize service - ensure we have a valid token
    */
   async init() {
-    const token = this.getAccessToken();
-    if (!token) return false;
+    console.log('[Keycloak] Initializing...');
 
-    if (this.isTokenExpired()) {
-      const result = await this.refreshToken();
+    const token = this.getAccessToken();
+
+    // If no token or expired, get a new one
+    if (!token || this.isTokenExpired()) {
+      console.log('[Keycloak] No valid token, getting new service token...');
+      const result = await this.getServiceToken();
       return result.success;
     }
 
@@ -320,6 +389,7 @@ class KeycloakService {
       }
     }
 
+    console.log('[Keycloak] Using existing valid token');
     return true;
   }
 }
