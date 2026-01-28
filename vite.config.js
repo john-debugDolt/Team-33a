@@ -20,6 +20,13 @@ export default defineConfig({
     host: 'localhost',  // Only show localhost, hide network IP
     strictPort: true,
     proxy: {
+      // Proxy Keycloak auth requests (for local development)
+      '/auth/keycloak': {
+        target: 'http://k8s-team33-keycloak-320152ed2f-65380cdab2265c8a.elb.ap-southeast-2.amazonaws.com',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/auth\/keycloak/, ''),
+      },
       // Proxy chat API to external chat server
       '/api/chat': {
         target: 'https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
