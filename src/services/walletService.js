@@ -1,14 +1,21 @@
 // Wallet Service - Wallet management via external API with localStorage fallback
 // API calls use relative URLs which are proxied by Vite (dev) or Vercel serverless functions (prod)
-import { API_KEY } from './api';
+import { STORAGE_KEYS, getStoredData } from './api';
 
 const LOCAL_WALLETS_KEY = 'team33_local_wallets';
 const PENDING_TRANSACTIONS_KEY = 'team33_pending_transactions';
 const DEFAULT_BALANCE = 0; // Users must deposit via agent/admin
 
-const headers = {
-  'Content-Type': 'application/json',
-  'X-API-Key': API_KEY,
+// Get JWT token from storage
+const getAuthToken = () => getStoredData(STORAGE_KEYS.TOKEN);
+
+// Get headers with JWT token authentication
+const getHeaders = () => {
+  const token = getAuthToken();
+  return {
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` }),
+  };
 };
 
 // Generate unique Transaction ID
@@ -89,7 +96,7 @@ export const walletService = {
     try {
       const response = await fetch(`/api/wallets/${accountId}`, {
         method: 'POST',
-        headers,
+        headers: getHeaders(),
       });
 
       const data = await response.json();
@@ -120,7 +127,7 @@ export const walletService = {
     try {
       const response = await fetch(`/api/wallets/account/${accountId}`, {
         method: 'GET',
-        headers,
+        headers: getHeaders(),
       });
 
       if (!response.ok) {
@@ -311,7 +318,7 @@ export const walletService = {
     try {
       const response = await fetch(`/api/wallets/account/${accountId}/deposit`, {
         method: 'POST',
-        headers,
+        headers: getHeaders(),
         body: JSON.stringify({
           amount: Number(amount),
           description: `${paymentMethod} deposit`,
@@ -402,7 +409,7 @@ export const walletService = {
     try {
       const response = await fetch(`/api/wallets/account/${accountId}/withdraw`, {
         method: 'POST',
-        headers,
+        headers: getHeaders(),
         body: JSON.stringify({
           amount: Number(amount),
           description: `${paymentMethod} withdrawal`,

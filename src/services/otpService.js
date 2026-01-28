@@ -1,5 +1,5 @@
 // OTP Service - Phone verification via SMS
-import { API_KEY } from './api';
+import { STORAGE_KEYS, getStoredData } from './api';
 
 const OTP_API_BASE = '/api/otp';
 
@@ -8,10 +8,17 @@ const DEV_BYPASS_CODE = '000000';
 const BYPASS_ENABLED = false; // Set to true for dev bypass with code "000000"
 
 class OTPService {
-  constructor() {
-    this.headers = {
+  // Get JWT token from storage
+  getAuthToken() {
+    return getStoredData(STORAGE_KEYS.TOKEN);
+  }
+
+  // Get headers with JWT token authentication
+  getHeaders() {
+    const token = this.getAuthToken();
+    return {
       'Content-Type': 'application/json',
-      'X-API-Key': API_KEY,
+      ...(token && { 'Authorization': `Bearer ${token}` }),
     };
   }
 
@@ -54,7 +61,7 @@ class OTPService {
     try {
       const response = await fetch(`${OTP_API_BASE}/send`, {
         method: 'POST',
-        headers: this.headers,
+        headers: this.getHeaders(),
         body: JSON.stringify({ phoneNumber: formattedPhone }),
       });
 
@@ -102,7 +109,7 @@ class OTPService {
 
       const response = await fetch(`${OTP_API_BASE}/verify`, {
         method: 'POST',
-        headers: this.headers,
+        headers: this.getHeaders(),
         body: JSON.stringify({
           phoneNumber: formattedPhone,
           otp: otp.toString(),
@@ -136,7 +143,7 @@ class OTPService {
 
       const response = await fetch(`${OTP_API_BASE}/status/${encodedPhone}`, {
         method: 'GET',
-        headers: this.headers,
+        headers: this.getHeaders(),
       });
 
       const data = await response.json();
@@ -167,7 +174,7 @@ class OTPService {
 
       const response = await fetch(`${OTP_API_BASE}/resend`, {
         method: 'POST',
-        headers: this.headers,
+        headers: this.getHeaders(),
         body: JSON.stringify({ phoneNumber: formattedPhone }),
       });
 
