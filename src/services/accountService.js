@@ -1,6 +1,7 @@
 // Account Service - User account management via external API
 // Uses Keycloak JWT tokens for authentication (no API key)
 import { getAccessToken } from './api';
+import { keycloakService } from './keycloakService';
 
 const LOCAL_ACCOUNTS_KEY = 'team33_local_accounts';
 
@@ -51,6 +52,19 @@ class AccountService {
     };
   }
 
+  // Get headers with valid token (fetches from Keycloak if needed)
+  async getHeadersAsync() {
+    let token = getAccessToken();
+    if (!token) {
+      console.log('[AccountService] No token, fetching from Keycloak...');
+      token = await keycloakService.getValidToken();
+    }
+    return {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+    };
+  }
+
   // Get local accounts from localStorage
   getLocalAccounts() {
     try {
@@ -76,10 +90,13 @@ class AccountService {
   // Register a new account
   async register({ password, firstName, lastName, phoneNumber }) {
     try {
+      // Get headers with valid token (fetches from Keycloak if needed)
+      const headers = await this.getHeadersAsync();
+
       // Call external API to register account
       const response = await fetch('/api/accounts', {
         method: 'POST',
-        headers: this.getHeaders(),
+        headers,
         body: JSON.stringify({
           password,
           firstName,
@@ -211,9 +228,10 @@ class AccountService {
 
     // Try external API
     try {
+      const headers = await this.getHeadersAsync();
       const response = await fetch(`/api/accounts/phone/${encodeURIComponent(formattedPhone)}`, {
         method: 'GET',
-        headers: this.getHeaders(),
+        headers,
       });
 
       if (!response.ok) {
@@ -249,10 +267,11 @@ class AccountService {
 
     // Try external API - check if account exists by phone
     try {
+      const headers = await this.getHeadersAsync();
       const encodedPhone = encodeURIComponent(formattedPhone);
       const response = await fetch(`/api/accounts/phone/${encodedPhone}`, {
         method: 'GET',
-        headers: this.getHeaders(),
+        headers,
       });
 
       if (response.ok) {
