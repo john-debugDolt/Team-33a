@@ -1,17 +1,14 @@
 // Bank Service - Fetch bank details for deposits with rotation logic
 // Uses Keycloak JWT tokens for authentication
 
-import { STORAGE_KEYS, getStoredData } from './api';
+import { getAccessToken } from './api';
 
 const ROTATION_THRESHOLD = 3; // Switch bank after 3 deposits
 const ROTATION_KEY = 'team33_bank_rotation';
 
-// Get JWT token from storage
-const getAuthToken = () => getStoredData(STORAGE_KEYS.TOKEN);
-
 // Get headers with JWT token
 const getHeaders = () => {
-  const token = getAuthToken();
+  const token = getAccessToken();
   return {
     'Content-Type': 'application/json',
     ...(token && { 'Authorization': `Bearer ${token}` }),

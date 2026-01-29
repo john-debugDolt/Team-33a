@@ -1,12 +1,9 @@
-import { apiClient, STORAGE_KEYS, getStoredData } from './api';
+import { apiClient, getAccessToken } from './api';
 import { CDN_BASE, games as localGames, getGamesByCategory, getHotGames as getLocalHotGames, getNewGames as getLocalNewGames, getGameById as getLocalGameById, getGameBySlug, searchGames as localSearchGames, CATEGORIES } from '../data/gameData';
-
-// Get JWT token from storage
-const getAuthToken = () => getStoredData(STORAGE_KEYS.TOKEN);
 
 // Get headers with JWT token
 const getHeaders = () => {
-  const token = getAuthToken();
+  const token = getAccessToken();
   return {
     'Content-Type': 'application/json',
     ...(token && { 'Authorization': `Bearer ${token}` }),

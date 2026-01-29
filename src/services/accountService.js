@@ -1,6 +1,6 @@
 // Account Service - User account management via external API
 // Uses Keycloak JWT tokens for authentication (no API key)
-import { STORAGE_KEYS, getStoredData } from './api';
+import { getAccessToken } from './api';
 
 const LOCAL_ACCOUNTS_KEY = 'team33_local_accounts';
 
@@ -39,14 +39,9 @@ const generateUserId = () => {
 };
 
 class AccountService {
-  // Get JWT token from storage
-  getAuthToken() {
-    return getStoredData(STORAGE_KEYS.TOKEN);
-  }
-
   // Get headers with JWT token (required for all API calls)
   getHeaders() {
-    const token = this.getAuthToken();
+    const token = getAccessToken();
     if (!token) {
       console.warn('[AccountService] No JWT token available');
     }

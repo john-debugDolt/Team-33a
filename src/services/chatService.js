@@ -17,14 +17,11 @@
  */
 
 import { chatStorageService } from './chatStorageService';
-import { STORAGE_KEYS, getStoredData } from './api';
-
-// Get JWT token from storage
-const getAuthToken = () => getStoredData(STORAGE_KEYS.TOKEN);
+import { getAccessToken } from './api';
 
 // Get headers with JWT token
 const getHeaders = (includeContentType = true) => {
-  const token = getAuthToken();
+  const token = getAccessToken();
   return {
     ...(includeContentType && { 'Content-Type': 'application/json' }),
     ...(token && { 'Authorization': `Bearer ${token}` }),
