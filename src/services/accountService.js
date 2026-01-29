@@ -87,36 +87,26 @@ class AccountService {
     return accounts.find(acc => acc.phoneNumber === phoneNumber);
   }
 
-  // Register a new account
+  // Register a new account (ALWAYS uses external API with Keycloak token)
   async register({ password, firstName, lastName, phoneNumber }) {
-    const requestBody = JSON.stringify({
-      password,
-      firstName,
-      lastName,
-      phoneNumber,
-    });
-
     try {
-      // First, try WITHOUT token (registration should be public)
-      console.log('[AccountService] Attempting registration without token...');
-      let response = await fetch('/api/accounts', {
+      // Get Keycloak token first (required by backend)
+      const headers = await this.getHeadersAsync();
+
+      console.log('[AccountService] Registering with external API...');
+      const response = await fetch('/api/accounts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: requestBody,
+        headers,
+        body: JSON.stringify({
+          password,
+          firstName,
+          lastName,
+          phoneNumber,
+        }),
       });
 
-      // If 401, try WITH token (backend might require auth)
-      if (response.status === 401) {
-        console.log('[AccountService] 401 without token, trying with Keycloak token...');
-        const headers = await this.getHeadersAsync();
-        response = await fetch('/api/accounts', {
-          method: 'POST',
-          headers,
-          body: requestBody,
-        });
-      }
-
       const data = await response.json();
+      console.log('[AccountService] Response:', response.status, data);
 
       if (response.status === 201 || response.ok) {
         return {
@@ -127,22 +117,18 @@ class AccountService {
         };
       }
 
-      // Handle authentication errors - fall back to local registration
-      if (response.status === 401) {
-        console.warn('[AccountService] 401 even with token, falling back to local registration');
-        return this.registerLocal({ password, firstName, lastName, phoneNumber });
-      }
-
+      // Return error from backend
       return {
         success: false,
-        error: data.error || data.message || 'Registration failed',
+        error: data.error || data.message || `Registration failed (${response.status})`,
         field: data.field,
       };
     } catch (error) {
       console.error('Account registration error:', error);
-      // Network error - fall back to local registration
-      console.warn('[AccountService] Network error, falling back to local registration');
-      return this.registerLocal({ password, firstName, lastName, phoneNumber });
+      return {
+        success: false,
+        error: 'Network error. Please check your connection.',
+      };
     }
   }
 
@@ -221,36 +207,20 @@ class AccountService {
     }
   }
 
-  // Get account by phone (for login)
+  // Get account by phone (for login) - ALWAYS uses external API
   async getAccountByPhone(phoneNumber) {
     // Format phone to international format
     const formattedPhone = formatPhoneNumber(phoneNumber);
 
-    // Check local accounts first (try both formats)
-    const localAccount = this.findLocalAccountByPhone(formattedPhone) ||
-                         this.findLocalAccountByPhone(phoneNumber);
-    if (localAccount) {
-      return { success: true, account: localAccount, isLocal: true };
-    }
-
-    // Try external API - first without token, then with token
     try {
+      const headers = await this.getHeadersAsync();
       const url = `/api/accounts/phone/${encodeURIComponent(formattedPhone)}`;
 
-      // Try without token first
-      let response = await fetch(url, {
+      console.log('[AccountService] Getting account by phone from external API...');
+      const response = await fetch(url, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
       });
-
-      // If 401, try with token
-      if (response.status === 401) {
-        const headers = await this.getHeadersAsync();
-        response = await fetch(url, {
-          method: 'GET',
-          headers,
-        });
-      }
 
       if (!response.ok) {
         return { success: false, error: 'Account not found' };
@@ -259,49 +229,26 @@ class AccountService {
       const data = await response.json();
       return { success: true, account: data };
     } catch (error) {
+      console.error('Get account by phone error:', error);
       return { success: false, error: 'Account not found' };
     }
   }
 
-  // Login with phone and password
+  // Login with phone and password - ALWAYS uses external API
   async loginWithPhone(phoneNumber, password) {
     // Format phone to international format
     const formattedPhone = formatPhoneNumber(phoneNumber);
 
-    // Check local accounts first (try both formats)
-    const localAccount = this.findLocalAccountByPhone(formattedPhone) ||
-                         this.findLocalAccountByPhone(phoneNumber);
-    if (localAccount) {
-      if (localAccount.password === password) {
-        return {
-          success: true,
-          account: localAccount,
-          accountId: localAccount.accountId,
-          isLocal: true,
-        };
-      }
-      return { success: false, error: 'Invalid password' };
-    }
-
-    // Try external API - check if account exists by phone
     try {
+      const headers = await this.getHeadersAsync();
       const encodedPhone = encodeURIComponent(formattedPhone);
       const url = `/api/accounts/phone/${encodedPhone}`;
 
-      // Try without token first
-      let response = await fetch(url, {
+      console.log('[AccountService] Login - checking account in external API...');
+      const response = await fetch(url, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
       });
-
-      // If 401, try with token
-      if (response.status === 401) {
-        const headers = await this.getHeadersAsync();
-        response = await fetch(url, {
-          method: 'GET',
-          headers,
-        });
-      }
 
       if (response.ok) {
         const account = await response.json();
