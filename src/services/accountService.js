@@ -89,21 +89,32 @@ class AccountService {
 
   // Register a new account
   async register({ password, firstName, lastName, phoneNumber }) {
-    try {
-      // Get headers with valid token (fetches from Keycloak if needed)
-      const headers = await this.getHeadersAsync();
+    const requestBody = JSON.stringify({
+      password,
+      firstName,
+      lastName,
+      phoneNumber,
+    });
 
-      // Call external API to register account
-      const response = await fetch('/api/accounts', {
+    try {
+      // First, try WITHOUT token (registration should be public)
+      console.log('[AccountService] Attempting registration without token...');
+      let response = await fetch('/api/accounts', {
         method: 'POST',
-        headers,
-        body: JSON.stringify({
-          password,
-          firstName,
-          lastName,
-          phoneNumber,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: requestBody,
       });
+
+      // If 401, try WITH token (backend might require auth)
+      if (response.status === 401) {
+        console.log('[AccountService] 401 without token, trying with Keycloak token...');
+        const headers = await this.getHeadersAsync();
+        response = await fetch('/api/accounts', {
+          method: 'POST',
+          headers,
+          body: requestBody,
+        });
+      }
 
       const data = await response.json();
 
@@ -116,13 +127,10 @@ class AccountService {
         };
       }
 
-      // Handle authentication errors
+      // Handle authentication errors - fall back to local registration
       if (response.status === 401) {
-        console.error('[AccountService] JWT token invalid or expired');
-        return {
-          success: false,
-          error: 'Authentication failed. Please refresh and try again.',
-        };
+        console.warn('[AccountService] 401 even with token, falling back to local registration');
+        return this.registerLocal({ password, firstName, lastName, phoneNumber });
       }
 
       return {
@@ -132,10 +140,9 @@ class AccountService {
       };
     } catch (error) {
       console.error('Account registration error:', error);
-      return {
-        success: false,
-        error: 'Network error. Please check your connection and try again.',
-      };
+      // Network error - fall back to local registration
+      console.warn('[AccountService] Network error, falling back to local registration');
+      return this.registerLocal({ password, firstName, lastName, phoneNumber });
     }
   }
 
@@ -226,13 +233,24 @@ class AccountService {
       return { success: true, account: localAccount, isLocal: true };
     }
 
-    // Try external API
+    // Try external API - first without token, then with token
     try {
-      const headers = await this.getHeadersAsync();
-      const response = await fetch(`/api/accounts/phone/${encodeURIComponent(formattedPhone)}`, {
+      const url = `/api/accounts/phone/${encodeURIComponent(formattedPhone)}`;
+
+      // Try without token first
+      let response = await fetch(url, {
         method: 'GET',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
       });
+
+      // If 401, try with token
+      if (response.status === 401) {
+        const headers = await this.getHeadersAsync();
+        response = await fetch(url, {
+          method: 'GET',
+          headers,
+        });
+      }
 
       if (!response.ok) {
         return { success: false, error: 'Account not found' };
@@ -267,12 +285,23 @@ class AccountService {
 
     // Try external API - check if account exists by phone
     try {
-      const headers = await this.getHeadersAsync();
       const encodedPhone = encodeURIComponent(formattedPhone);
-      const response = await fetch(`/api/accounts/phone/${encodedPhone}`, {
+      const url = `/api/accounts/phone/${encodedPhone}`;
+
+      // Try without token first
+      let response = await fetch(url, {
         method: 'GET',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
       });
+
+      // If 401, try with token
+      if (response.status === 401) {
+        const headers = await this.getHeadersAsync();
+        response = await fetch(url, {
+          method: 'GET',
+          headers,
+        });
+      }
 
       if (response.ok) {
         const account = await response.json();
