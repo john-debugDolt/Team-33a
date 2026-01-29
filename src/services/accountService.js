@@ -1,8 +1,9 @@
 // Account Service - User account management via external API
-// Uses X-API-Key header for authentication (NOT Keycloak Bearer token)
+// Uses Keycloak JWT tokens for authentication (no API key)
+import { getAccessToken } from './api';
+import { keycloakService } from './keycloakService';
 
-// API Key for accounts backend (matches api/accounts/index.js)
-const API_KEY = 'team33-admin-secret-key-2024';
+const LOCAL_ACCOUNTS_KEY = 'team33_local_accounts';
 
 // Format phone number to international format (Australian +61)
 const formatPhoneNumber = (phone) => {
@@ -25,41 +26,82 @@ const formatPhoneNumber = (phone) => {
   return cleaned;
 };
 
-// Generate unique User ID (UID-XXXXXXXX format) - fallback if backend doesn't return one
+// Generate unique Account ID (ACC-XXXXXX format)
+const generateAccountId = () => {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `ACC-${timestamp}${random}`;
+};
+
+// Generate unique User ID (UID-XXXXXXXX format)
 const generateUserId = () => {
   const num = Math.floor(10000000 + Math.random() * 90000000);
   return `UID-${num}`;
 };
 
 class AccountService {
-  // Get headers with X-API-Key (required for all API calls)
+  // Get headers with JWT token (required for all API calls)
   getHeaders() {
+    const token = getAccessToken();
+    if (!token) {
+      console.warn('[AccountService] No JWT token available');
+    }
     return {
       'Content-Type': 'application/json',
-      'X-API-Key': API_KEY,
+      ...(token && { 'Authorization': `Bearer ${token}` }),
     };
   }
 
-  // Register a new account (uses X-API-Key authentication)
-  // Required fields: email, password, firstName, lastName, phoneNumber, dateOfBirth
-  async register({ email, password, firstName, lastName, phoneNumber, dateOfBirth }) {
+  // Get headers with valid token (fetches from Keycloak if needed)
+  async getHeadersAsync() {
+    let token = getAccessToken();
+    if (!token) {
+      console.log('[AccountService] No token, fetching from Keycloak...');
+      token = await keycloakService.getValidToken();
+    }
+    return {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+    };
+  }
+
+  // Get local accounts from localStorage
+  getLocalAccounts() {
     try {
-      // Format phone to international format
-      const formattedPhone = formatPhoneNumber(phoneNumber);
+      return JSON.parse(localStorage.getItem(LOCAL_ACCOUNTS_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  }
+
+  // Save account to localStorage
+  saveLocalAccount(account) {
+    const accounts = this.getLocalAccounts();
+    accounts.push(account);
+    localStorage.setItem(LOCAL_ACCOUNTS_KEY, JSON.stringify(accounts));
+  }
+
+  // Find local account by phone
+  findLocalAccountByPhone(phoneNumber) {
+    const accounts = this.getLocalAccounts();
+    return accounts.find(acc => acc.phoneNumber === phoneNumber);
+  }
+
+  // Register a new account (ALWAYS uses external API with Keycloak token)
+  async register({ password, firstName, lastName, phoneNumber }) {
+    try {
+      // Get Keycloak token first (required by backend)
+      const headers = await this.getHeadersAsync();
 
       console.log('[AccountService] Registering with external API...');
-      console.log('[AccountService] Endpoint: /api/accounts/register');
-
-      const response = await fetch('/api/accounts/register', {
+      const response = await fetch('/api/accounts', {
         method: 'POST',
-        headers: this.getHeaders(),
+        headers,
         body: JSON.stringify({
-          email,
           password,
           firstName,
           lastName,
-          phoneNumber: formattedPhone,
-          dateOfBirth, // Format: YYYY-MM-DD, must be 18+
+          phoneNumber,
         }),
       });
 
@@ -90,8 +132,56 @@ class AccountService {
     }
   }
 
-  // Get account by ID
+  // Register account locally (fallback)
+  registerLocal({ password, firstName, lastName, phoneNumber }) {
+    // Check if account already exists
+    const existing = this.findLocalAccountByPhone(phoneNumber);
+    if (existing) {
+      return {
+        success: false,
+        error: 'An account with this phone number already exists',
+      };
+    }
+
+    // Generate unique IDs
+    const accountId = generateAccountId();
+    const userId = generateUserId();
+
+    // Create new local account
+    const account = {
+      accountId,
+      userId,
+      phoneNumber,
+      firstName,
+      lastName,
+      password, // In production, this should be hashed
+      status: 'ACTIVE',
+      createdAt: new Date().toISOString(),
+      isLocal: true,
+    };
+
+    this.saveLocalAccount(account);
+
+    return {
+      success: true,
+      account,
+      accountId,
+      userId,
+      isLocal: true,
+    };
+  }
+
+  // Get account by ID (with local fallback)
   async getAccount(accountId) {
+    // Check local accounts first if it's a local ID
+    if (accountId && accountId.startsWith('local_')) {
+      const accounts = this.getLocalAccounts();
+      const localAccount = accounts.find(acc => acc.accountId === accountId);
+      if (localAccount) {
+        return { success: true, account: localAccount };
+      }
+    }
+
     try {
       const response = await fetch(`/api/accounts/${accountId}`, {
         method: 'GET',
@@ -117,18 +207,19 @@ class AccountService {
     }
   }
 
-  // Get account by phone (for login)
+  // Get account by phone (for login) - ALWAYS uses external API
   async getAccountByPhone(phoneNumber) {
     // Format phone to international format
     const formattedPhone = formatPhoneNumber(phoneNumber);
 
     try {
+      const headers = await this.getHeadersAsync();
       const url = `/api/accounts/phone/${encodeURIComponent(formattedPhone)}`;
 
       console.log('[AccountService] Getting account by phone from external API...');
       const response = await fetch(url, {
         method: 'GET',
-        headers: this.getHeaders(),
+        headers,
       });
 
       if (!response.ok) {
@@ -143,19 +234,20 @@ class AccountService {
     }
   }
 
-  // Login with phone - checks if account exists in external API
-  async loginWithPhone(phoneNumber) {
+  // Login with phone and password - ALWAYS uses external API
+  async loginWithPhone(phoneNumber, password) {
     // Format phone to international format
     const formattedPhone = formatPhoneNumber(phoneNumber);
 
     try {
+      const headers = await this.getHeadersAsync();
       const encodedPhone = encodeURIComponent(formattedPhone);
       const url = `/api/accounts/phone/${encodedPhone}`;
 
       console.log('[AccountService] Login - checking account in external API...');
       const response = await fetch(url, {
         method: 'GET',
-        headers: this.getHeaders(),
+        headers,
       });
 
       if (response.ok) {

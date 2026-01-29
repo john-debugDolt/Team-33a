@@ -16,10 +16,8 @@ export default function Signup() {
 
   const [formData, setFormData] = useState({
     fullName: '',
-    email: '',
     phone: '',
     password: '',
-    dateOfBirth: '',
     referralCode: ''
   })
   const [loading, setLoading] = useState(false)
@@ -128,12 +126,10 @@ export default function Signup() {
 
       // 1. Create account via external API
       const registerResult = await accountService.register({
-        email: formData.email,
         password: formData.password,
         firstName: firstName,
         lastName: lastName,
         phoneNumber: formattedPhone,
-        dateOfBirth: formData.dateOfBirth,
       })
 
       if (!registerResult.success) {
@@ -178,9 +174,7 @@ export default function Signup() {
         firstName: firstName,
         lastName: lastName,
         fullName: formData.fullName,
-        email: formData.email,
         phone: formattedPhone,
-        dateOfBirth: formData.dateOfBirth,
         balance,
         status: registerResult.account?.status || 'ACTIVE',
       }
@@ -213,23 +207,6 @@ export default function Signup() {
     // Validation
     if (!formData.fullName || formData.fullName.trim().length < 2) {
       showToast('Please enter your full name', 'error')
-      return
-    }
-
-    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      showToast('Please enter a valid email address', 'error')
-      return
-    }
-
-    if (!formData.dateOfBirth) {
-      showToast('Please enter your date of birth', 'error')
-      return
-    }
-
-    // Check age (must be 18+)
-    const ageCheck = accountService.validateAge(formData.dateOfBirth)
-    if (!ageCheck.valid) {
-      showToast('You must be 18 years or older to register', 'error')
       return
     }
 
@@ -287,36 +264,6 @@ export default function Signup() {
               />
             </div>
             <p className="form-hint-golden">*Must Be The Same As Your Bank Account Name.</p>
-
-            {/* Email */}
-            <div className="form-row-inline">
-              <label className="form-label-inline">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Enter your email"
-                className="form-input-inline"
-                required
-                autoComplete="email"
-              />
-            </div>
-
-            {/* Date of Birth */}
-            <div className="form-row-inline">
-              <label className="form-label-inline">Date of Birth</label>
-              <input
-                type="date"
-                name="dateOfBirth"
-                value={formData.dateOfBirth}
-                onChange={handleChange}
-                className="form-input-inline"
-                required
-                max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
-              />
-            </div>
-            <p className="form-hint-golden">*You must be 18 years or older to register.</p>
 
             {/* Mobile No */}
             <div className="form-row-inline">
