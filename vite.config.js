@@ -22,9 +22,9 @@ export default defineConfig({
     proxy: {
       // Proxy Keycloak auth requests (for local development)
       '/auth/keycloak': {
-        target: 'http://k8s-team33-keycloak-320152ed2f-65380cdab2265c8a.elb.ap-southeast-2.amazonaws.com',
+        target: 'https://k8s-team33-keycloak-320152ed2f-65380cdab2265c8a.elb.ap-southeast-2.amazonaws.com',
         changeOrigin: true,
-        secure: false,
+        secure: true,
         rewrite: (path) => path.replace(/^\/auth\/keycloak/, ''),
       },
       // Proxy chat API to external chat server
