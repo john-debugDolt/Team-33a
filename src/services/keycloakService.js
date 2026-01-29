@@ -14,6 +14,7 @@ const KEYCLOAK_URL = '/auth/keycloak';
 
 // Storage keys - use standard keys so all services can access the token
 const TOKEN_KEY = 'team33_token';
+const ACCESS_TOKEN_KEY = 'accessToken'; // Key used by all frontend services
 const REFRESH_TOKEN_KEY = 'team33_refresh_token';
 const USER_KEY = 'team33_admin_user';
 const TOKEN_EXPIRY_KEY = 'team33_token_expiry';
@@ -186,6 +187,8 @@ class KeycloakService {
    */
   storeTokens(tokenData) {
     localStorage.setItem(TOKEN_KEY, tokenData.access_token);
+    // Also store in accessToken key for all frontend services
+    localStorage.setItem(ACCESS_TOKEN_KEY, tokenData.access_token);
     if (tokenData.refresh_token) {
       localStorage.setItem(REFRESH_TOKEN_KEY, tokenData.refresh_token);
     }
@@ -329,6 +332,7 @@ class KeycloakService {
       clearTimeout(this.tokenRefreshTimer);
     }
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(TOKEN_EXPIRY_KEY);
