@@ -1,12 +1,63 @@
-import { STORAGE_KEYS, getStoredData, setStoredData, removeStoredData } from './api';
+import {
+  STORAGE_KEYS,
+  getStoredData,
+  setStoredData,
+  removeStoredData,
+  getAccessToken,
+  setAccessToken,
+  clearAccessToken,
+  isTokenExpired,
+  parseJwtToken
+} from './api';
 
 /**
- * Auth Service - Handles authentication state and localStorage management
+ * Auth Service - Handles authentication state and token management
  *
- * Note: Primary authentication flows go through accountService.js
- * This service manages localStorage state and provides fallback/legacy support
+ * Token-based authentication:
+ * - accessToken is stored in localStorage
+ * - Token is attached to all API requests
+ * - Session is validated using token, not localStorage user data
  */
 export const authService = {
+  /**
+   * Set auth token after login
+   */
+  setAuthToken(token) {
+    setAccessToken(token);
+  },
+
+  /**
+   * Clear auth token on logout
+   */
+  clearAuthToken() {
+    clearAccessToken();
+  },
+
+  /**
+   * Get current auth token
+   */
+  getAuthToken() {
+    return getAccessToken();
+  },
+
+  /**
+   * Check if user has valid token
+   */
+  hasValidToken() {
+    const token = getAccessToken();
+    if (!token) return false;
+    return !isTokenExpired(token);
+  },
+
+  /**
+   * Get user info from token
+   */
+  getUserFromToken() {
+    const token = getAccessToken();
+    if (!token) return null;
+    return parseJwtToken(token);
+  },
+
   /**
    * Login - primarily handled by accountService.loginWithPhone()
    * This is a fallback that checks localStorage for demo users
@@ -61,14 +112,17 @@ export const authService = {
   },
 
   /**
-   * Logout - clears all auth-related localStorage
+   * Logout - clears all auth-related localStorage including token
    */
   async logout() {
+    // Clear access token first (most important)
+    clearAccessToken();
+    // Clear legacy token storage
     removeStoredData(STORAGE_KEYS.USER);
     removeStoredData(STORAGE_KEYS.TOKEN);
     removeStoredData(STORAGE_KEYS.CHECKIN);
     removeStoredData(STORAGE_KEYS.TRANSACTIONS);
-    // Also clear external API user data
+    // Clear external API user data
     localStorage.removeItem('user');
     localStorage.removeItem('accountId');
     localStorage.removeItem('userId');

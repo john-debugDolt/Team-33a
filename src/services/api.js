@@ -69,9 +69,71 @@ export const removeStoredData = (key) => {
   }
 };
 
-// Get auth token
-const getToken = () => getStoredData(STORAGE_KEYS.TOKEN);
+// ==================== TOKEN MANAGEMENT ====================
+// Access token key (separate from legacy token)
+const ACCESS_TOKEN_KEY = 'accessToken';
 
+// Get access token from localStorage
+export const getAccessToken = () => {
+  return localStorage.getItem(ACCESS_TOKEN_KEY);
+};
+
+// Set access token in localStorage
+export const setAccessToken = (token) => {
+  if (token) {
+    localStorage.setItem(ACCESS_TOKEN_KEY, token);
+    return true;
+  }
+  return false;
+};
+
+// Clear access token from localStorage
+export const clearAccessToken = () => {
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+};
+
+// Check if token exists (basic check - doesn't validate expiry)
+export const hasAccessToken = () => {
+  return !!getAccessToken();
+};
+
+// Parse JWT token to get payload (for checking expiry, etc.)
+export const parseJwtToken = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    return null;
+  }
+};
+
+// Check if token is expired
+export const isTokenExpired = (token) => {
+  const payload = parseJwtToken(token);
+  if (!payload || !payload.exp) return true;
+  // exp is in seconds, Date.now() is in milliseconds
+  return Date.now() >= payload.exp * 1000;
+};
+
+// Get auth token (combines legacy and new token check)
+const getToken = () => {
+  // First check new accessToken
+  const accessToken = getAccessToken();
+  if (accessToken && !isTokenExpired(accessToken)) {
+    return accessToken;
+  }
+  // Fall back to legacy token storage
+  return getStoredData(STORAGE_KEYS.TOKEN);
+};
+
+// ==================== API CLIENT ====================
 // API client with auth header support
 export const apiClient = {
   async request(endpoint, options = {}) {

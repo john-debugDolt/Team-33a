@@ -11,10 +11,25 @@ export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [transactionVersion, setTransactionVersion] = useState(0); // Increments when transactions change
 
-  // Check for existing session on mount
+  // Check for existing session on mount - TOKEN BASED AUTH
   useEffect(() => {
     const loadUser = async () => {
-      // First check for external API user data in localStorage
+      // ✅ STEP 1: Check for valid access token FIRST
+      const hasValidToken = authService.hasValidToken();
+
+      if (!hasValidToken) {
+        // No valid token - user must login
+        console.log('[Auth] No valid token found');
+        // Clear any stale user data
+        localStorage.removeItem('user');
+        localStorage.removeItem('accountId');
+        setLoading(false);
+        return;
+      }
+
+      console.log('[Auth] Valid token found, restoring session');
+
+      // ✅ STEP 2: Token is valid, restore user data
       const storedUser = localStorage.getItem('user');
       const storedAccountId = localStorage.getItem('accountId');
 
@@ -25,21 +40,26 @@ export function AuthProvider({ children }) {
           const balanceResult = await walletService.getBalance(storedAccountId);
           if (balanceResult.success) {
             userData.balance = balanceResult.balance;
+            localStorage.setItem('user', JSON.stringify(userData));
           }
           setUser(userData);
           setIsAuthenticated(true);
           setLoading(false);
           return;
         } catch (e) {
-          console.error('Error loading stored user:', e);
+          console.error('[Auth] Error loading stored user:', e);
         }
       }
 
-      // Fall back to old authService for demo/legacy users
+      // Token exists but no user data - try to get from legacy storage
       const result = await authService.getCurrentUser();
       if (result.success && result.data) {
         setUser(result.data.user);
         setIsAuthenticated(true);
+      } else {
+        // Token exists but can't get user - clear token
+        console.log('[Auth] Token exists but no user data - clearing');
+        authService.clearAuthToken();
       }
       setLoading(false);
     };
@@ -127,26 +147,44 @@ export function AuthProvider({ children }) {
     };
   }, [isAuthenticated]);
 
-  // Login - supports both old format (username, password) and new format ({ username, password, _userData })
+  // Login - handles credentials and saves access token
   const login = useCallback(async (usernameOrCredentials, password) => {
-    // Handle new format from Signup page: login({ username, password, _userData })
-    if (typeof usernameOrCredentials === 'object' && usernameOrCredentials._userData) {
-      const { _userData } = usernameOrCredentials;
-      setUser(_userData);
-      setIsAuthenticated(true);
-      return { success: true, data: { user: _userData } };
-    }
-
-    // Handle object format without _userData (phone/password or email/password login)
+    // Handle object format (phone/password or email/password login)
     if (typeof usernameOrCredentials === 'object') {
-      const { username, email, phone, password: pwd } = usernameOrCredentials;
+      const { username, email, phone, password: pwd, accessToken, _userData } = usernameOrCredentials;
+
+      // ✅ If accessToken is provided (from signup/login response), save it
+      if (accessToken) {
+        authService.setAuthToken(accessToken);
+        console.log('[Auth] Access token saved');
+      }
+
+      // ✅ If userData is provided directly (after OTP verification), use it
+      if (_userData) {
+        // Still require token for security
+        if (!authService.hasValidToken()) {
+          console.warn('[Auth] Login with _userData but no valid token');
+        }
+        setUser(_userData);
+        setIsAuthenticated(true);
+        localStorage.setItem('user', JSON.stringify(_userData));
+        if (_userData.accountId) localStorage.setItem('accountId', _userData.accountId);
+        return { success: true, data: { user: _userData } };
+      }
+
       const loginIdentifier = phone || email || username;
 
-      // Try phone-based login first (for local accounts)
+      // Try phone-based login first
       if (loginIdentifier && (loginIdentifier.startsWith('+') || /^\d/.test(loginIdentifier))) {
         const phoneResult = await accountService.loginWithPhone(loginIdentifier, pwd);
         if (phoneResult.success) {
           const account = phoneResult.account;
+
+          // ✅ Save token if returned from backend
+          if (phoneResult.accessToken) {
+            authService.setAuthToken(phoneResult.accessToken);
+          }
+
           const balanceResult = await walletService.getBalance(account.accountId);
 
           const userData = {
@@ -177,6 +215,12 @@ export function AuthProvider({ children }) {
       const accountResult = await accountService.getAccountByEmail(loginIdentifier);
       if (accountResult.success) {
         const account = accountResult.account;
+
+        // ✅ Save token if returned
+        if (accountResult.accessToken) {
+          authService.setAuthToken(accountResult.accessToken);
+        }
+
         const balanceResult = await walletService.getBalance(account.accountId);
 
         const userData = {
@@ -201,6 +245,9 @@ export function AuthProvider({ children }) {
       // Fall back to demo/legacy auth with the provided credentials
       const demoResult = await authService.login(loginIdentifier, pwd);
       if (demoResult.success) {
+        if (demoResult.accessToken) {
+          authService.setAuthToken(demoResult.accessToken);
+        }
         setUser(demoResult.data.user);
         setIsAuthenticated(true);
       }
@@ -210,6 +257,9 @@ export function AuthProvider({ children }) {
     // Handle old format: login(username, password)
     const result = await authService.login(usernameOrCredentials, password);
     if (result.success) {
+      if (result.accessToken) {
+        authService.setAuthToken(result.accessToken);
+      }
       setUser(result.data.user);
       setIsAuthenticated(true);
     }
