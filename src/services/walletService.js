@@ -1,6 +1,7 @@
-// Wallet Service - Wallet management via external API with localStorage fallback
-// API calls use relative URLs which are proxied by Vite (dev) or Vercel serverless functions (prod)
-import { STORAGE_KEYS, getStoredData, API_KEY } from './api';
+// Wallet Service - Wallet management via external API
+// API calls use relative URLs which are proxied by Vite (dev) or Vercel (prod)
+// Uses Keycloak JWT tokens for authentication (no API key)
+import { STORAGE_KEYS, getStoredData } from './api';
 
 const LOCAL_WALLETS_KEY = 'team33_local_wallets';
 const PENDING_TRANSACTIONS_KEY = 'team33_pending_transactions';
@@ -9,12 +10,14 @@ const DEFAULT_BALANCE = 0; // Users must deposit via agent/admin
 // Get JWT token from storage
 const getAuthToken = () => getStoredData(STORAGE_KEYS.TOKEN);
 
-// Get headers with API key AND JWT token (if available)
+// Get headers with JWT token (required for all API calls)
 const getHeaders = () => {
   const token = getAuthToken();
+  if (!token) {
+    console.warn('[WalletService] No JWT token available');
+  }
   return {
     'Content-Type': 'application/json',
-    ...(API_KEY && { 'X-API-Key': API_KEY }),
     ...(token && { 'Authorization': `Bearer ${token}` }),
   };
 };

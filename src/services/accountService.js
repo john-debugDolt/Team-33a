@@ -1,5 +1,6 @@
-// Account Service - User account management via external API with localStorage fallback
-import { STORAGE_KEYS, getStoredData, API_KEY } from './api';
+// Account Service - User account management via external API
+// Uses Keycloak JWT tokens for authentication (no API key)
+import { STORAGE_KEYS, getStoredData } from './api';
 
 const LOCAL_ACCOUNTS_KEY = 'team33_local_accounts';
 
@@ -43,12 +44,14 @@ class AccountService {
     return getStoredData(STORAGE_KEYS.TOKEN);
   }
 
-  // Get headers with API key AND JWT token (if available)
+  // Get headers with JWT token (required for all API calls)
   getHeaders() {
     const token = this.getAuthToken();
+    if (!token) {
+      console.warn('[AccountService] No JWT token available');
+    }
     return {
       'Content-Type': 'application/json',
-      ...(API_KEY && { 'X-API-Key': API_KEY }),
       ...(token && { 'Authorization': `Bearer ${token}` }),
     };
   }
@@ -78,7 +81,7 @@ class AccountService {
   // Register a new account
   async register({ password, firstName, lastName, phoneNumber }) {
     try {
-      // Try external API first
+      // Call external API to register account
       const response = await fetch('/api/accounts', {
         method: 'POST',
         headers: this.getHeaders(),
@@ -97,14 +100,17 @@ class AccountService {
           success: true,
           account: data,
           accountId: data.accountId,
-          userId: data.userId || generateUserId(), // Generate userId if API doesn't return one
+          userId: data.userId || generateUserId(),
         };
       }
 
-      // If external API fails with 401 or 404, use localStorage fallback
-      if (response.status === 401 || response.status === 404) {
-        console.log('External API unavailable (status ' + response.status + '), using localStorage fallback');
-        return this.registerLocal({ password, firstName, lastName, phoneNumber });
+      // Handle authentication errors
+      if (response.status === 401) {
+        console.error('[AccountService] JWT token invalid or expired');
+        return {
+          success: false,
+          error: 'Authentication failed. Please refresh and try again.',
+        };
       }
 
       return {
@@ -114,9 +120,10 @@ class AccountService {
       };
     } catch (error) {
       console.error('Account registration error:', error);
-      // Fallback to localStorage on network error
-      console.log('Network error, using localStorage fallback');
-      return this.registerLocal({ password, firstName, lastName, phoneNumber });
+      return {
+        success: false,
+        error: 'Network error. Please check your connection and try again.',
+      };
     }
   }
 

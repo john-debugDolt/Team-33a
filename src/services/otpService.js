@@ -1,5 +1,6 @@
 // OTP Service - Phone verification via SMS
-import { STORAGE_KEYS, getStoredData, API_KEY } from './api';
+// Uses Keycloak JWT tokens for authentication (no API key)
+import { STORAGE_KEYS, getStoredData } from './api';
 
 const OTP_API_BASE = '/api/otp';
 
@@ -13,12 +14,14 @@ class OTPService {
     return getStoredData(STORAGE_KEYS.TOKEN);
   }
 
-  // Get headers with API key AND JWT token (if available)
+  // Get headers with JWT token (required for all API calls)
   getHeaders() {
     const token = this.getAuthToken();
+    if (!token) {
+      console.warn('[OTPService] No JWT token available');
+    }
     return {
       'Content-Type': 'application/json',
-      ...(API_KEY && { 'X-API-Key': API_KEY }),
       ...(token && { 'Authorization': `Bearer ${token}` }),
     };
   }

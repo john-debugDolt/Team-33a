@@ -1,3 +1,5 @@
+
+
 /**
  * API Configuration
  *
@@ -21,8 +23,9 @@
  * - Games: /api/games/* -> api.team33.mx
  */
 
-// API key from environment variable (set in Vercel dashboard or .env file)
-export const API_KEY = import.meta.env.VITE_API_KEY || '';
+// API key is NO LONGER USED - Backend only accepts Keycloak JWT tokens
+// Kept for backwards compatibility but will be empty
+export const API_KEY = '';
 
 // Base URL is empty - all requests use relative URLs that get proxied
 const API_BASE_URL = '';

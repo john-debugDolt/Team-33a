@@ -1,5 +1,6 @@
 /**
  * Live Chat Service
+ * Uses Keycloak JWT tokens for authentication
  *
  * API Base: http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com
  *
@@ -16,6 +17,19 @@
  */
 
 import { chatStorageService } from './chatStorageService';
+import { STORAGE_KEYS, getStoredData } from './api';
+
+// Get JWT token from storage
+const getAuthToken = () => getStoredData(STORAGE_KEYS.TOKEN);
+
+// Get headers with JWT token
+const getHeaders = (includeContentType = true) => {
+  const token = getAuthToken();
+  return {
+    ...(includeContentType && { 'Content-Type': 'application/json' }),
+    ...(token && { 'Authorization': `Bearer ${token}` }),
+  };
+};
 
 // Backend URLs
 const BACKEND_HOST = 'k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com';
@@ -74,9 +88,7 @@ class ChatService {
 
       const response = await fetch(`${CHAT_API_BASE}/api/chat/sessions`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getHeaders(),
         body: JSON.stringify(body),
       });
 
@@ -255,7 +267,9 @@ class ChatService {
     }
 
     try {
-      const response = await fetch(`${CHAT_API_BASE}/api/chat/sessions/${sessionId}`);
+      const response = await fetch(`${CHAT_API_BASE}/api/chat/sessions/${sessionId}`, {
+        headers: getHeaders(false),
+      });
 
       if (response.status === 404) {
         return { success: false, error: 'Session not found' };
@@ -284,7 +298,9 @@ class ChatService {
     }
 
     try {
-      const response = await fetch(`${CHAT_API_BASE}/api/chat/sessions/${sessionId}/messages`);
+      const response = await fetch(`${CHAT_API_BASE}/api/chat/sessions/${sessionId}/messages`, {
+        headers: getHeaders(false),
+      });
       const data = await response.json();
 
       if (response.ok) {
@@ -340,9 +356,7 @@ class ChatService {
     try {
       const response = await fetch(`${CHAT_API_BASE}/api/chat/sessions/${sessionId}/messages`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getHeaders(),
         body: JSON.stringify(messageBody),
       });
 
@@ -377,6 +391,7 @@ class ChatService {
     try {
       const response = await fetch(`${CHAT_API_BASE}/api/chat/sessions/${sessionId}/close`, {
         method: 'POST',
+        headers: getHeaders(false),
       });
 
       const data = await response.json();
@@ -417,6 +432,7 @@ class ChatService {
 
       const response = await fetch(url, {
         method: 'POST',
+        headers: getHeaders(false),
       });
 
       const data = await response.json();
@@ -443,7 +459,7 @@ class ChatService {
     try {
       const response = await fetch(
         `${CHAT_API_BASE}/api/chat/sessions/${sessionId}/read?senderType=${senderType}`,
-        { method: 'POST' }
+        { method: 'POST', headers: getHeaders(false) }
       );
 
       if (response.ok) {
@@ -466,7 +482,9 @@ class ChatService {
     }
 
     try {
-      const response = await fetch(`${CHAT_API_BASE}/api/chat/my-sessions?accountId=${accountId}`);
+      const response = await fetch(`${CHAT_API_BASE}/api/chat/my-sessions?accountId=${accountId}`, {
+        headers: getHeaders(false),
+      });
       const data = await response.json();
 
       if (response.ok) {

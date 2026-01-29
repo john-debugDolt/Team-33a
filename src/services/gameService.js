@@ -1,5 +1,17 @@
-import { apiClient } from './api';
+import { apiClient, STORAGE_KEYS, getStoredData } from './api';
 import { CDN_BASE, games as localGames, getGamesByCategory, getHotGames as getLocalHotGames, getNewGames as getLocalNewGames, getGameById as getLocalGameById, getGameBySlug, searchGames as localSearchGames, CATEGORIES } from '../data/gameData';
+
+// Get JWT token from storage
+const getAuthToken = () => getStoredData(STORAGE_KEYS.TOKEN);
+
+// Get headers with JWT token
+const getHeaders = () => {
+  const token = getAuthToken();
+  return {
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` }),
+  };
+};
 
 // CDN Image URL Generators
 export const getPortraitUrl = (slug) => {
@@ -286,9 +298,7 @@ export const gameService = {
     try {
       const response = await fetch(GAME_LAUNCH_API, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getHeaders(),
         body: JSON.stringify({
           accountId: ACCOUNT_ID,
           gameId: game.gameId || game.slug
