@@ -67,6 +67,10 @@ class KeycloakService {
   async getServiceToken() {
     console.log('[Keycloak] Getting service token via client credentials...');
 
+    // Add timeout to prevent app from hanging if Keycloak is unreachable
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
     try {
       const response = await fetch(getTokenEndpoint(), {
         method: 'POST',
@@ -78,8 +82,10 @@ class KeycloakService {
           client_id: KEYCLOAK_CLIENT_ID,
           client_secret: KEYCLOAK_CLIENT_SECRET,
         }),
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
       const data = await response.json();
       console.log('[Keycloak] Response status:', response.status);
 
@@ -105,6 +111,14 @@ class KeycloakService {
         expiresIn: data.expires_in,
       };
     } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        console.error('[Keycloak] Request timeout - server not responding');
+        return {
+          success: false,
+          error: 'Keycloak server timeout. App will work in offline mode.',
+        };
+      }
       console.error('[Keycloak] Network error:', error);
       return {
         success: false,
