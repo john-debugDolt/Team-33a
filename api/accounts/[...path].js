@@ -1,10 +1,10 @@
 // Vercel Serverless Function - Accounts API (with path)
 // Handles JWT auth via Keycloak for protected endpoints
 
-const BACKEND_URL = 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com';
+const BACKEND_URL = 'https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com';
 
 // Keycloak configuration
-const KEYCLOAK_URL = 'http://k8s-team33-keycloak-320152ed2f-65380cdab2265c8a.elb.ap-southeast-2.amazonaws.com';
+const KEYCLOAK_URL = 'https://k8s-team33-keycloak-320152ed2f-65380cdab2265c8a.elb.ap-southeast-2.amazonaws.com';
 const KEYCLOAK_REALM = 'Team33Casino';
 const KEYCLOAK_CLIENT_ID = 'Team33admin';
 const KEYCLOAK_CLIENT_SECRET = 'lxPLoQaJ7PCYJEJZwRuzelt0RHpKlCH0';
