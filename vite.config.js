@@ -1,81 +1,142 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// Keycloak configuration for JWT auth
+const KEYCLOAK_URL = 'http://k8s-team33-keycloak-320152ed2f-65380cdab2265c8a.elb.ap-southeast-2.amazonaws.com'
+const KEYCLOAK_REALM = 'Team33Casino'
+const KEYCLOAK_CLIENT_ID = 'Team33admin'
+const KEYCLOAK_CLIENT_SECRET = 'lxPLoQaJ7PCYJEJZwRuzelt0RHpKlCH0'
+const BACKEND_URL = 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com'
+
+// Token cache for local development
+let cachedToken = null
+let tokenExpiry = null
+
+// Get JWT token from Keycloak
+async function getKeycloakToken() {
+  if (cachedToken && tokenExpiry && Date.now() < tokenExpiry - 60000) {
+    return cachedToken
+  }
+
+  try {
+    const tokenUrl = `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token`
+    const response = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'client_credentials',
+        client_id: KEYCLOAK_CLIENT_ID,
+        client_secret: KEYCLOAK_CLIENT_SECRET,
+      }),
+    })
+
+    if (!response.ok) {
+      console.error('[Vite Proxy] Keycloak token error:', response.status)
+      return null
+    }
+
+    const data = await response.json()
+    cachedToken = data.access_token
+    tokenExpiry = Date.now() + (data.expires_in * 1000)
+    console.log('[Vite Proxy] JWT token obtained')
+    return cachedToken
+  } catch (error) {
+    console.error('[Vite Proxy] Failed to get Keycloak token:', error.message)
+    return null
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  logLevel: 'info',  // Options: 'info' | 'warn' | 'error' | 'silent'
-  clearScreen: true,  // Clear terminal on start
+  logLevel: 'info',
+  clearScreen: true,
   build: {
-    sourcemap: false,  // No source maps in production (hides code structure)
-    minify: 'terser',  // Better minification
+    sourcemap: false,
+    minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: false,  // TEMP: Keep console.log for debugging
-        drop_debugger: true,  // Remove debugger statements
+        drop_console: false,
+        drop_debugger: true,
       },
     },
   },
   server: {
-    host: 'localhost',  // Only show localhost, hide network IP
+    host: 'localhost',
     strictPort: true,
     proxy: {
-      // Proxy Keycloak auth requests (for local development)
+      // Proxy Keycloak auth requests
       '/auth/keycloak': {
-        target: 'http://k8s-team33-keycloak-320152ed2f-65380cdab2265c8a.elb.ap-southeast-2.amazonaws.com',
+        target: KEYCLOAK_URL,
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/auth\/keycloak/, ''),
       },
-      // Proxy chat API to external chat server
+      // Proxy chat API (public - no auth needed)
       '/api/chat': {
-        target: 'https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
+        target: BACKEND_URL,
         changeOrigin: true,
-        secure: true,
+        secure: false,
       },
-      // Proxy OTP API to external server
+      // Proxy OTP API (public - no auth needed)
       '/api/otp': {
-        target: 'https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
+        target: BACKEND_URL,
         changeOrigin: true,
-        secure: true,
+        secure: false,
       },
-      // Proxy Accounts API to external server
+      // Proxy Accounts API (requires JWT auth)
       '/api/accounts': {
-        target: 'https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
+        target: BACKEND_URL,
         changeOrigin: true,
-        secure: true,
+        secure: false,
+        configure: (proxy) => {
+          proxy.on('proxyReq', async (proxyReq, req) => {
+            const token = await getKeycloakToken()
+            if (token) {
+              proxyReq.setHeader('Authorization', `Bearer ${token}`)
+            }
+          })
+        },
       },
-      // Proxy Deposits API to external server
+      // Proxy Deposits API (public)
       '/api/deposits': {
-        target: 'https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
+        target: BACKEND_URL,
         changeOrigin: true,
-        secure: true,
+        secure: false,
       },
-      // Proxy Withdrawals API to external server
+      // Proxy Withdrawals API (public)
       '/api/withdrawals': {
-        target: 'https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
+        target: BACKEND_URL,
         changeOrigin: true,
-        secure: true,
+        secure: false,
       },
-      // Proxy all Admin APIs to external server (accounts, deposits, withdrawals, etc.)
+      // Proxy Admin APIs (requires JWT auth)
       '/api/admin': {
-        target: 'https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
+        target: BACKEND_URL,
         changeOrigin: true,
-        secure: true,
+        secure: false,
+        configure: (proxy) => {
+          proxy.on('proxyReq', async (proxyReq, req) => {
+            const token = await getKeycloakToken()
+            if (token) {
+              proxyReq.setHeader('Authorization', `Bearer ${token}`)
+            }
+          })
+        },
       },
-      // Proxy Wallet API through accounts microservice (NOT wallet service directly)
+      // Proxy Wallet API (public)
       '/api/wallets': {
-        target: 'https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
+        target: BACKEND_URL,
         changeOrigin: true,
-        secure: true,
+        secure: false,
       },
-      // Proxy Banks API to external server
+      // Proxy Banks API (public)
       '/api/banks': {
-        target: 'https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com',
+        target: BACKEND_URL,
         changeOrigin: true,
-        secure: true,
+        secure: false,
       },
-      // Proxy Games API to Team33 game server
+      // Proxy Games API
       '/api/games': {
         target: 'https://api.team33.mx',
         changeOrigin: true,
@@ -87,12 +148,6 @@ export default defineConfig({
         ws: true,
         changeOrigin: true,
       },
-      // Proxy all other API calls to local Express server
-      '/api': {
-        target: 'http://localhost:5001',
-        changeOrigin: true,
-        secure: false,
-      }
     }
   }
 })
