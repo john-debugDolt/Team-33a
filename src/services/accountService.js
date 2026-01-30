@@ -1,6 +1,6 @@
 /**
  * Account Service - User account management
- * Uses JWT Bearer token for authentication (from Keycloak)
+ * Public API - No authentication required
  *
  * Endpoints:
  * - POST /api/accounts - Create account
@@ -8,8 +8,6 @@
  * - GET /api/accounts/phone/{phoneNumber} - Get account by phone
  * - GET /api/accounts/{accountId}/balance - Get wallet balance
  */
-
-import { keycloakService } from './keycloakService';
 
 // Format phone number to E.164 format (+61...)
 const formatPhoneNumber = (phone) => {
@@ -27,33 +25,22 @@ const formatPhoneNumber = (phone) => {
 
 class AccountService {
   /**
-   * Get headers with JWT Bearer token
-   */
-  async getHeaders() {
-    const authHeader = await keycloakService.getAuthHeader();
-    return {
-      'Content-Type': 'application/json',
-      ...authHeader,
-    };
-  }
-
-  /**
    * Create a new account
    * POST /api/accounts
-   * Required: firstName, lastName, phoneNumber
+   * Required: firstName, lastName, phoneNumber, password
    */
-  async createAccount({ firstName, lastName, phoneNumber }) {
+  async createAccount({ firstName, lastName, phoneNumber, password }) {
     try {
       const formattedPhone = formatPhoneNumber(phoneNumber);
-      const headers = await this.getHeaders();
 
       const response = await fetch('/api/accounts', {
         method: 'POST',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           firstName,
           lastName,
           phoneNumber: formattedPhone,
+          password,
         }),
       });
 
@@ -86,12 +73,7 @@ class AccountService {
    */
   async getAccount(accountId) {
     try {
-      const headers = await this.getHeaders();
-
-      const response = await fetch(`/api/accounts/${accountId}`, {
-        method: 'GET',
-        headers,
-      });
+      const response = await fetch(`/api/accounts/${accountId}`);
 
       if (!response.ok) {
         const error = await response.json();
@@ -113,14 +95,9 @@ class AccountService {
   async getAccountByPhone(phoneNumber) {
     try {
       const formattedPhone = formatPhoneNumber(phoneNumber);
-      const headers = await this.getHeaders();
 
       const response = await fetch(
-        `/api/accounts/phone/${encodeURIComponent(formattedPhone)}`,
-        {
-          method: 'GET',
-          headers,
-        }
+        `/api/accounts/phone/${encodeURIComponent(formattedPhone)}`
       );
 
       if (!response.ok) {
@@ -141,12 +118,7 @@ class AccountService {
    */
   async getBalance(accountId) {
     try {
-      const headers = await this.getHeaders();
-
-      const response = await fetch(`/api/accounts/${accountId}/balance`, {
-        method: 'GET',
-        headers,
-      });
+      const response = await fetch(`/api/accounts/${accountId}/balance`);
 
       if (!response.ok) {
         return { success: false, error: 'Failed to get balance' };
@@ -170,11 +142,8 @@ class AccountService {
    */
   async deleteAccount(accountId) {
     try {
-      const headers = await this.getHeaders();
-
       const response = await fetch(`/api/accounts/${accountId}`, {
         method: 'DELETE',
-        headers,
       });
 
       if (!response.ok) {

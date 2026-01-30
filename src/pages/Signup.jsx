@@ -16,7 +16,9 @@ export default function Signup() {
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
+    password: '',
   })
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
 
   // OTP State
@@ -120,6 +122,7 @@ export default function Signup() {
         firstName,
         lastName,
         phoneNumber: formattedPhone,
+        password: formData.password,
       })
 
       if (!result.success) {
@@ -181,6 +184,11 @@ export default function Signup() {
       return
     }
 
+    if (!formData.password || formData.password.length < 6) {
+      showToast('Password must be at least 6 characters', 'error')
+      return
+    }
+
     if (!otpVerified) {
       showToast('Please verify your phone number', 'error')
       return
@@ -235,6 +243,42 @@ export default function Signup() {
                 required
                 autoComplete="tel"
               />
+            </div>
+
+            {/* Password */}
+            <div className="form-row-inline">
+              <label className="form-label-inline">Password</label>
+              <div className="password-input-wrap">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="6 - 20 characters"
+                  className="form-input-inline"
+                  required
+                  autoComplete="new-password"
+                  minLength={6}
+                  maxLength={20}
+                />
+                <button
+                  type="button"
+                  className="password-toggle-golden"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* OTP Section */}
