@@ -128,8 +128,9 @@ class AccountService {
     try {
       const formattedPhone = formatPhoneNumber(phoneNumber);
 
+      // Don't URL-encode the phone - backend expects raw +61... format
       const response = await fetch(
-        `/api/accounts/phone/${encodeURIComponent(formattedPhone)}`
+        `/api/accounts/phone/${formattedPhone}`
       );
 
       if (!response.ok) {
