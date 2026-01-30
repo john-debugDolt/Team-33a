@@ -10,14 +10,6 @@
       "destination": "https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/otp/:path*"
     },
     {
-      "source": "/api/accounts",
-      "destination": "https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/accounts"
-    },
-    {
-      "source": "/api/accounts/:path*",
-      "destination": "https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/accounts/:path*"
-    },
-    {
       "source": "/api/deposits",
       "destination": "https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/deposits"
     },
@@ -56,14 +48,6 @@
     {
       "source": "/api/chat/:path*",
       "destination": "https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/chat/:path*"
-    },
-    {
-      "source": "/api/admin",
-      "destination": "https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/admin"
-    },
-    {
-      "source": "/api/admin/:path*",
-      "destination": "https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/admin/:path*"
     },
     {
       "source": "/auth/keycloak/:path*",
