@@ -22,9 +22,12 @@ async function getKeycloakToken() {
     return cachedToken;
   }
 
+  const tokenUrl = `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token`;
+  console.log('[Keycloak] Fetching token from:', tokenUrl);
+
   try {
-    const tokenUrl = `${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token`;
-    console.log('[Keycloak] Fetching token from:', tokenUrl);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
     const response = await fetch(tokenUrl, {
       method: 'POST',
@@ -36,12 +39,15 @@ async function getKeycloakToken() {
         client_id: KEYCLOAK_CLIENT_ID,
         client_secret: KEYCLOAK_CLIENT_SECRET,
       }),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error('[Keycloak] Token error:', response.status, errorText);
-      return null;
+      return { error: `Keycloak returned ${response.status}`, status: response.status };
     }
 
     const data = await response.json();
@@ -51,8 +57,11 @@ async function getKeycloakToken() {
 
     return cachedToken;
   } catch (error) {
-    console.error('[Keycloak] Failed to get token:', error.message);
-    return null;
+    console.error('[Keycloak] Failed to get token:', error.name, error.message);
+    if (error.name === 'AbortError') {
+      return { error: 'Keycloak request timed out after 10s' };
+    }
+    return { error: `Keycloak connection failed: ${error.message}` };
   }
 }
 
@@ -73,15 +82,20 @@ export default async function handler(req, res) {
 
   try {
     // Get JWT from Keycloak
-    const token = await getKeycloakToken();
+    const tokenResult = await getKeycloakToken();
 
-    if (!token) {
-      console.error('[Accounts] No JWT token available');
+    // Check if we got an error object instead of a token string
+    if (!tokenResult || typeof tokenResult === 'object') {
+      const errorMsg = tokenResult?.error || 'Unknown Keycloak error';
+      console.error('[Accounts] Token error:', errorMsg);
       return res.status(503).json({
         success: false,
-        error: 'Authentication service unavailable. Please try again later.'
+        error: errorMsg,
+        debug: { keycloakUrl: KEYCLOAK_URL, realm: KEYCLOAK_REALM }
       });
     }
+
+    const token = tokenResult;
 
     const options = {
       method: req.method,
