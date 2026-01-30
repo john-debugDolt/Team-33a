@@ -1,20 +1,15 @@
 {
   "name": "team33-gaming",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "admin": "vite --config vite.admin.config.js",
     "build": "vite build",
-    "build:admin": "vite build --config vite.admin.config.js",
-    "start": "node server.js",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint ."
   },
   "dependencies": {
-    "express": "^5.2.1",
-    "http-proxy-middleware": "^3.0.5",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-icons": "^5.5.0",
