@@ -18,10 +18,14 @@
 
 import { chatStorageService } from './chatStorageService';
 
-// Get headers for API calls (no auth token needed for user frontend)
+// API Key for backend authentication
+const API_KEY = 'team33-admin-secret-key-change-in-prod';
+
+// Get headers for API calls with X-API-Key
 const getHeaders = (includeContentType = true) => {
   return {
     ...(includeContentType && { 'Content-Type': 'application/json' }),
+    'X-API-Key': API_KEY,
   };
 };
 

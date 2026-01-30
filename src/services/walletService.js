@@ -1,15 +1,19 @@
 // Wallet Service - Wallet management via external API
 // API calls use relative URLs which are proxied by Vite (dev) or Vercel (prod)
-// No authentication required for user-facing endpoints (Keycloak is only for admin panel)
+// Uses X-API-Key for authentication
 
 const LOCAL_WALLETS_KEY = 'team33_local_wallets';
 const PENDING_TRANSACTIONS_KEY = 'team33_pending_transactions';
 const DEFAULT_BALANCE = 0; // Users must deposit via agent/admin
 
-// Get headers for API calls (no auth token needed for user frontend)
+// API Key for backend authentication
+const API_KEY = 'team33-admin-secret-key-change-in-prod';
+
+// Get headers for API calls with X-API-Key
 const getHeaders = () => {
   return {
     'Content-Type': 'application/json',
+    'X-API-Key': API_KEY,
   };
 };
 

@@ -1,7 +1,10 @@
 // Account Service - User account management via external API
-// No authentication required for user-facing endpoints (Keycloak is only for admin panel)
+// Uses X-API-Key for authentication
 
 const LOCAL_ACCOUNTS_KEY = 'team33_local_accounts';
+
+// API Key for backend authentication
+const API_KEY = 'team33-admin-secret-key-change-in-prod';
 
 // Format phone number to international format (Australian +61)
 const formatPhoneNumber = (phone) => {
@@ -38,10 +41,11 @@ const generateUserId = () => {
 };
 
 class AccountService {
-  // Get headers for API calls (no auth token needed for user frontend)
+  // Get headers with X-API-Key for API calls
   getHeaders() {
     return {
       'Content-Type': 'application/json',
+      'X-API-Key': API_KEY,
     };
   }
 
@@ -68,17 +72,22 @@ class AccountService {
   }
 
   // Register a new account via external API
-  async register({ password, firstName, lastName, phoneNumber }) {
+  // Required: email, password, firstName, lastName, phoneNumber, dateOfBirth
+  async register({ email, password, firstName, lastName, phoneNumber, dateOfBirth }) {
     try {
+      const formattedPhone = formatPhoneNumber(phoneNumber);
+
       console.log('[AccountService] Registering with external API...');
-      const response = await fetch('/api/accounts', {
+      const response = await fetch('/api/accounts/register', {
         method: 'POST',
         headers: this.getHeaders(),
         body: JSON.stringify({
+          email,
           password,
           firstName,
           lastName,
-          phoneNumber,
+          phoneNumber: formattedPhone,
+          dateOfBirth,
         }),
       });
 

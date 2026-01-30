@@ -1,13 +1,17 @@
 // Bank Service - Fetch bank details for deposits with rotation logic
-// No authentication required for user-facing endpoints (Keycloak is only for admin panel)
+// Uses X-API-Key for authentication
 
 const ROTATION_THRESHOLD = 3; // Switch bank after 3 deposits
 const ROTATION_KEY = 'team33_bank_rotation';
 
-// Get headers for API calls (no auth token needed for user frontend)
+// API Key for backend authentication
+const API_KEY = 'team33-admin-secret-key-change-in-prod';
+
+// Get headers for API calls with X-API-Key
 const getHeaders = () => {
   return {
     'Content-Type': 'application/json',
+    'X-API-Key': API_KEY,
   };
 };
 
