@@ -1,211 +1,127 @@
-// Account Service - User account management via external API
-// Uses X-API-Key for authentication
+/**
+ * Account Service - User account management
+ * Uses JWT Bearer token for authentication (from Keycloak)
+ *
+ * Endpoints:
+ * - POST /api/accounts - Create account
+ * - GET /api/accounts/{accountId} - Get account by ID
+ * - GET /api/accounts/phone/{phoneNumber} - Get account by phone
+ * - GET /api/accounts/{accountId}/balance - Get wallet balance
+ */
 
-const LOCAL_ACCOUNTS_KEY = 'team33_local_accounts';
+import { keycloakService } from './keycloakService';
 
-// API Key for backend authentication
-const API_KEY = 'team33-admin-secret-key-change-in-prod';
-
-// Format phone number to international format (Australian +61)
+// Format phone number to E.164 format (+61...)
 const formatPhoneNumber = (phone) => {
   if (!phone) return phone;
-  let cleaned = phone.replace(/\s+/g, '').replace(/-/g, '');
+  let cleaned = phone.replace(/\D/g, '');
 
-  // Already in international format
-  if (cleaned.startsWith('+')) return cleaned;
-
-  // Convert Australian format (0XXX) to +61XXX
   if (cleaned.startsWith('0')) {
     return '+61' + cleaned.substring(1);
   }
-
-  // If just digits without 0, assume needs +61
-  if (/^\d+$/.test(cleaned) && cleaned.length >= 9) {
+  if (!cleaned.startsWith('61')) {
     return '+61' + cleaned;
   }
-
-  return cleaned;
-};
-
-// Generate unique Account ID (ACC-XXXXXX format)
-const generateAccountId = () => {
-  const timestamp = Date.now().toString(36).toUpperCase();
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-  return `ACC-${timestamp}${random}`;
-};
-
-// Generate unique User ID (UID-XXXXXXXX format)
-const generateUserId = () => {
-  const num = Math.floor(10000000 + Math.random() * 90000000);
-  return `UID-${num}`;
+  return '+' + cleaned;
 };
 
 class AccountService {
-  // Get headers with X-API-Key for API calls
-  getHeaders() {
+  /**
+   * Get headers with JWT Bearer token
+   */
+  async getHeaders() {
+    const authHeader = await keycloakService.getAuthHeader();
     return {
       'Content-Type': 'application/json',
-      'X-API-Key': API_KEY,
+      ...authHeader,
     };
   }
 
-  // Get local accounts from localStorage
-  getLocalAccounts() {
-    try {
-      return JSON.parse(localStorage.getItem(LOCAL_ACCOUNTS_KEY) || '[]');
-    } catch {
-      return [];
-    }
-  }
-
-  // Save account to localStorage
-  saveLocalAccount(account) {
-    const accounts = this.getLocalAccounts();
-    accounts.push(account);
-    localStorage.setItem(LOCAL_ACCOUNTS_KEY, JSON.stringify(accounts));
-  }
-
-  // Find local account by phone
-  findLocalAccountByPhone(phoneNumber) {
-    const accounts = this.getLocalAccounts();
-    return accounts.find(acc => acc.phoneNumber === phoneNumber);
-  }
-
-  // Register a new account via external API
-  // Required: email, password, firstName, lastName, phoneNumber, dateOfBirth
-  async register({ email, password, firstName, lastName, phoneNumber, dateOfBirth }) {
+  /**
+   * Create a new account
+   * POST /api/accounts
+   * Required: firstName, lastName, phoneNumber
+   */
+  async createAccount({ firstName, lastName, phoneNumber }) {
     try {
       const formattedPhone = formatPhoneNumber(phoneNumber);
+      const headers = await this.getHeaders();
 
-      console.log('[AccountService] Registering with external API...');
-      const response = await fetch('/api/accounts/register', {
+      const response = await fetch('/api/accounts', {
         method: 'POST',
-        headers: this.getHeaders(),
+        headers,
         body: JSON.stringify({
-          email,
-          password,
           firstName,
           lastName,
           phoneNumber: formattedPhone,
-          dateOfBirth,
         }),
       });
 
       const data = await response.json();
-      console.log('[AccountService] Response:', response.status, data);
 
       if (response.status === 201 || response.ok) {
         return {
           success: true,
           account: data,
           accountId: data.accountId,
-          userId: data.userId || generateUserId(),
         };
       }
 
-      // Return error from backend
       return {
         success: false,
-        error: data.error || data.message || `Registration failed (${response.status})`,
-        field: data.field,
+        error: data.message || data.error || 'Failed to create account',
       };
     } catch (error) {
-      console.error('Account registration error:', error);
+      console.error('[AccountService] Create error:', error);
       return {
         success: false,
-        error: 'Network error. Please check your connection.',
+        error: 'Network error. Please try again.',
       };
     }
   }
 
-  // Register account locally (fallback)
-  registerLocal({ password, firstName, lastName, phoneNumber }) {
-    // Check if account already exists
-    const existing = this.findLocalAccountByPhone(phoneNumber);
-    if (existing) {
-      return {
-        success: false,
-        error: 'An account with this phone number already exists',
-      };
-    }
-
-    // Generate unique IDs
-    const accountId = generateAccountId();
-    const userId = generateUserId();
-
-    // Create new local account
-    const account = {
-      accountId,
-      userId,
-      phoneNumber,
-      firstName,
-      lastName,
-      password, // In production, this should be hashed
-      status: 'ACTIVE',
-      createdAt: new Date().toISOString(),
-      isLocal: true,
-    };
-
-    this.saveLocalAccount(account);
-
-    return {
-      success: true,
-      account,
-      accountId,
-      userId,
-      isLocal: true,
-    };
-  }
-
-  // Get account by ID
+  /**
+   * Get account by ID
+   * GET /api/accounts/{accountId}
+   */
   async getAccount(accountId) {
-    // Check local accounts first if it's a local ID
-    if (accountId && accountId.startsWith('local_')) {
-      const accounts = this.getLocalAccounts();
-      const localAccount = accounts.find(acc => acc.accountId === accountId);
-      if (localAccount) {
-        return { success: true, account: localAccount };
-      }
-    }
-
     try {
+      const headers = await this.getHeaders();
+
       const response = await fetch(`/api/accounts/${accountId}`, {
         method: 'GET',
-        headers: this.getHeaders(),
+        headers,
       });
 
       if (!response.ok) {
         const error = await response.json();
-        return { success: false, error: error.error || 'Account not found' };
+        return { success: false, error: error.message || 'Account not found' };
       }
 
       const data = await response.json();
-      return {
-        success: true,
-        account: data,
-      };
+      return { success: true, account: data };
     } catch (error) {
-      console.error('Get account error:', error);
-      return {
-        success: false,
-        error: 'Failed to fetch account details',
-      };
+      console.error('[AccountService] Get error:', error);
+      return { success: false, error: 'Failed to fetch account' };
     }
   }
 
-  // Get account by phone (for login)
+  /**
+   * Get account by phone number
+   * GET /api/accounts/phone/{phoneNumber}
+   */
   async getAccountByPhone(phoneNumber) {
-    // Format phone to international format
-    const formattedPhone = formatPhoneNumber(phoneNumber);
-
     try {
-      const url = `/api/accounts/phone/${encodeURIComponent(formattedPhone)}`;
+      const formattedPhone = formatPhoneNumber(phoneNumber);
+      const headers = await this.getHeaders();
 
-      console.log('[AccountService] Getting account by phone from external API...');
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: this.getHeaders(),
-      });
+      const response = await fetch(
+        `/api/accounts/phone/${encodeURIComponent(formattedPhone)}`,
+        {
+          method: 'GET',
+          headers,
+        }
+      );
 
       if (!response.ok) {
         return { success: false, error: 'Account not found' };
@@ -214,169 +130,65 @@ class AccountService {
       const data = await response.json();
       return { success: true, account: data };
     } catch (error) {
-      console.error('Get account by phone error:', error);
-      return { success: false, error: 'Account not found' };
+      console.error('[AccountService] Get by phone error:', error);
+      return { success: false, error: 'Failed to fetch account' };
     }
   }
 
-  // Login with phone and password
-  async loginWithPhone(phoneNumber, password) {
-    // Format phone to international format
-    const formattedPhone = formatPhoneNumber(phoneNumber);
-
+  /**
+   * Get wallet balance
+   * GET /api/accounts/{accountId}/balance
+   */
+  async getBalance(accountId) {
     try {
-      const encodedPhone = encodeURIComponent(formattedPhone);
-      const url = `/api/accounts/phone/${encodedPhone}`;
+      const headers = await this.getHeaders();
 
-      console.log('[AccountService] Login - checking account in external API...');
-      const response = await fetch(url, {
+      const response = await fetch(`/api/accounts/${accountId}/balance`, {
         method: 'GET',
-        headers: this.getHeaders(),
-      });
-
-      if (response.ok) {
-        const account = await response.json();
-        // Account exists in backend - OTP will handle verification
-        return {
-          success: true,
-          account: account,
-          accountId: account.accountId,
-          isExternal: true,
-        };
-      }
-
-      if (response.status === 404) {
-        return { success: false, error: 'Account not found' };
-      }
-
-      return { success: false, error: 'Failed to verify account' };
-    } catch (error) {
-      console.error('Login API error:', error);
-      return { success: false, error: 'Connection error. Please try again.' };
-    }
-  }
-
-  // Get account by email (kept for compatibility)
-  async getAccountByEmail(email) {
-    try {
-      const response = await fetch(`/api/accounts/email/${encodeURIComponent(email)}`, {
-        method: 'GET',
-        headers: this.getHeaders(),
+        headers,
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        return { success: false, error: error.error || 'Account not found' };
+        return { success: false, error: 'Failed to get balance' };
       }
 
       const data = await response.json();
       return {
         success: true,
-        account: data,
+        balance: data.balance,
+        currency: data.currency || 'AUD',
       };
     } catch (error) {
-      console.error('Get account by email error:', error);
-      return {
-        success: false,
-        error: 'Failed to fetch account details',
-      };
+      console.error('[AccountService] Balance error:', error);
+      return { success: false, error: 'Failed to fetch balance' };
     }
   }
 
-  // Update account information
-  async updateAccount(accountId, updates) {
+  /**
+   * Delete account
+   * DELETE /api/accounts/{accountId}
+   */
+  async deleteAccount(accountId) {
     try {
-      const response = await fetch(`/api/accounts/${accountId}`, {
-        method: 'PUT',
-        headers: this.getHeaders(),
-        body: JSON.stringify(updates),
-      });
+      const headers = await this.getHeaders();
 
-      if (!response.ok) {
-        const error = await response.json();
-        return { success: false, error: error.error || 'Update failed' };
-      }
-
-      const data = await response.json();
-      return {
-        success: true,
-        account: data,
-      };
-    } catch (error) {
-      console.error('Update account error:', error);
-      return {
-        success: false,
-        error: 'Failed to update account',
-      };
-    }
-  }
-
-  // Deactivate account
-  async deactivateAccount(accountId) {
-    try {
       const response = await fetch(`/api/accounts/${accountId}`, {
         method: 'DELETE',
-        headers: this.getHeaders(),
+        headers,
       });
 
       if (!response.ok) {
         const error = await response.json();
-        return { success: false, error: error.error || 'Deactivation failed' };
+        return { success: false, error: error.message || 'Failed to delete' };
       }
 
-      const data = await response.json();
-      return {
-        success: true,
-        message: data.message,
-      };
+      return { success: true };
     } catch (error) {
-      console.error('Deactivate account error:', error);
-      return {
-        success: false,
-        error: 'Failed to deactivate account',
-      };
+      console.error('[AccountService] Delete error:', error);
+      return { success: false, error: 'Failed to delete account' };
     }
-  }
-
-  // Validate password requirements
-  validatePassword(password) {
-    const errors = [];
-
-    if (password.length < 8) {
-      errors.push('Password must be at least 8 characters');
-    }
-    if (!/[A-Z]/.test(password)) {
-      errors.push('Password must contain an uppercase letter');
-    }
-    if (!/[a-z]/.test(password)) {
-      errors.push('Password must contain a lowercase letter');
-    }
-    if (!/[0-9]/.test(password)) {
-      errors.push('Password must contain a number');
-    }
-
-    return {
-      valid: errors.length === 0,
-      errors,
-    };
-  }
-
-  // Validate age (must be 18+)
-  validateAge(dateOfBirth) {
-    const today = new Date();
-    const birthDate = new Date(dateOfBirth);
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-
-    return {
-      valid: age >= 18,
-      age,
-    };
   }
 }
 
 export const accountService = new AccountService();
+export default accountService;

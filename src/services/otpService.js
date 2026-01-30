@@ -1,60 +1,40 @@
-// OTP Service - Phone verification via SMS
-// No authentication required for user-facing endpoints (Keycloak is only for admin panel)
+/**
+ * OTP Service - Phone verification via SMS
+ * Public API - No authentication required
+ *
+ * Endpoints:
+ * - POST /api/otp/send - Send OTP to phone
+ * - POST /api/otp/verify - Verify OTP code
+ * - GET /api/otp/status/{phoneNumber} - Check verification status
+ * - POST /api/otp/resend - Resend OTP
+ */
 
-const OTP_API_BASE = '/api/otp';
+// Format phone number to E.164 format (+61...)
+const formatPhoneNumber = (phone, countryCode = '+61') => {
+  if (!phone) return phone;
+  let cleaned = phone.replace(/\D/g, '');
 
-// Dev bypass - use code "000000" to skip OTP
-const DEV_BYPASS_CODE = '000000';
-const BYPASS_ENABLED = false; // Set to true for dev bypass with code "000000"
+  if (cleaned.startsWith('0')) {
+    return countryCode + cleaned.substring(1);
+  }
+  if (cleaned.length > 10) {
+    return '+' + cleaned;
+  }
+  return countryCode + cleaned;
+};
 
 class OTPService {
-  // Get headers for API calls (no auth token needed for user frontend)
-  getHeaders() {
-    return {
-      'Content-Type': 'application/json',
-    };
-  }
-
-  // Format phone number to E.164 format
-  formatPhoneNumber(phone, countryCode = '+61') {
-    // Remove all non-digit characters
-    let cleaned = phone.replace(/\D/g, '');
-
-    // If starts with 0, remove it (Australian format)
-    if (cleaned.startsWith('0')) {
-      cleaned = cleaned.substring(1);
-    }
-
-    // If already has country code digits, use as is
-    if (cleaned.length > 10) {
-      return '+' + cleaned;
-    }
-
-    // Add country code
-    return countryCode + cleaned;
-  }
-
-  // Send OTP to phone number
+  /**
+   * Send OTP to phone number
+   * POST /api/otp/send
+   */
   async sendOTP(phoneNumber) {
-    const formattedPhone = this.formatPhoneNumber(phoneNumber);
-
-    // Dev bypass - simulate successful OTP send
-    if (BYPASS_ENABLED) {
-      console.log('[DEV] OTP send simulated for:', formattedPhone);
-      console.log('[DEV] Use code "000000" to verify');
-      return {
-        success: true,
-        message: 'Dev mode - use code 000000',
-        requestId: 'dev-bypass',
-        expiresInSeconds: 300,
-        maskedPhone: formattedPhone.replace(/(\+\d{2})\d{6}(\d{4})/, '$1******$2'),
-      };
-    }
-
     try {
-      const response = await fetch(`${OTP_API_BASE}/send`, {
+      const formattedPhone = formatPhoneNumber(phoneNumber);
+
+      const response = await fetch('/api/otp/send', {
         method: 'POST',
-        headers: this.getHeaders(),
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneNumber: formattedPhone }),
       });
 
@@ -63,7 +43,7 @@ class OTPService {
       if (response.status === 429) {
         return {
           success: false,
-          error: 'Too many OTP requests. Please try again later.',
+          error: 'Too many requests. Please wait before trying again.',
           rateLimited: true,
         };
       }
@@ -77,32 +57,25 @@ class OTPService {
         error: data.success ? null : data.message,
       };
     } catch (error) {
-      console.error('OTP send error:', error);
+      console.error('[OTPService] Send error:', error);
       return {
         success: false,
-        error: 'Failed to send OTP. Please check your connection.',
+        error: 'Failed to send OTP. Please try again.',
       };
     }
   }
 
-  // Verify OTP code
+  /**
+   * Verify OTP code
+   * POST /api/otp/verify
+   */
   async verifyOTP(phoneNumber, otp) {
-    // Dev bypass - use "000000" to skip verification
-    if (BYPASS_ENABLED && otp === DEV_BYPASS_CODE) {
-      console.log('[DEV] OTP bypass activated');
-      return {
-        success: true,
-        verified: true,
-        message: 'Dev bypass - phone verified',
-      };
-    }
-
     try {
-      const formattedPhone = this.formatPhoneNumber(phoneNumber);
+      const formattedPhone = formatPhoneNumber(phoneNumber);
 
-      const response = await fetch(`${OTP_API_BASE}/verify`, {
+      const response = await fetch('/api/otp/verify', {
         method: 'POST',
-        headers: this.getHeaders(),
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           phoneNumber: formattedPhone,
           otp: otp.toString(),
@@ -119,7 +92,7 @@ class OTPService {
         error: data.success ? null : data.message,
       };
     } catch (error) {
-      console.error('OTP verify error:', error);
+      console.error('[OTPService] Verify error:', error);
       return {
         success: false,
         verified: false,
@@ -128,46 +101,38 @@ class OTPService {
     }
   }
 
-  // Check verification status
+  /**
+   * Check verification status
+   * GET /api/otp/status/{phoneNumber}
+   */
   async checkStatus(phoneNumber) {
     try {
-      const formattedPhone = this.formatPhoneNumber(phoneNumber);
-      const encodedPhone = encodeURIComponent(formattedPhone);
+      const formattedPhone = formatPhoneNumber(phoneNumber);
 
-      const response = await fetch(`${OTP_API_BASE}/status/${encodedPhone}`, {
-        method: 'GET',
-        headers: this.getHeaders(),
-      });
+      const response = await fetch(
+        `/api/otp/status/${encodeURIComponent(formattedPhone)}`,
+        { method: 'GET' }
+      );
 
       const data = await response.json();
-
-      return {
-        verified: data.verified || false,
-      };
+      return { verified: data.verified || false };
     } catch (error) {
-      console.error('OTP status check error:', error);
+      console.error('[OTPService] Status error:', error);
       return { verified: false };
     }
   }
 
-  // Resend OTP
+  /**
+   * Resend OTP
+   * POST /api/otp/resend
+   */
   async resendOTP(phoneNumber) {
-    // Dev bypass - simulate successful resend
-    if (BYPASS_ENABLED) {
-      console.log('[DEV] OTP resend simulated');
-      return {
-        success: true,
-        message: 'Dev mode - use code 000000',
-        expiresInSeconds: 300,
-      };
-    }
-
     try {
-      const formattedPhone = this.formatPhoneNumber(phoneNumber);
+      const formattedPhone = formatPhoneNumber(phoneNumber);
 
-      const response = await fetch(`${OTP_API_BASE}/resend`, {
+      const response = await fetch('/api/otp/resend', {
         method: 'POST',
-        headers: this.getHeaders(),
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneNumber: formattedPhone }),
       });
 
@@ -176,7 +141,7 @@ class OTPService {
       if (response.status === 429) {
         return {
           success: false,
-          error: 'Too many OTP requests. Please try again later.',
+          error: 'Too many requests. Please wait before trying again.',
           rateLimited: true,
         };
       }
@@ -188,13 +153,21 @@ class OTPService {
         error: data.success ? null : data.message,
       };
     } catch (error) {
-      console.error('OTP resend error:', error);
+      console.error('[OTPService] Resend error:', error);
       return {
         success: false,
         error: 'Failed to resend OTP. Please try again.',
       };
     }
   }
+
+  /**
+   * Helper to format phone number (exposed for other services)
+   */
+  formatPhoneNumber(phone, countryCode = '+61') {
+    return formatPhoneNumber(phone, countryCode);
+  }
 }
 
 export const otpService = new OTPService();
+export default otpService;
