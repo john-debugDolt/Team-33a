@@ -1,12 +1,10 @@
-import { apiClient, getAccessToken } from './api';
+import { apiClient } from './api';
 import { CDN_BASE, games as localGames, getGamesByCategory, getHotGames as getLocalHotGames, getNewGames as getLocalNewGames, getGameById as getLocalGameById, getGameBySlug, searchGames as localSearchGames, CATEGORIES } from '../data/gameData';
 
-// Get headers with JWT token
+// Get headers for API calls (no auth token needed for user frontend)
 const getHeaders = () => {
-  const token = getAccessToken();
   return {
     'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` }),
   };
 };
 

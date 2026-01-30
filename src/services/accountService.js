@@ -1,7 +1,5 @@
 // Account Service - User account management via external API
-// Uses Keycloak JWT tokens for authentication (no API key)
-import { getAccessToken } from './api';
-import { keycloakService } from './keycloakService';
+// No authentication required for user-facing endpoints (Keycloak is only for admin panel)
 
 const LOCAL_ACCOUNTS_KEY = 'team33_local_accounts';
 
@@ -40,28 +38,10 @@ const generateUserId = () => {
 };
 
 class AccountService {
-  // Get headers with JWT token (required for all API calls)
+  // Get headers for API calls (no auth token needed for user frontend)
   getHeaders() {
-    const token = getAccessToken();
-    if (!token) {
-      console.warn('[AccountService] No JWT token available');
-    }
     return {
       'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` }),
-    };
-  }
-
-  // Get headers with valid token (fetches from Keycloak if needed)
-  async getHeadersAsync() {
-    let token = getAccessToken();
-    if (!token) {
-      console.log('[AccountService] No token, fetching from Keycloak...');
-      token = await keycloakService.getValidToken();
-    }
-    return {
-      'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` }),
     };
   }
 
@@ -87,16 +67,13 @@ class AccountService {
     return accounts.find(acc => acc.phoneNumber === phoneNumber);
   }
 
-  // Register a new account (ALWAYS uses external API with Keycloak token)
+  // Register a new account via external API
   async register({ password, firstName, lastName, phoneNumber }) {
     try {
-      // Get Keycloak token first (required by backend)
-      const headers = await this.getHeadersAsync();
-
       console.log('[AccountService] Registering with external API...');
       const response = await fetch('/api/accounts', {
         method: 'POST',
-        headers,
+        headers: this.getHeaders(),
         body: JSON.stringify({
           password,
           firstName,
@@ -171,7 +148,7 @@ class AccountService {
     };
   }
 
-  // Get account by ID (with local fallback)
+  // Get account by ID
   async getAccount(accountId) {
     // Check local accounts first if it's a local ID
     if (accountId && accountId.startsWith('local_')) {
@@ -207,19 +184,18 @@ class AccountService {
     }
   }
 
-  // Get account by phone (for login) - ALWAYS uses external API
+  // Get account by phone (for login)
   async getAccountByPhone(phoneNumber) {
     // Format phone to international format
     const formattedPhone = formatPhoneNumber(phoneNumber);
 
     try {
-      const headers = await this.getHeadersAsync();
       const url = `/api/accounts/phone/${encodeURIComponent(formattedPhone)}`;
 
       console.log('[AccountService] Getting account by phone from external API...');
       const response = await fetch(url, {
         method: 'GET',
-        headers,
+        headers: this.getHeaders(),
       });
 
       if (!response.ok) {
@@ -234,20 +210,19 @@ class AccountService {
     }
   }
 
-  // Login with phone and password - ALWAYS uses external API
+  // Login with phone and password
   async loginWithPhone(phoneNumber, password) {
     // Format phone to international format
     const formattedPhone = formatPhoneNumber(phoneNumber);
 
     try {
-      const headers = await this.getHeadersAsync();
       const encodedPhone = encodeURIComponent(formattedPhone);
       const url = `/api/accounts/phone/${encodedPhone}`;
 
       console.log('[AccountService] Login - checking account in external API...');
       const response = await fetch(url, {
         method: 'GET',
-        headers,
+        headers: this.getHeaders(),
       });
 
       if (response.ok) {

@@ -1,6 +1,5 @@
 // OTP Service - Phone verification via SMS
-// Uses Keycloak JWT tokens for authentication (no API key)
-import { getAccessToken } from './api';
+// No authentication required for user-facing endpoints (Keycloak is only for admin panel)
 
 const OTP_API_BASE = '/api/otp';
 
@@ -9,15 +8,10 @@ const DEV_BYPASS_CODE = '000000';
 const BYPASS_ENABLED = false; // Set to true for dev bypass with code "000000"
 
 class OTPService {
-  // Get headers with JWT token (required for all API calls)
+  // Get headers for API calls (no auth token needed for user frontend)
   getHeaders() {
-    const token = getAccessToken();
-    if (!token) {
-      console.warn('[OTPService] No JWT token available');
-    }
     return {
       'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` }),
     };
   }
 

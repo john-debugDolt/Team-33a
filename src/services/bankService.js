@@ -1,17 +1,13 @@
 // Bank Service - Fetch bank details for deposits with rotation logic
-// Uses Keycloak JWT tokens for authentication
-
-import { getAccessToken } from './api';
+// No authentication required for user-facing endpoints (Keycloak is only for admin panel)
 
 const ROTATION_THRESHOLD = 3; // Switch bank after 3 deposits
 const ROTATION_KEY = 'team33_bank_rotation';
 
-// Get headers with JWT token
+// Get headers for API calls (no auth token needed for user frontend)
 const getHeaders = () => {
-  const token = getAccessToken();
   return {
     'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` }),
   };
 };
 

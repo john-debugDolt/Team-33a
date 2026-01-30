@@ -1,21 +1,15 @@
 // Wallet Service - Wallet management via external API
 // API calls use relative URLs which are proxied by Vite (dev) or Vercel (prod)
-// Uses Keycloak JWT tokens for authentication (no API key)
-import { getAccessToken } from './api';
+// No authentication required for user-facing endpoints (Keycloak is only for admin panel)
 
 const LOCAL_WALLETS_KEY = 'team33_local_wallets';
 const PENDING_TRANSACTIONS_KEY = 'team33_pending_transactions';
 const DEFAULT_BALANCE = 0; // Users must deposit via agent/admin
 
-// Get headers with JWT token (required for all API calls)
+// Get headers for API calls (no auth token needed for user frontend)
 const getHeaders = () => {
-  const token = getAccessToken();
-  if (!token) {
-    console.warn('[WalletService] No JWT token available');
-  }
   return {
     'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` }),
   };
 };
 

@@ -1,6 +1,6 @@
 /**
  * Live Chat Service
- * Uses Keycloak JWT tokens for authentication
+ * No authentication required for user-facing endpoints (Keycloak is only for admin panel)
  *
  * API Base: http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com
  *
@@ -17,14 +17,11 @@
  */
 
 import { chatStorageService } from './chatStorageService';
-import { getAccessToken } from './api';
 
-// Get headers with JWT token
+// Get headers for API calls (no auth token needed for user frontend)
 const getHeaders = (includeContentType = true) => {
-  const token = getAccessToken();
   return {
     ...(includeContentType && { 'Content-Type': 'application/json' }),
-    ...(token && { 'Authorization': `Bearer ${token}` }),
   };
 };
 
