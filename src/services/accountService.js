@@ -1,15 +1,13 @@
 /**
  * Account Service - User account management
- * REQUIRES JWT authentication from Keycloak for all endpoints
+ * JWT auth is handled by the Vercel serverless proxy (server-side)
  *
  * Endpoints:
- * - POST /api/accounts - Create account (REQUIRES JWT)
- * - GET /api/accounts/{accountId} - Get account by ID (REQUIRES JWT)
- * - GET /api/accounts/phone/{phoneNumber} - Get account by phone (REQUIRES JWT)
- * - GET /api/accounts/{accountId}/balance - Get wallet balance (REQUIRES JWT)
+ * - POST /api/accounts - Create account
+ * - GET /api/accounts/{accountId} - Get account by ID
+ * - GET /api/accounts/phone/{phoneNumber} - Get account by phone
+ * - GET /api/accounts/{accountId}/balance - Get wallet balance
  */
-
-import { keycloakService } from './keycloakService';
 
 // Format phone number to E.164 format (+61...)
 const formatPhoneNumber = (phone) => {
@@ -27,48 +25,16 @@ const formatPhoneNumber = (phone) => {
 
 class AccountService {
   /**
-   * Get headers with JWT Bearer token from Keycloak
-   * Returns null if token fetch fails (Keycloak down)
-   */
-  async getAuthHeaders() {
-    const authHeader = await keycloakService.getAuthHeader();
-
-    // Check if we got a token
-    if (!authHeader.Authorization) {
-      console.error('[AccountService] Failed to get JWT - Keycloak may be unavailable');
-      return null;
-    }
-
-    return {
-      'Content-Type': 'application/json',
-      ...authHeader,
-    };
-  }
-
-  /**
    * Create a new account
    * POST /api/accounts
-   * REQUIRES: JWT token from Keycloak
    */
   async createAccount({ firstName, lastName, phoneNumber, password }) {
     try {
-      // Step 1: Get JWT token from Keycloak
-      const headers = await this.getAuthHeaders();
-
-      if (!headers) {
-        return {
-          success: false,
-          error: 'Authentication service unavailable. Please try again later.',
-          code: 'TOKEN_UNAVAILABLE',
-        };
-      }
-
       const formattedPhone = formatPhoneNumber(phoneNumber);
 
-      // Step 2: Call API with JWT in Authorization header
       const response = await fetch('/api/accounts', {
         method: 'POST',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           firstName,
           lastName,
@@ -77,15 +43,15 @@ class AccountService {
         }),
       });
 
-      // Handle empty responses (some 401s return no body)
+      // Handle empty or non-JSON responses
       let data = {};
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        try {
+      try {
+        const contentType = response.headers.get('content-type');
+        if (contentType?.includes('application/json')) {
           data = await response.json();
-        } catch (e) {
-          data = { message: response.statusText };
         }
+      } catch (e) {
+        // Empty response body
       }
 
       if (response.status === 201 || response.ok) {
@@ -100,7 +66,7 @@ class AccountService {
       if (response.status === 401) {
         return {
           success: false,
-          error: 'Authentication failed. The service may be temporarily unavailable.',
+          error: 'Authentication failed. Please try again.',
           code: 'UNAUTHORIZED',
         };
       }
@@ -110,6 +76,14 @@ class AccountService {
           success: false,
           error: 'An account with this phone number already exists.',
           code: 'DUPLICATE',
+        };
+      }
+
+      if (response.status === 503) {
+        return {
+          success: false,
+          error: data.error || 'Service temporarily unavailable. Please try again later.',
+          code: 'SERVICE_UNAVAILABLE',
         };
       }
 
@@ -132,16 +106,7 @@ class AccountService {
    */
   async getAccount(accountId) {
     try {
-      const headers = await this.getAuthHeaders();
-
-      if (!headers) {
-        return { success: false, error: 'Authentication service unavailable' };
-      }
-
-      const response = await fetch(`/api/accounts/${accountId}`, {
-        method: 'GET',
-        headers,
-      });
+      const response = await fetch(`/api/accounts/${accountId}`);
 
       if (!response.ok) {
         return { success: false, error: 'Account not found' };
@@ -161,20 +126,10 @@ class AccountService {
    */
   async getAccountByPhone(phoneNumber) {
     try {
-      const headers = await this.getAuthHeaders();
-
-      if (!headers) {
-        return { success: false, error: 'Authentication service unavailable' };
-      }
-
       const formattedPhone = formatPhoneNumber(phoneNumber);
 
       const response = await fetch(
-        `/api/accounts/phone/${encodeURIComponent(formattedPhone)}`,
-        {
-          method: 'GET',
-          headers,
-        }
+        `/api/accounts/phone/${encodeURIComponent(formattedPhone)}`
       );
 
       if (!response.ok) {
@@ -195,17 +150,7 @@ class AccountService {
    */
   async getBalance(accountId) {
     try {
-      const headers = await this.getAuthHeaders();
-
-      if (!headers) {
-        // Return 0 balance instead of crashing
-        return { success: false, error: 'Auth unavailable', balance: 0 };
-      }
-
-      const response = await fetch(`/api/accounts/${accountId}/balance`, {
-        method: 'GET',
-        headers,
-      });
+      const response = await fetch(`/api/accounts/${accountId}/balance`);
 
       if (!response.ok) {
         return { success: false, error: 'Failed to get balance', balance: 0 };
@@ -229,15 +174,8 @@ class AccountService {
    */
   async deleteAccount(accountId) {
     try {
-      const headers = await this.getAuthHeaders();
-
-      if (!headers) {
-        return { success: false, error: 'Authentication service unavailable' };
-      }
-
       const response = await fetch(`/api/accounts/${accountId}`, {
         method: 'DELETE',
-        headers,
       });
 
       if (!response.ok) {
