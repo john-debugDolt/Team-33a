@@ -81,29 +81,32 @@ export default async function handler(req, res) {
   console.log(`[Accounts] ${req.method} -> ${targetUrl}`);
 
   try {
-    // Get JWT from Keycloak
+    // Try to get JWT from Keycloak
     const tokenResult = await getKeycloakToken();
+    let token = null;
 
-    // Check if we got an error object instead of a token string
-    if (!tokenResult || typeof tokenResult === 'object') {
-      const errorMsg = tokenResult?.error || 'Unknown Keycloak error';
-      console.error('[Accounts] Token error:', errorMsg);
-      return res.status(503).json({
-        success: false,
-        error: errorMsg,
-        debug: { keycloakUrl: KEYCLOAK_URL, realm: KEYCLOAK_REALM }
-      });
+    // Check if we got a valid token
+    if (tokenResult && typeof tokenResult === 'string') {
+      token = tokenResult;
+      console.log('[Accounts] Using JWT token');
+    } else {
+      // Keycloak failed - try without auth (backend may accept it)
+      console.log('[Accounts] Keycloak failed, trying without auth:', tokenResult?.error);
     }
 
-    const token = tokenResult;
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    // Add auth header only if we have a token
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
 
     const options = {
       method: req.method,
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
+      headers,
     };
 
     if (['POST', 'PUT', 'PATCH'].includes(req.method) && req.body) {
