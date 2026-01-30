@@ -109,7 +109,7 @@ export default function Signup() {
     }
   }
 
-  // Create account - POST /api/accounts
+  // Create account - POST /api/accounts (REQUIRES JWT from Keycloak)
   const completeRegistration = async () => {
     try {
       const formattedPhone = otpService.formatPhoneNumber(formData.phone)
@@ -117,7 +117,7 @@ export default function Signup() {
       const firstName = nameParts[0] || 'User'
       const lastName = nameParts.slice(1).join(' ') || firstName
 
-      // Create account via API
+      // Create account via API (requires JWT)
       const result = await accountService.createAccount({
         firstName,
         lastName,
@@ -125,21 +125,39 @@ export default function Signup() {
         password: formData.password,
       })
 
-      if (!result.success) {
-        showToast(result.error || 'Registration failed', 'error')
+      // Handle failure cases
+      if (!result || !result.success) {
+        const errorMessage = result?.error || 'Registration failed. Please try again.'
+
+        // Show specific message for auth issues
+        if (result?.code === 'TOKEN_UNAVAILABLE') {
+          showToast('Service temporarily unavailable. Please try again in a few minutes.', 'error')
+        } else if (result?.code === 'UNAUTHORIZED') {
+          showToast('Authentication error. Please try again.', 'error')
+        } else {
+          showToast(errorMessage, 'error')
+        }
+
         setLoading(false)
         return
       }
 
-      const { accountId, account } = result
+      // Safely extract accountId (may be in result or result.account)
+      const accountId = result.accountId || result.account?.accountId
 
-      // Get balance
+      if (!accountId) {
+        console.error('No accountId in response:', result)
+        showToast('Account created but ID missing. Please try logging in.', 'warning')
+        setLoading(false)
+        navigate('/login')
+        return
+      }
+
+      // Get balance (with fallback to 0)
       let balance = 0
       try {
         const balanceResult = await accountService.getBalance(accountId)
-        if (balanceResult.success) {
-          balance = balanceResult.balance
-        }
+        balance = balanceResult?.balance ?? 0
       } catch (e) {
         console.warn('Balance fetch error:', e)
       }
@@ -160,12 +178,12 @@ export default function Signup() {
       // Login
       await login({ _userData: userData })
 
-      showToast('Account created!', 'success')
+      showToast('Account created successfully!', 'success')
       navigate('/', { replace: true })
 
     } catch (error) {
       console.error('Registration error:', error)
-      showToast('Registration failed', 'error')
+      showToast('An unexpected error occurred. Please try again.', 'error')
       setLoading(false)
     }
   }
