@@ -18,7 +18,30 @@ export default async function handler(req, res) {
   }
 
   try {
-    const body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+    // Debug: Log what we receive
+    console.log('Request body type:', typeof req.body);
+    console.log('Request body:', req.body);
+    console.log('Request headers:', req.headers);
+
+    // Handle body - ensure it's properly formatted
+    let body;
+    if (typeof req.body === 'string') {
+      body = req.body;
+    } else if (req.body && Object.keys(req.body).length > 0) {
+      body = JSON.stringify(req.body);
+    } else {
+      // Body is empty - return error with debug info
+      return res.status(400).json({
+        error: 'Empty request body',
+        debug: {
+          bodyType: typeof req.body,
+          body: req.body,
+          contentType: req.headers['content-type']
+        }
+      });
+    }
+
+    console.log('Forwarding body:', body);
 
     const response = await fetch(`${BACKEND_URL}/api/otp/send`, {
       method: 'POST',
@@ -27,6 +50,7 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
+    console.log('Backend response:', response.status, data);
     return res.status(response.status).json(data);
   } catch (error) {
     console.error('OTP send error:', error);
