@@ -18,8 +18,8 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const { path } = req.query;
-  const pathString = Array.isArray(path) ? path.join('/') : (path || '');
+  const { slug } = req.query;
+  const pathString = slug ? (Array.isArray(slug) ? slug.join('/') : slug) : '';
   const targetUrl = pathString
     ? BACKEND_URL + '/api/otp/' + pathString
     : BACKEND_URL + '/api/otp';

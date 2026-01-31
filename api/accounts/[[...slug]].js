@@ -52,9 +52,11 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const { path } = req.query;
-  const pathString = Array.isArray(path) ? path.join('/') : (path || '');
-  const targetUrl = BACKEND_URL + '/api/accounts/' + pathString;
+  const { slug } = req.query;
+  const pathString = slug ? (Array.isArray(slug) ? slug.join('/') : slug) : '';
+  const targetUrl = pathString
+    ? BACKEND_URL + '/api/accounts/' + pathString
+    : BACKEND_URL + '/api/accounts';
 
   try {
     const token = await getKeycloakToken();
