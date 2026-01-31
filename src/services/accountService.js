@@ -28,7 +28,7 @@ class AccountService {
    * Create a new account
    * POST /api/accounts
    */
-  async createAccount({ firstName, lastName, phoneNumber, email }) {
+  async createAccount({ firstName, lastName, phoneNumber, password, email }) {
     try {
       const formattedPhone = formatPhoneNumber(phoneNumber);
       // Generate email from phone if not provided
@@ -41,6 +41,7 @@ class AccountService {
           firstName,
           lastName,
           phoneNumber: formattedPhone,
+          password,
           email: userEmail,
         }),
       });

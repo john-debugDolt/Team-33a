@@ -6,6 +6,7 @@
 const KEYCLOAK_BASE_URL = '/auth/keycloak';
 const REALM = 'Team33Casino';
 const CLIENT_ID = 'Team33admin';
+const CLIENT_SECRET = 'lxPLoQaJ7PCYJEJZwRuzelt0RHpKlCH0';
 
 export const keycloakService = {
   /**
@@ -19,6 +20,7 @@ export const keycloakService = {
     const body = new URLSearchParams({
       grant_type: 'password',
       client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET,
       username: phone,
       password: password,
     });
