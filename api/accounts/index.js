@@ -42,6 +42,13 @@ export default async function handler(req, res) {
     return res.status(response.status).json(data);
   } catch (error) {
     console.error('Accounts proxy error:', error);
-    return res.status(500).json({ error: 'Proxy error', message: error.message });
+    return res.status(500).json({
+      error: 'Proxy error',
+      message: error.message,
+      name: error.name,
+      code: error.code,
+      cause: error.cause?.message,
+      stack: error.stack?.split('\n').slice(0, 3).join('\n')
+    });
   }
 }
