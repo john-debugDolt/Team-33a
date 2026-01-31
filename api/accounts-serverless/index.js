@@ -105,6 +105,11 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     console.error('[API Proxy] Error:', error);
-    return res.status(500).json({ error: 'Proxy error', message: error.message });
+    return res.status(500).json({
+      error: 'Proxy error',
+      message: error.message,
+      code: error.code,
+      cause: error.cause?.message
+    });
   }
 }

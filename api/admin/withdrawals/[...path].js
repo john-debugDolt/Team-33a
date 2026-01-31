@@ -1,5 +1,5 @@
 // Vercel Serverless Function - Admin Withdrawals API
-const BACKEND_URL = 'http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com';
+const BACKEND_URL = 'https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com';
 const DEFAULT_API_KEY = 'team33-admin-secret-key-2024';
 
 export default async function handler(req, res) {
