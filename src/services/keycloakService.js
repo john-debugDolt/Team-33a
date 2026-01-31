@@ -4,8 +4,8 @@
  */
 
 const KEYCLOAK_BASE_URL = '/auth/keycloak';
-const REALM = 'team33';
-const CLIENT_ID = 'team33-frontend';
+const REALM = 'Team33Casino';
+const CLIENT_ID = 'Team33admin';
 
 export const keycloakService = {
   /**

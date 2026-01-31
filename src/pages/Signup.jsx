@@ -16,9 +16,7 @@ export default function Signup() {
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
-    password: '',
   })
-  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
 
   // OTP State
@@ -36,7 +34,6 @@ export default function Signup() {
     }
   }, [isAuthenticated, navigate])
 
-  // Countdown timer
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
@@ -49,7 +46,6 @@ export default function Signup() {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  // Send OTP - POST /api/otp/send
   const sendOtp = async () => {
     if (!formData.phone || formData.phone.length < 8) {
       showToast('Please enter a valid phone number', 'error')
@@ -71,7 +67,6 @@ export default function Signup() {
     }
   }
 
-  // Verify OTP - POST /api/otp/verify
   const verifyOtp = async () => {
     if (!otpCode || otpCode.length !== 6) {
       setOtpError('Please enter the 6-digit code')
@@ -91,7 +86,6 @@ export default function Signup() {
     setOtpVerifying(false)
   }
 
-  // Resend OTP - POST /api/otp/resend
   const handleResendOtp = async () => {
     if (countdown > 0) return
 
@@ -109,7 +103,6 @@ export default function Signup() {
     }
   }
 
-  // Create account - POST /api/accounts (REQUIRES JWT from Keycloak)
   const completeRegistration = async () => {
     try {
       const formattedPhone = otpService.formatPhoneNumber(formData.phone)
@@ -117,43 +110,28 @@ export default function Signup() {
       const firstName = nameParts[0] || 'User'
       const lastName = nameParts.slice(1).join(' ') || firstName
 
-      // Create account via API (requires JWT)
       const result = await accountService.createAccount({
         firstName,
         lastName,
         phoneNumber: formattedPhone,
-        password: formData.password,
       })
 
-      // Handle failure cases
       if (!result || !result.success) {
         const errorMessage = result?.error || 'Registration failed. Please try again.'
-
-        // Show specific message for auth issues
-        if (result?.code === 'TOKEN_UNAVAILABLE') {
-          showToast('Service temporarily unavailable. Please try again in a few minutes.', 'error')
-        } else if (result?.code === 'UNAUTHORIZED') {
-          showToast('Authentication error. Please try again.', 'error')
-        } else {
-          showToast(errorMessage, 'error')
-        }
-
+        showToast(errorMessage, 'error')
         setLoading(false)
         return
       }
 
-      // Safely extract accountId (may be in result or result.account)
       const accountId = result.accountId || result.account?.accountId
 
       if (!accountId) {
-        console.error('No accountId in response:', result)
         showToast('Account created but ID missing. Please try logging in.', 'warning')
         setLoading(false)
         navigate('/login')
         return
       }
 
-      // Get balance (with fallback to 0)
       let balance = 0
       try {
         const balanceResult = await accountService.getBalance(accountId)
@@ -162,7 +140,6 @@ export default function Signup() {
         console.warn('Balance fetch error:', e)
       }
 
-      // Store user data
       const userData = {
         accountId,
         firstName,
@@ -175,7 +152,6 @@ export default function Signup() {
       localStorage.setItem('user', JSON.stringify(userData))
       localStorage.setItem('accountId', accountId)
 
-      // Login
       await login({ _userData: userData })
 
       showToast('Account created successfully!', 'success')
@@ -188,7 +164,6 @@ export default function Signup() {
     }
   }
 
-  // Form submit
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -199,11 +174,6 @@ export default function Signup() {
 
     if (!formData.phone || formData.phone.length < 8) {
       showToast('Please enter a valid phone number', 'error')
-      return
-    }
-
-    if (!formData.password || formData.password.length < 6) {
-      showToast('Password must be at least 6 characters', 'error')
       return
     }
 
@@ -232,7 +202,6 @@ export default function Signup() {
 
         <div className="signup-form-section">
           <form onSubmit={handleSubmit} className="signup-form-golden">
-            {/* Full Name */}
             <div className="form-row-inline">
               <label className="form-label-inline">Full Name</label>
               <input
@@ -248,7 +217,6 @@ export default function Signup() {
             </div>
             <p className="form-hint-golden">*Must Be The Same As Your Bank Account Name.</p>
 
-            {/* Mobile No */}
             <div className="form-row-inline">
               <label className="form-label-inline">Mobile No</label>
               <input
@@ -263,43 +231,6 @@ export default function Signup() {
               />
             </div>
 
-            {/* Password */}
-            <div className="form-row-inline">
-              <label className="form-label-inline">Password</label>
-              <div className="password-input-wrap">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="6 - 20 characters"
-                  className="form-input-inline"
-                  required
-                  autoComplete="new-password"
-                  minLength={6}
-                  maxLength={20}
-                />
-                <button
-                  type="button"
-                  className="password-toggle-golden"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                      <line x1="1" y1="1" x2="23" y2="23"/>
-                    </svg>
-                  ) : (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                      <circle cx="12" cy="12" r="3"/>
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* OTP Section */}
             <div className="otp-section-inline">
               <p className="otp-instruction">Press GET CODE to receive verification SMS.</p>
 
@@ -374,7 +305,6 @@ export default function Signup() {
               )}
             </div>
 
-            {/* Register Button */}
             <button
               type="submit"
               className="register-btn-golden"
@@ -389,22 +319,6 @@ export default function Signup() {
             <Link to="/login" className="login-link-golden">LOGIN HERE</Link>
           </div>
         </div>
-      </div>
-
-      <div className="side-actions">
-        <a href="https://facebook.com/Team33" target="_blank" rel="noopener noreferrer" className="side-action-btn follow">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M14 13.5h2.5l1-4H14v-2c0-1.03 0-2 2-2h1.5V2.14c-.326-.043-1.557-.14-2.857-.14C11.928 2 10 3.657 10 6.7v2.8H7v4h3V22h4v-8.5z"/>
-          </svg>
-          <span>FOLLOW US</span>
-        </a>
-        <a href="mailto:support@team33.com" className="side-action-btn complain">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M12 8v4M12 16h.01"/>
-          </svg>
-          <span>COMPLAIN US</span>
-        </a>
       </div>
     </div>
   )
