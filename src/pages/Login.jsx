@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
-import { otpService } from '../services/otpService'
+import { keycloakService } from '../services/keycloakService'
 import { accountService } from '../services/accountService'
 import { walletService } from '../services/walletService'
 import { ButtonSpinner } from '../components/LoadingSpinner/LoadingSpinner'
@@ -16,10 +16,9 @@ export default function Login() {
   const { showToast } = useToast()
 
   const [phone, setPhone] = useState('')
-  const [otp, setOtp] = useState('')
-  const [step, setStep] = useState('phone') // 'phone' | 'otp'
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [countdown, setCountdown] = useState(0)
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -28,15 +27,17 @@ export default function Login() {
     }
   }, [isAuthenticated, navigate, location])
 
-  // Countdown timer for resend OTP
-  useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
-      return () => clearTimeout(timer)
+  const formatPhoneForKeycloak = (phoneNumber) => {
+    let cleaned = phoneNumber.replace(/[\s-]/g, '')
+    if (cleaned.startsWith('0')) {
+      cleaned = '+61' + cleaned.substring(1)
+    } else if (!cleaned.startsWith('+')) {
+      cleaned = '+61' + cleaned
     }
-  }, [countdown])
+    return cleaned
+  }
 
-  const handleSendOTP = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault()
 
     if (!phone.trim()) {
@@ -44,42 +45,26 @@ export default function Login() {
       return
     }
 
-    setLoading(true)
-
-    const result = await otpService.sendOTP(phone.trim())
-
-    if (result.success) {
-      setStep('otp')
-      setCountdown(result.expiresInSeconds || 300)
-      showToast('OTP sent to your phone', 'success')
-    } else {
-      showToast(result.error || 'Failed to send OTP', 'error')
-    }
-
-    setLoading(false)
-  }
-
-  const handleVerifyAndLogin = async (e) => {
-    e.preventDefault()
-
-    if (!otp.trim() || otp.length < 4) {
-      showToast('Please enter a valid OTP', 'error')
+    if (!password.trim()) {
+      showToast('Please enter your password', 'error')
       return
     }
 
     setLoading(true)
 
-    // Step 1: Verify OTP
-    const verifyResult = await otpService.verifyOTP(phone.trim(), otp.trim())
+    const formattedPhone = formatPhoneForKeycloak(phone.trim())
 
-    if (!verifyResult.success || !verifyResult.verified) {
-      showToast(verifyResult.error || 'Invalid OTP. Please try again.', 'error')
+    // Step 1: Authenticate with Keycloak
+    const authResult = await keycloakService.login(formattedPhone, password)
+
+    if (!authResult.success) {
+      showToast(authResult.error || 'Invalid phone number or password', 'error')
       setLoading(false)
       return
     }
 
-    // Step 2: Fetch account by phone
-    const accountResult = await accountService.getAccountByPhone(phone.trim())
+    // Step 2: Fetch account details by phone
+    const accountResult = await accountService.getAccountByPhone(formattedPhone)
 
     if (!accountResult.success) {
       showToast('Account not found. Please register first.', 'error')
@@ -103,11 +88,9 @@ export default function Login() {
       status: account.status,
     }
 
-    // Store user data
     localStorage.setItem('user', JSON.stringify(userData))
     localStorage.setItem('accountId', account.accountId)
 
-    // Login with user data
     const loginResult = await login({ _userData: userData })
 
     if (loginResult.success) {
@@ -121,31 +104,8 @@ export default function Login() {
     setLoading(false)
   }
 
-  const handleResendOTP = async () => {
-    if (countdown > 0) return
-
-    setLoading(true)
-    const result = await otpService.resendOTP(phone.trim())
-
-    if (result.success) {
-      setCountdown(result.expiresInSeconds || 300)
-      showToast('OTP resent successfully', 'success')
-    } else {
-      showToast(result.error || 'Failed to resend OTP', 'error')
-    }
-
-    setLoading(false)
-  }
-
-  const handleBackToPhone = () => {
-    setStep('phone')
-    setOtp('')
-    setCountdown(0)
-  }
-
   return (
     <div className="login-page-golden">
-      {/* Back Button */}
       <Link to="/" className="back-btn-golden">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M19 12H5M12 19l-7-7 7-7"/>
@@ -153,87 +113,66 @@ export default function Login() {
         <span>Back</span>
       </Link>
 
-      {/* Two Column Layout */}
       <div className="login-layout">
-        {/* Banner Section - Left Side */}
         <div className="login-banner">
           <img src={loginBanner} alt="Welcome Banner" />
         </div>
 
-        {/* Form Section - Right Side */}
         <div className="login-form-section">
           <div className="login-container-golden">
             <h1 className="login-title-golden">Login</h1>
 
-            {step === 'phone' ? (
-              <form onSubmit={handleSendOTP} className="login-form-golden">
-                {/* Phone Field */}
-                <div className="form-group-golden">
-                  <label className="form-label-golden">Mobile Number</label>
+            <form onSubmit={handleLogin} className="login-form-golden">
+              <div className="form-group-golden">
+                <label className="form-label-golden">Mobile Number</label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="e.g. 0412345678"
+                  className="form-input-golden"
+                  required
+                  autoComplete="tel"
+                />
+              </div>
+
+              <div className="form-group-golden">
+                <label className="form-label-golden">Password</label>
+                <div className="password-input-wrapper">
                   <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="e.g. 0412345678"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
                     className="form-input-golden"
                     required
-                    autoComplete="tel"
+                    autoComplete="current-password"
                   />
-                  <p className="form-hint">Enter your registered mobile number</p>
-                </div>
-
-                {/* Send OTP Button */}
-                <button type="submit" className="login-btn-golden" disabled={loading}>
-                  {loading ? <ButtonSpinner /> : 'SEND OTP'}
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleVerifyAndLogin} className="login-form-golden">
-                {/* Phone Display */}
-                <div className="form-group-golden">
-                  <label className="form-label-golden">Mobile Number</label>
-                  <div className="phone-display">
-                    <span>{phone}</span>
-                    <button type="button" className="change-phone-btn" onClick={handleBackToPhone}>
-                      Change
-                    </button>
-                  </div>
-                </div>
-
-                {/* OTP Field */}
-                <div className="form-group-golden">
-                  <label className="form-label-golden">Enter OTP</label>
-                  <input
-                    type="text"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="Enter 6-digit OTP"
-                    className="form-input-golden otp-input"
-                    required
-                    autoComplete="one-time-code"
-                    maxLength={6}
-                  />
-                  <div className="otp-actions">
-                    {countdown > 0 ? (
-                      <span className="countdown-text">
-                        Resend OTP in {Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, '0')}
-                      </span>
+                  <button
+                    type="button"
+                    className="password-toggle-btn"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                      </svg>
                     ) : (
-                      <button type="button" className="resend-btn" onClick={handleResendOTP} disabled={loading}>
-                        Resend OTP
-                      </button>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
                     )}
-                  </div>
+                  </button>
                 </div>
+              </div>
 
-                {/* Verify & Login Button */}
-                <button type="submit" className="login-btn-golden" disabled={loading}>
-                  {loading ? <ButtonSpinner /> : 'VERIFY & LOGIN'}
-                </button>
-              </form>
-            )}
+              <button type="submit" className="login-btn-golden" disabled={loading}>
+                {loading ? <ButtonSpinner /> : 'LOGIN'}
+              </button>
+            </form>
 
-            {/* Register Section */}
             <div className="register-section-golden">
               <p className="register-text-golden">Do Not Have An Account Yet?</p>
               <Link to="/signup" className="register-btn-golden">REGISTER</Link>
@@ -242,7 +181,6 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Side Action Buttons (Desktop Only) */}
       <div className="side-actions">
         <a href="https://facebook.com/Team33" target="_blank" rel="noopener noreferrer" className="side-action-btn follow">
           <svg viewBox="0 0 24 24" fill="currentColor">
