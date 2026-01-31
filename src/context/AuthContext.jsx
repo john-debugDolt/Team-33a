@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import { authService } from '../services/authService';
 import { accountService } from '../services/accountService';
 import { walletService } from '../services/walletService';
+import { keycloakService } from '../services/keycloakService';
 
 const AuthContext = createContext(null);
 
@@ -14,8 +15,8 @@ export function AuthProvider({ children }) {
   // Check for existing session on mount - TOKEN BASED AUTH
   useEffect(() => {
     const loadUser = async () => {
-      // ✅ STEP 1: Check for valid access token FIRST
-      const hasValidToken = authService.hasValidToken();
+      // ✅ STEP 1: Check for valid access token FIRST (Keycloak or legacy)
+      const hasValidToken = keycloakService.isAuthenticated() || authService.hasValidToken();
 
       if (!hasValidToken) {
         // No valid token - user must login
@@ -276,6 +277,8 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(async () => {
+    // Clear Keycloak tokens
+    keycloakService.logout();
     // Clear external API data
     localStorage.removeItem('user');
     localStorage.removeItem('accountId');
