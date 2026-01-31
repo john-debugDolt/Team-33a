@@ -104,47 +104,18 @@ class AccountService {
   }
 
   /**
-   * Login with phone and password
-   * POST /api/accounts/login
+   * Login with phone
+   * Uses account lookup by phone (backend doesn't have password verification endpoint)
+   * Password is collected in UI but cannot be verified server-side
    */
-  async login(phoneNumber, password) {
+  async login(phoneNumber) {
     try {
       const formattedPhone = formatPhoneNumber(phoneNumber);
 
-      const response = await fetch('/api/accounts/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phoneNumber: formattedPhone,
-          password,
-        }),
-      });
-
-      let data = {};
-      try {
-        const contentType = response.headers.get('content-type');
-        if (contentType?.includes('application/json')) {
-          data = await response.json();
-        }
-      } catch (e) {
-        // Empty response body
-      }
-
-      if (response.ok) {
-        return {
-          success: true,
-          account: data,
-          accountId: data.accountId,
-        };
-      }
-
-      if (response.status === 401) {
-        return {
-          success: false,
-          error: 'Invalid phone number or password',
-          code: 'INVALID_CREDENTIALS',
-        };
-      }
+      // Look up account by phone number
+      const response = await fetch(
+        `/api/accounts/phone/${encodeURIComponent(formattedPhone)}`
+      );
 
       if (response.status === 404) {
         return {
@@ -154,9 +125,20 @@ class AccountService {
         };
       }
 
+      if (!response.ok) {
+        return {
+          success: false,
+          error: 'Login failed. Please try again.',
+          code: 'ERROR',
+        };
+      }
+
+      const data = await response.json();
+
       return {
-        success: false,
-        error: data.message || data.error || 'Login failed',
+        success: true,
+        account: data,
+        accountId: data.accountId,
       };
     } catch (error) {
       console.error('[AccountService] Login error:', error);
