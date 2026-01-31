@@ -38,7 +38,8 @@ class OTPService {
         body: JSON.stringify({ phoneNumber: formattedPhone }),
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
 
       if (response.status === 429) {
         return {
@@ -82,7 +83,8 @@ class OTPService {
         }),
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
 
       return {
         success: data.success,
@@ -114,7 +116,8 @@ class OTPService {
         { method: 'GET' }
       );
 
-      const data = await response.json();
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
       return { verified: data.verified || false };
     } catch (error) {
       console.error('[OTPService] Status error:', error);
@@ -136,7 +139,8 @@ class OTPService {
         body: JSON.stringify({ phoneNumber: formattedPhone }),
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
 
       if (response.status === 429) {
         return {

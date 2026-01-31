@@ -1,0 +1,104 @@
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+[[redirects]]
+  from = "/api/accounts/*"
+  to = "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/accounts/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/accounts"
+  to = "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/accounts"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/otp/*"
+  to = "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/otp/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/otp"
+  to = "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/otp"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/deposits/*"
+  to = "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/deposits/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/deposits"
+  to = "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/deposits"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/withdrawals/*"
+  to = "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/withdrawals/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/withdrawals"
+  to = "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/withdrawals"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/banks/*"
+  to = "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/banks/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/banks"
+  to = "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/banks"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/wallets/*"
+  to = "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/wallets/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/wallets"
+  to = "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/wallets"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/chat/*"
+  to = "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/chat/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/chat"
+  to = "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/chat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/games/*"
+  to = "https://api.team33.mx/api/games/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/games"
+  to = "https://api.team33.mx/api/games"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
