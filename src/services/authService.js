@@ -9,7 +9,6 @@ import {
   isTokenExpired,
   parseJwtToken
 } from './api';
-import { keycloakService } from './keycloakService';
 
 /**
  * Auth Service - Handles authentication state and token management
@@ -113,11 +112,9 @@ export const authService = {
   },
 
   /**
-   * Logout - clears all auth-related localStorage including token
+   * Logout - clears all auth-related localStorage
    */
   async logout() {
-    // Clear Keycloak tokens first
-    keycloakService.logout();
     // Clear access token
     clearAccessToken();
     // Clear legacy token storage

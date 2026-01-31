@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
-import { keycloakService } from '../services/keycloakService'
+import { otpService } from '../services/otpService'
 import { accountService } from '../services/accountService'
 import { walletService } from '../services/walletService'
 import { ButtonSpinner } from '../components/LoadingSpinner/LoadingSpinner'
@@ -16,9 +16,15 @@ export default function Login() {
   const { showToast } = useToast()
 
   const [phone, setPhone] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+
+  // OTP State
+  const [otpCode, setOtpCode] = useState('')
+  const [otpSending, setOtpSending] = useState(false)
+  const [otpVerifying, setOtpVerifying] = useState(false)
+  const [countdown, setCountdown] = useState(0)
+  const [otpSent, setOtpSent] = useState(false)
+  const [otpError, setOtpError] = useState('')
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -27,7 +33,14 @@ export default function Login() {
     }
   }, [isAuthenticated, navigate, location])
 
-  const formatPhoneForKeycloak = (phoneNumber) => {
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [countdown])
+
+  const formatPhoneForAPI = (phoneNumber) => {
     let cleaned = phoneNumber.replace(/[\s-]/g, '')
     if (cleaned.startsWith('0')) {
       cleaned = '+61' + cleaned.substring(1)
@@ -35,6 +48,44 @@ export default function Login() {
       cleaned = '+61' + cleaned
     }
     return cleaned
+  }
+
+  const sendOtp = async () => {
+    if (!phone || phone.length < 8) {
+      showToast('Please enter a valid phone number', 'error')
+      return
+    }
+
+    setOtpSending(true)
+    setOtpError('')
+    const result = await otpService.sendOTP(phone)
+    setOtpSending(false)
+
+    if (result.success) {
+      setOtpSent(true)
+      setCountdown(60)
+      showToast('Verification code sent!', 'success')
+    } else {
+      setOtpError(result.error || 'Failed to send code')
+      showToast(result.error || 'Failed to send code', 'error')
+    }
+  }
+
+  const handleResendOtp = async () => {
+    if (countdown > 0) return
+
+    setOtpSending(true)
+    setOtpError('')
+    const result = await otpService.resendOTP(phone)
+    setOtpSending(false)
+
+    if (result.success) {
+      setCountdown(60)
+      setOtpCode('')
+      showToast('New code sent!', 'success')
+    } else {
+      showToast(result.error || 'Failed to resend', 'error')
+    }
   }
 
   const handleLogin = async (e) => {
@@ -45,39 +96,49 @@ export default function Login() {
       return
     }
 
-    if (!password.trim()) {
-      showToast('Please enter your password', 'error')
+    if (!otpSent) {
+      // First step: send OTP
+      await sendOtp()
+      return
+    }
+
+    if (!otpCode || otpCode.length !== 6) {
+      showToast('Please enter the 6-digit code', 'error')
+      return
+    }
+
+    setOtpVerifying(true)
+    setOtpError('')
+
+    // Verify OTP
+    const verifyResult = await otpService.verifyOTP(phone, otpCode)
+
+    if (!verifyResult.success || !verifyResult.verified) {
+      setOtpError(verifyResult.error || 'Invalid code')
+      showToast(verifyResult.error || 'Invalid verification code', 'error')
+      setOtpVerifying(false)
       return
     }
 
     setLoading(true)
+    const formattedPhone = formatPhoneForAPI(phone.trim())
 
-    const formattedPhone = formatPhoneForKeycloak(phone.trim())
-
-    // Step 1: Authenticate with Keycloak
-    const authResult = await keycloakService.login(formattedPhone, password)
-
-    if (!authResult.success) {
-      showToast(authResult.error || 'Invalid phone number or password', 'error')
-      setLoading(false)
-      return
-    }
-
-    // Step 2: Fetch account details by phone
+    // Fetch account by phone
     const accountResult = await accountService.getAccountByPhone(formattedPhone)
 
     if (!accountResult.success) {
       showToast('Account not found. Please register first.', 'error')
       setLoading(false)
+      setOtpVerifying(false)
       return
     }
 
     const account = accountResult.account
 
-    // Step 3: Fetch balance
+    // Fetch balance
     const balanceResult = await walletService.getBalance(account.accountId)
 
-    // Step 4: Build user data and login
+    // Build user data and login
     const userData = {
       accountId: account.accountId,
       firstName: account.firstName,
@@ -102,6 +163,7 @@ export default function Login() {
     }
 
     setLoading(false)
+    setOtpVerifying(false)
   }
 
   return (
@@ -128,7 +190,14 @@ export default function Login() {
                 <input
                   type="tel"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => {
+                    setPhone(e.target.value)
+                    if (otpSent) {
+                      setOtpSent(false)
+                      setOtpCode('')
+                      setCountdown(0)
+                    }
+                  }}
                   placeholder="e.g. 0412345678"
                   className="form-input-golden"
                   required
@@ -136,40 +205,46 @@ export default function Login() {
                 />
               </div>
 
-              <div className="form-group-golden">
-                <label className="form-label-golden">Password</label>
-                <div className="password-input-wrapper">
+              {otpSent && (
+                <div className="form-group-golden">
+                  <label className="form-label-golden">Verification Code</label>
                   <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
+                    type="text"
+                    value={otpCode}
+                    onChange={(e) => {
+                      setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))
+                      setOtpError('')
+                    }}
+                    placeholder="Enter 6-digit code"
                     className="form-input-golden"
-                    required
-                    autoComplete="current-password"
+                    maxLength={6}
                   />
-                  <button
-                    type="button"
-                    className="password-toggle-btn"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                        <line x1="1" y1="1" x2="23" y2="23"/>
-                      </svg>
-                    ) : (
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
-                      </svg>
-                    )}
-                  </button>
+                  {otpError && (
+                    <p className="form-error-golden">{otpError}</p>
+                  )}
+                  {countdown > 0 ? (
+                    <p className="form-hint-golden">Code expires in {countdown}s</p>
+                  ) : (
+                    <button
+                      type="button"
+                      className="resend-btn-golden"
+                      onClick={handleResendOtp}
+                      disabled={otpSending}
+                    >
+                      {otpSending ? 'Sending...' : 'Resend Code'}
+                    </button>
+                  )}
                 </div>
-              </div>
+              )}
 
-              <button type="submit" className="login-btn-golden" disabled={loading}>
-                {loading ? <ButtonSpinner /> : 'LOGIN'}
+              <button type="submit" className="login-btn-golden" disabled={loading || otpSending || otpVerifying}>
+                {loading || otpVerifying ? (
+                  <ButtonSpinner />
+                ) : otpSent ? (
+                  'VERIFY & LOGIN'
+                ) : (
+                  'GET CODE'
+                )}
               </button>
             </form>
 

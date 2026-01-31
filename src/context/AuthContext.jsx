@@ -2,7 +2,6 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import { authService } from '../services/authService';
 import { accountService } from '../services/accountService';
 import { walletService } from '../services/walletService';
-import { keycloakService } from '../services/keycloakService';
 
 const AuthContext = createContext(null);
 
@@ -12,55 +11,35 @@ export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [transactionVersion, setTransactionVersion] = useState(0); // Increments when transactions change
 
-  // Check for existing session on mount - TOKEN BASED AUTH
+  // Check for existing session on mount - OTP-based auth (no tokens)
   useEffect(() => {
     const loadUser = async () => {
-      // ✅ STEP 1: Check for valid access token FIRST (Keycloak or legacy)
-      const hasValidToken = keycloakService.isAuthenticated() || authService.hasValidToken();
+      const storedUser = localStorage.getItem('user');
+      const storedAccountId = localStorage.getItem('accountId');
 
-      if (!hasValidToken) {
-        // No valid token - user must login
-        console.log('[Auth] No valid token found');
-        // Clear any stale user data
-        localStorage.removeItem('user');
-        localStorage.removeItem('accountId');
+      if (!storedUser || !storedAccountId) {
+        console.log('[Auth] No stored session found');
         setLoading(false);
         return;
       }
 
-      console.log('[Auth] Valid token found, restoring session');
+      console.log('[Auth] Restoring session from localStorage');
 
-      // ✅ STEP 2: Token is valid, restore user data
-      const storedUser = localStorage.getItem('user');
-      const storedAccountId = localStorage.getItem('accountId');
-
-      if (storedUser && storedAccountId) {
-        try {
-          const userData = JSON.parse(storedUser);
-          // Refresh balance from external API
-          const balanceResult = await walletService.getBalance(storedAccountId);
-          if (balanceResult.success) {
-            userData.balance = balanceResult.balance;
-            localStorage.setItem('user', JSON.stringify(userData));
-          }
-          setUser(userData);
-          setIsAuthenticated(true);
-          setLoading(false);
-          return;
-        } catch (e) {
-          console.error('[Auth] Error loading stored user:', e);
+      try {
+        const userData = JSON.parse(storedUser);
+        // Refresh balance from external API
+        const balanceResult = await walletService.getBalance(storedAccountId);
+        if (balanceResult.success) {
+          userData.balance = balanceResult.balance;
+          localStorage.setItem('user', JSON.stringify(userData));
         }
-      }
-
-      // Token exists but no user data - try to get from legacy storage
-      const result = await authService.getCurrentUser();
-      if (result.success && result.data) {
-        setUser(result.data.user);
+        setUser(userData);
         setIsAuthenticated(true);
-      } else {
-        // Token exists but can't get user - clear token
-        console.log('[Auth] Token exists but no user data - clearing');
-        authService.clearAuthToken();
+      } catch (e) {
+        console.error('[Auth] Error loading stored user:', e);
+        // Clear invalid data
+        localStorage.removeItem('user');
+        localStorage.removeItem('accountId');
       }
       setLoading(false);
     };
@@ -278,7 +257,6 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(async () => {
     // Clear Keycloak tokens
-    keycloakService.logout();
     // Clear external API data
     localStorage.removeItem('user');
     localStorage.removeItem('accountId');
