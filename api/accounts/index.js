@@ -22,17 +22,38 @@ export default async function handler(req, res) {
       },
     };
 
-    if (['POST', 'PUT', 'PATCH'].includes(req.method) && req.body) {
-      options.body = JSON.stringify(req.body);
+    // Handle request body
+    if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
+      if (req.body && typeof req.body === 'object') {
+        options.body = JSON.stringify(req.body);
+      } else if (typeof req.body === 'string') {
+        options.body = req.body;
+      }
     }
 
     const response = await fetch(targetUrl, options);
-    const data = await response.json().catch(() => ({}));
+
+    // Get response text first
+    const text = await response.text();
+
+    // Try to parse as JSON
+    let data = {};
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { raw: text };
+      }
+    }
 
     return res.status(response.status).json(data);
   } catch (error) {
-    console.error('[Accounts API] Error:', error.message);
-    return res.status(500).json({ success: false, error: error.message });
+    console.error('[Accounts API] Error:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error',
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 }
 
