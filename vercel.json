@@ -3,55 +3,63 @@
   "rewrites": [
     {
       "source": "/api/accounts",
-      "destination": "https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/accounts"
+      "destination": "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/accounts"
     },
     {
       "source": "/api/accounts/:path*",
-      "destination": "https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/accounts/:path*"
+      "destination": "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/accounts/:path*"
+    },
+    {
+      "source": "/api/otp",
+      "destination": "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/otp"
+    },
+    {
+      "source": "/api/otp/:path*",
+      "destination": "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/otp/:path*"
     },
     {
       "source": "/api/deposits",
-      "destination": "https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/deposits"
+      "destination": "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/deposits"
     },
     {
       "source": "/api/deposits/:path*",
-      "destination": "https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/deposits/:path*"
+      "destination": "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/deposits/:path*"
     },
     {
       "source": "/api/withdrawals",
-      "destination": "https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/withdrawals"
+      "destination": "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/withdrawals"
     },
     {
       "source": "/api/withdrawals/:path*",
-      "destination": "https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/withdrawals/:path*"
+      "destination": "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/withdrawals/:path*"
     },
     {
       "source": "/api/banks",
-      "destination": "https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/banks"
+      "destination": "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/banks"
     },
     {
       "source": "/api/banks/:path*",
-      "destination": "https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/banks/:path*"
+      "destination": "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/banks/:path*"
     },
     {
       "source": "/api/wallets",
-      "destination": "https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/wallets"
+      "destination": "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/wallets"
     },
     {
       "source": "/api/wallets/:path*",
-      "destination": "https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/wallets/:path*"
+      "destination": "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/wallets/:path*"
     },
     {
       "source": "/api/chat",
-      "destination": "https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/chat"
+      "destination": "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/chat"
     },
     {
       "source": "/api/chat/:path*",
-      "destination": "https://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/chat/:path*"
+      "destination": "http://k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com/api/chat/:path*"
     },
     {
       "source": "/auth/keycloak/:path*",
-      "destination": "https://k8s-team33-keycloak-320152ed2f-65380cdab2265c8a.elb.ap-southeast-2.amazonaws.com/:path*"
+      "destination": "http://k8s-team33-keycloak-320152ed2f-65380cdab2265c8a.elb.ap-southeast-2.amazonaws.com/:path*"
     },
     {
       "source": "/api/games",
