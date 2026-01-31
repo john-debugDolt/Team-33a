@@ -62,24 +62,29 @@ export default async function handler(req, res) {
     // Get JWT token from Keycloak
     const token = await getKeycloakToken();
 
+    if (!token) {
+      console.error('[API Proxy] Failed to obtain JWT token');
+      return res.status(503).json({ error: 'Authentication service unavailable' });
+    }
+
     const fetchOptions = {
       method: req.method,
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
     };
 
-    // Add JWT token if available
-    if (token) {
-      fetchOptions.headers['Authorization'] = `Bearer ${token}`;
-    }
-
     // Only include body for methods that support it
     if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
-      fetchOptions.body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+      const bodyStr = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+      fetchOptions.body = bodyStr;
+      console.log('[API Proxy] Request body:', bodyStr);
     }
 
+    console.log('[API Proxy] Forwarding to:', targetUrl, 'Method:', req.method);
     const response = await fetch(targetUrl, fetchOptions);
+    console.log('[API Proxy] Backend response status:', response.status);
 
     const contentType = response.headers.get('content-type');
     let data;
