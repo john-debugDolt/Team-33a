@@ -16,6 +16,8 @@ export default function Login() {
   const { showToast } = useToast()
 
   const [phone, setPhone] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
 
   // OTP State
@@ -53,6 +55,11 @@ export default function Login() {
   const sendOtp = async () => {
     if (!phone || phone.length < 8) {
       showToast('Please enter a valid phone number', 'error')
+      return
+    }
+
+    if (!password.trim()) {
+      showToast('Please enter your password', 'error')
       return
     }
 
@@ -96,6 +103,11 @@ export default function Login() {
       return
     }
 
+    if (!password.trim()) {
+      showToast('Please enter your password', 'error')
+      return
+    }
+
     if (!otpSent) {
       // First step: send OTP
       await sendOtp()
@@ -110,7 +122,7 @@ export default function Login() {
     setOtpVerifying(true)
     setOtpError('')
 
-    // Verify OTP
+    // Step 1: Verify OTP
     const verifyResult = await otpService.verifyOTP(phone, otpCode)
 
     if (!verifyResult.success || !verifyResult.verified) {
@@ -123,22 +135,22 @@ export default function Login() {
     setLoading(true)
     const formattedPhone = formatPhoneForAPI(phone.trim())
 
-    // Fetch account by phone
-    const accountResult = await accountService.getAccountByPhone(formattedPhone)
+    // Step 2: Verify password with backend
+    const loginResult = await accountService.login(formattedPhone, password)
 
-    if (!accountResult.success) {
-      showToast('Account not found. Please register first.', 'error')
+    if (!loginResult.success) {
+      showToast(loginResult.error || 'Invalid phone number or password', 'error')
       setLoading(false)
       setOtpVerifying(false)
       return
     }
 
-    const account = accountResult.account
+    const account = loginResult.account
 
-    // Fetch balance
+    // Step 3: Fetch balance
     const balanceResult = await walletService.getBalance(account.accountId)
 
-    // Build user data and login
+    // Step 4: Build user data and complete login
     const userData = {
       accountId: account.accountId,
       firstName: account.firstName,
@@ -152,9 +164,9 @@ export default function Login() {
     localStorage.setItem('user', JSON.stringify(userData))
     localStorage.setItem('accountId', account.accountId)
 
-    const loginResult = await login({ _userData: userData })
+    const authResult = await login({ _userData: userData })
 
-    if (loginResult.success) {
+    if (authResult.success) {
       showToast(`Welcome back, ${userData.firstName}!`, 'success')
       const from = location.state?.from?.pathname || '/'
       navigate(from, { replace: true })
@@ -203,6 +215,38 @@ export default function Login() {
                   required
                   autoComplete="tel"
                 />
+              </div>
+
+              <div className="form-group-golden">
+                <label className="form-label-golden">Password</label>
+                <div className="password-input-wrapper">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    className="form-input-golden"
+                    required
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle-btn"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
 
               {otpSent && (

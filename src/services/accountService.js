@@ -104,6 +104,70 @@ class AccountService {
   }
 
   /**
+   * Login with phone and password
+   * POST /api/accounts/login
+   */
+  async login(phoneNumber, password) {
+    try {
+      const formattedPhone = formatPhoneNumber(phoneNumber);
+
+      const response = await fetch('/api/accounts/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phoneNumber: formattedPhone,
+          password,
+        }),
+      });
+
+      let data = {};
+      try {
+        const contentType = response.headers.get('content-type');
+        if (contentType?.includes('application/json')) {
+          data = await response.json();
+        }
+      } catch (e) {
+        // Empty response body
+      }
+
+      if (response.ok) {
+        return {
+          success: true,
+          account: data,
+          accountId: data.accountId,
+        };
+      }
+
+      if (response.status === 401) {
+        return {
+          success: false,
+          error: 'Invalid phone number or password',
+          code: 'INVALID_CREDENTIALS',
+        };
+      }
+
+      if (response.status === 404) {
+        return {
+          success: false,
+          error: 'Account not found. Please register first.',
+          code: 'NOT_FOUND',
+        };
+      }
+
+      return {
+        success: false,
+        error: data.message || data.error || 'Login failed',
+      };
+    } catch (error) {
+      console.error('[AccountService] Login error:', error);
+      return {
+        success: false,
+        error: 'Network error. Please check your connection.',
+      };
+    }
+  }
+
+  /**
    * Get account by ID
    * GET /api/accounts/{accountId}
    */
