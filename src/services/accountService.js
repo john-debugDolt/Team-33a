@@ -28,11 +28,9 @@ class AccountService {
    * Create a new account
    * POST /api/accounts
    */
-  async createAccount({ firstName, lastName, phoneNumber, password, email }) {
+  async createAccount({ firstName, lastName, phoneNumber }) {
     try {
       const formattedPhone = formatPhoneNumber(phoneNumber);
-      // Generate email from phone if not provided
-      const userEmail = email || `${formattedPhone.replace('+', '')}@team33.mx`;
 
       const response = await fetch('/api/accounts', {
         method: 'POST',
@@ -41,8 +39,6 @@ class AccountService {
           firstName,
           lastName,
           phoneNumber: formattedPhone,
-          password,
-          email: userEmail,
         }),
       });
 
