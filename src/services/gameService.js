@@ -281,7 +281,7 @@ export const gameService = {
     }
 
     // Direct API call to games backend
-    const GAME_LAUNCH_API = 'https://api.team33.mx/api/games/launch';
+    const GAME_LAUNCH_API = 'https://accounts.team33.mx/api/games/launch';
 
     // Get user's actual accountId from localStorage
     const user = JSON.parse(localStorage.getItem('team33_user') || localStorage.getItem('user') || '{}');
