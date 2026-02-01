@@ -3,43 +3,43 @@
   "rewrites": [
     {
       "source": "/api/deposits",
-      "destination": "https://api.team33.mx/api/deposits"
+      "destination": "https://accounts.team33.mx/api/deposits"
     },
     {
       "source": "/api/deposits/:path*",
-      "destination": "https://api.team33.mx/api/deposits/:path*"
+      "destination": "https://accounts.team33.mx/api/deposits/:path*"
     },
     {
       "source": "/api/withdrawals",
-      "destination": "https://api.team33.mx/api/withdrawals"
+      "destination": "https://accounts.team33.mx/api/withdrawals"
     },
     {
       "source": "/api/withdrawals/:path*",
-      "destination": "https://api.team33.mx/api/withdrawals/:path*"
+      "destination": "https://accounts.team33.mx/api/withdrawals/:path*"
     },
     {
       "source": "/api/banks",
-      "destination": "https://api.team33.mx/api/banks"
+      "destination": "https://accounts.team33.mx/api/banks"
     },
     {
       "source": "/api/banks/:path*",
-      "destination": "https://api.team33.mx/api/banks/:path*"
+      "destination": "https://accounts.team33.mx/api/banks/:path*"
     },
     {
       "source": "/api/wallets",
-      "destination": "https://api.team33.mx/api/wallets"
+      "destination": "https://accounts.team33.mx/api/wallets"
     },
     {
       "source": "/api/wallets/:path*",
-      "destination": "https://api.team33.mx/api/wallets/:path*"
+      "destination": "https://accounts.team33.mx/api/wallets/:path*"
     },
     {
       "source": "/api/chat",
-      "destination": "https://api.team33.mx/api/chat"
+      "destination": "https://accounts.team33.mx/api/chat"
     },
     {
       "source": "/api/chat/:path*",
-      "destination": "https://api.team33.mx/api/chat/:path*"
+      "destination": "https://accounts.team33.mx/api/chat/:path*"
     },
     {
       "source": "/auth/keycloak/:path*",

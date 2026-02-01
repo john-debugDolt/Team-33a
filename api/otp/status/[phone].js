@@ -1,4 +1,4 @@
-const BACKEND_URL = 'https://api.team33.mx';
+const BACKEND_URL = 'https://accounts.team33.mx';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');

@@ -8,7 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const BACKEND_URL = 'https://api.team33.mx';
+const BACKEND_URL = 'https://accounts.team33.mx';
 const GAMES_URL = 'https://api.team33.mx';
 
 // CORS middleware
