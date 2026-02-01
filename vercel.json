@@ -1,6 +1,35 @@
 {
   "trailingSlash": false,
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs20.x"
+    }
+  },
   "rewrites": [
+    {
+      "source": "/api/accounts",
+      "destination": "/api/accounts/index"
+    },
+    {
+      "source": "/api/accounts/:path*",
+      "destination": "/api/accounts/[...path]"
+    },
+    {
+      "source": "/api/otp/send",
+      "destination": "/api/otp/send"
+    },
+    {
+      "source": "/api/otp/verify",
+      "destination": "/api/otp/verify"
+    },
+    {
+      "source": "/api/otp/resend",
+      "destination": "/api/otp/resend"
+    },
+    {
+      "source": "/api/otp/status/:phone*",
+      "destination": "/api/otp/status/[phone]"
+    },
     {
       "source": "/api/deposits",
       "destination": "https://accounts.team33.mx/api/deposits"
