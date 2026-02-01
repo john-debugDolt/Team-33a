@@ -29,7 +29,7 @@ class AccountService {
    * Create a new account
    * POST /api/accounts
    */
-  async createAccount({ firstName, lastName, phoneNumber }) {
+  async createAccount({ firstName, lastName, phoneNumber, password }) {
     try {
       const formattedPhone = formatPhoneNumber(phoneNumber);
 
@@ -40,6 +40,7 @@ class AccountService {
           firstName,
           lastName,
           phoneNumber: formattedPhone,
+          password,
         }),
       });
 
@@ -101,40 +102,49 @@ class AccountService {
   }
 
   /**
-   * Login with phone
-   * Uses account lookup by phone (backend doesn't have password verification endpoint)
-   * Password is collected in UI but cannot be verified server-side
+   * Login with phone and password
+   * POST /api/accounts/login
    */
-  async login(phoneNumber) {
+  async login(phoneNumber, password) {
     try {
       const formattedPhone = formatPhoneNumber(phoneNumber);
 
-      // Look up account by phone number
-      const response = await fetch(
-        `${API_BASE}/api/accounts/phone/${encodeURIComponent(formattedPhone)}`
-      );
+      const response = await fetch(`${API_BASE}/api/accounts/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phoneNumber: formattedPhone,
+          password,
+        }),
+      });
 
-      if (response.status === 404) {
+      const data = await response.json();
+
+      // Check backend success field or HTTP status
+      if (response.status === 401 || data.success === false) {
         return {
           success: false,
-          error: 'Account not found. Please register first.',
-          code: 'NOT_FOUND',
+          error: data.message || 'Invalid phone number or password.',
+          code: 'INVALID_CREDENTIALS',
         };
       }
 
       if (!response.ok) {
         return {
           success: false,
-          error: 'Login failed. Please try again.',
+          error: data.message || 'Login failed. Please try again.',
           code: 'ERROR',
         };
       }
 
-      const data = await response.json();
-
+      // Build account object from response
       return {
         success: true,
-        account: data,
+        account: {
+          accountId: data.accountId,
+          firstName: data.firstName,
+          lastName: data.lastName,
+        },
         accountId: data.accountId,
       };
     } catch (error) {

@@ -52,8 +52,8 @@ export default function Login() {
     setLoading(true)
     const formattedPhone = formatPhoneForAPI(phone.trim())
 
-    // Look up account by phone (backend doesn't have password verification)
-    const loginResult = await accountService.login(formattedPhone)
+    // Login with phone and password
+    const loginResult = await accountService.login(formattedPhone, password)
 
     if (!loginResult.success) {
       showToast(loginResult.error || 'Invalid phone number or password', 'error')

@@ -180,8 +180,10 @@ export default function Signup() {
       return
     }
 
-    if (!formData.password || formData.password.length < 6) {
-      showToast('Password must be at least 6 characters', 'error')
+    // Password validation: min 8 chars, at least one uppercase, one lowercase, one digit
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
+    if (!formData.password || !passwordRegex.test(formData.password)) {
+      showToast('Password must be at least 8 characters with uppercase, lowercase, and a number', 'error')
       return
     }
 
@@ -247,12 +249,12 @@ export default function Signup() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="6 - 20 characters"
+                  placeholder="Min 8 chars, uppercase, lowercase, number"
                   className="form-input-inline"
                   required
                   autoComplete="new-password"
-                  minLength={6}
-                  maxLength={20}
+                  minLength={8}
+                  maxLength={64}
                 />
                 <button
                   type="button"
