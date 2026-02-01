@@ -12,7 +12,9 @@
  * - GET /api/chat/my-sessions - Get user's sessions
  */
 
-const BACKEND_HOST = 'k8s-team33-accounts-4f99fe8193-a4c5da018f68b390.elb.ap-southeast-2.amazonaws.com';
+// API base - call accounts.team33.mx directly
+const API_BASE = 'https://accounts.team33.mx';
+const BACKEND_HOST = 'accounts.team33.mx';
 const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
 
 class ChatService {
@@ -45,7 +47,7 @@ class ChatService {
       const body = { accountId };
       if (subject) body.subject = subject;
 
-      const response = await fetch('/api/chat/sessions', {
+      const response = await fetch(`${API_BASE}/api/chat/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -81,7 +83,7 @@ class ChatService {
     if (!sessionId) return { success: false, error: 'No session ID' };
 
     try {
-      const response = await fetch(`/api/chat/sessions/${sessionId}`);
+      const response = await fetch(`${API_BASE}/api/chat/sessions/${sessionId}`);
       const data = await response.json();
 
       if (response.ok) {
@@ -103,7 +105,7 @@ class ChatService {
     if (!sessionId) return { success: false, messages: [] };
 
     try {
-      const response = await fetch(`/api/chat/sessions/${sessionId}/messages`);
+      const response = await fetch(`${API_BASE}/api/chat/sessions/${sessionId}/messages`);
       const data = await response.json();
 
       if (response.ok) {
@@ -126,7 +128,7 @@ class ChatService {
     if (!sessionId) return { success: false, error: 'No active session' };
 
     try {
-      const response = await fetch(`/api/chat/sessions/${sessionId}/messages`, {
+      const response = await fetch(`${API_BASE}/api/chat/sessions/${sessionId}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -157,7 +159,7 @@ class ChatService {
     if (!sessionId) return { success: false };
 
     try {
-      const response = await fetch(`/api/chat/sessions/${sessionId}/close`, {
+      const response = await fetch(`${API_BASE}/api/chat/sessions/${sessionId}/close`, {
         method: 'POST',
       });
 
@@ -197,7 +199,7 @@ class ChatService {
     if (!accountId) return { success: false, sessions: [] };
 
     try {
-      const response = await fetch(`/api/chat/my-sessions?accountId=${accountId}`);
+      const response = await fetch(`${API_BASE}/api/chat/my-sessions?accountId=${accountId}`);
       const data = await response.json();
 
       if (response.ok) {

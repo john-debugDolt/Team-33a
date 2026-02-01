@@ -9,6 +9,9 @@
 
 import { accountService } from './accountService';
 
+// API base - call accounts.team33.mx directly
+const API_BASE = 'https://accounts.team33.mx';
+
 class WalletService {
   /**
    * Get wallet balance
@@ -24,7 +27,7 @@ class WalletService {
    */
   async initiateDeposit(accountId, amount) {
     try {
-      const response = await fetch('/api/deposits/initiate', {
+      const response = await fetch(`${API_BASE}/api/deposits/initiate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -68,7 +71,7 @@ class WalletService {
    */
   async verifyDeposit(depositId) {
     try {
-      const response = await fetch('/api/deposits/verify', {
+      const response = await fetch(`${API_BASE}/api/deposits/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ depositId }),
@@ -104,7 +107,7 @@ class WalletService {
    */
   async getDeposit(depositId) {
     try {
-      const response = await fetch(`/api/deposits/${depositId}`);
+      const response = await fetch(`${API_BASE}/api/deposits/${depositId}`);
       const data = await response.json();
 
       if (response.ok) {
@@ -124,7 +127,7 @@ class WalletService {
    */
   async getDeposits(accountId) {
     try {
-      const response = await fetch(`/api/deposits/account/${accountId}`);
+      const response = await fetch(`${API_BASE}/api/deposits/account/${accountId}`);
       const data = await response.json();
 
       if (response.ok) {
@@ -161,7 +164,7 @@ class WalletService {
         body.payId = payId;
       }
 
-      const response = await fetch('/api/withdrawals', {
+      const response = await fetch(`${API_BASE}/api/withdrawals`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -199,7 +202,7 @@ class WalletService {
    */
   async getWithdrawal(withdrawId) {
     try {
-      const response = await fetch(`/api/withdrawals/${withdrawId}`);
+      const response = await fetch(`${API_BASE}/api/withdrawals/${withdrawId}`);
       const data = await response.json();
 
       if (response.ok) {
@@ -219,7 +222,7 @@ class WalletService {
    */
   async getWithdrawals(accountId) {
     try {
-      const response = await fetch(`/api/withdrawals/account/${accountId}`);
+      const response = await fetch(`${API_BASE}/api/withdrawals/account/${accountId}`);
       const data = await response.json();
 
       if (response.ok) {
@@ -240,7 +243,7 @@ class WalletService {
    */
   async getPendingWithdrawals(accountId) {
     try {
-      const response = await fetch(`/api/withdrawals/account/${accountId}/pending`);
+      const response = await fetch(`${API_BASE}/api/withdrawals/account/${accountId}/pending`);
       const data = await response.json();
 
       if (response.ok) {

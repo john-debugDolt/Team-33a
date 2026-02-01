@@ -7,6 +7,9 @@
  * - GET /api/banks/{bankId} - Get specific bank
  */
 
+// API base - call accounts.team33.mx directly
+const API_BASE = 'https://accounts.team33.mx';
+
 class BankService {
   /**
    * Get available (active) banks
@@ -14,7 +17,7 @@ class BankService {
    */
   async getAvailableBanks() {
     try {
-      const response = await fetch('/api/banks');
+      const response = await fetch(`${API_BASE}/api/banks`);
       const data = await response.json();
 
       if (response.ok) {
@@ -41,7 +44,7 @@ class BankService {
    */
   async getBankById(bankId) {
     try {
-      const response = await fetch(`/api/banks/${bankId}`);
+      const response = await fetch(`${API_BASE}/api/banks/${bankId}`);
       const data = await response.json();
 
       if (response.ok) {
