@@ -8,6 +8,8 @@
  * - GET /api/accounts/{accountId}/balance - Get wallet balance
  */
 
+const API_BASE = 'https://accounts.team33.mx';
+
 // Format phone number to E.164 format (+61...)
 const formatPhoneNumber = (phone) => {
   if (!phone) return phone;
@@ -31,7 +33,7 @@ class AccountService {
     try {
       const formattedPhone = formatPhoneNumber(phoneNumber);
 
-      const response = await fetch('/api/accounts', {
+      const response = await fetch(`${API_BASE}/api/accounts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -109,7 +111,7 @@ class AccountService {
 
       // Look up account by phone number
       const response = await fetch(
-        `/api/accounts/phone/${encodeURIComponent(formattedPhone)}`
+        `${API_BASE}/api/accounts/phone/${encodeURIComponent(formattedPhone)}`
       );
 
       if (response.status === 404) {
@@ -150,7 +152,7 @@ class AccountService {
    */
   async getAccount(accountId) {
     try {
-      const response = await fetch(`/api/accounts/${accountId}`);
+      const response = await fetch(`${API_BASE}/api/accounts/${accountId}`);
 
       if (!response.ok) {
         return { success: false, error: 'Account not found' };
@@ -174,7 +176,7 @@ class AccountService {
 
       // Don't URL-encode the phone - backend expects raw +61... format
       const response = await fetch(
-        `/api/accounts/phone/${formattedPhone}`
+        `${API_BASE}/api/accounts/phone/${formattedPhone}`
       );
 
       if (!response.ok) {
@@ -195,7 +197,7 @@ class AccountService {
    */
   async getBalance(accountId) {
     try {
-      const response = await fetch(`/api/accounts/${accountId}/balance`);
+      const response = await fetch(`${API_BASE}/api/accounts/${accountId}/balance`);
 
       if (!response.ok) {
         return { success: false, error: 'Failed to get balance', balance: 0 };
@@ -219,7 +221,7 @@ class AccountService {
    */
   async deleteAccount(accountId) {
     try {
-      const response = await fetch(`/api/accounts/${accountId}`, {
+      const response = await fetch(`${API_BASE}/api/accounts/${accountId}`, {
         method: 'DELETE',
       });
 
