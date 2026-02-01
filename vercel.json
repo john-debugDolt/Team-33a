@@ -2,22 +2,6 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/api/accounts",
-      "destination": "https://api.team33.mx/api/accounts"
-    },
-    {
-      "source": "/api/accounts/:path*",
-      "destination": "https://api.team33.mx/api/accounts/:path*"
-    },
-    {
-      "source": "/api/otp",
-      "destination": "https://api.team33.mx/api/otp"
-    },
-    {
-      "source": "/api/otp/:path*",
-      "destination": "https://api.team33.mx/api/otp/:path*"
-    },
-    {
       "source": "/api/deposits",
       "destination": "https://api.team33.mx/api/deposits"
     },
