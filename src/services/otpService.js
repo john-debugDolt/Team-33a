@@ -9,6 +9,8 @@
  * - POST /api/otp/resend - Resend OTP
  */
 
+const API_BASE = 'https://accounts.team33.mx';
+
 // Format phone number to E.164 format (+61...)
 const formatPhoneNumber = (phone, countryCode = '+61') => {
   if (!phone) return phone;
@@ -32,7 +34,7 @@ class OTPService {
     try {
       const formattedPhone = formatPhoneNumber(phoneNumber);
 
-      const response = await fetch('/api/otp/send', {
+      const response = await fetch(`${API_BASE}/api/otp/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneNumber: formattedPhone }),
@@ -74,7 +76,7 @@ class OTPService {
     try {
       const formattedPhone = formatPhoneNumber(phoneNumber);
 
-      const response = await fetch('/api/otp/verify', {
+      const response = await fetch(`${API_BASE}/api/otp/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -112,7 +114,7 @@ class OTPService {
       const formattedPhone = formatPhoneNumber(phoneNumber);
 
       const response = await fetch(
-        `/api/otp/status/${encodeURIComponent(formattedPhone)}`,
+        `${API_BASE}/api/otp/status/${encodeURIComponent(formattedPhone)}`,
         { method: 'GET' }
       );
 
@@ -133,7 +135,7 @@ class OTPService {
     try {
       const formattedPhone = formatPhoneNumber(phoneNumber);
 
-      const response = await fetch('/api/otp/resend', {
+      const response = await fetch(`${API_BASE}/api/otp/resend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneNumber: formattedPhone }),
