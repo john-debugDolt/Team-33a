@@ -47,7 +47,7 @@ class ChatService {
       const body = { accountId };
       if (subject) body.subject = subject;
 
-      const response = await fetch(`${API_BASE}/api/chat/sessions', {
+      const response = await fetch(`${API_BASE}/api/chat/sessions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -180,7 +180,7 @@ class ChatService {
     if (!sessionId) return { success: false };
 
     try {
-      let url = `/api/chat/sessions/${sessionId}/rate?rating=${rating}`;
+      let url = `${API_BASE}/api/chat/sessions/${sessionId}/rate?rating=${rating}`;
       if (feedback) url += `&feedback=${encodeURIComponent(feedback)}`;
 
       const response = await fetch(url, { method: 'POST' });
