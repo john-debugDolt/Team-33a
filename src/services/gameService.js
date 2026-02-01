@@ -280,8 +280,8 @@ export const gameService = {
       return { success: false, error: 'Game not found' };
     }
 
-    // Use proxied route to avoid CORS issues (configured in vite.config.js and vercel.json)
-    const GAME_LAUNCH_API = '/api/games/launch';
+    // Direct API call to games backend
+    const GAME_LAUNCH_API = 'https://api.team33.mx/api/games/launch';
 
     // Get user's actual accountId from localStorage
     const user = JSON.parse(localStorage.getItem('team33_user') || localStorage.getItem('user') || '{}');
