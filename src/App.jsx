@@ -21,6 +21,7 @@ const LiveChat = lazy(() => import('./pages/LiveChat'))
 const Settings = lazy(() => import('./pages/Settings'))
 const Terms = lazy(() => import('./pages/Terms'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
+const ReferFriend = lazy(() => import('./pages/ReferFriend'))
 
 // Loading spinner component
 const PageLoader = () => (
@@ -69,6 +70,7 @@ function App() {
               <Route path="/wallet" element={<WithLayout><Wallet /></WithLayout>} />
               <Route path="/history" element={<WithLayout><History /></WithLayout>} />
               <Route path="/settings" element={<WithLayout><Settings /></WithLayout>} />
+              <Route path="/refer" element={<WithLayout><ReferFriend /></WithLayout>} />
               </Routes>
             </Suspense>
           </Router>

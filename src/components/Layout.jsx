@@ -12,6 +12,7 @@ import iconPromo from '../images/icon-promo.svg'
 import iconLivechat from '../images/icon-livechat.svg'
 import iconSettings from '../images/icon-settings.svg'
 import iconWallet from '../images/icon-wallet.svg'
+import iconRefer from '../images/icon-refer.svg'
 
 // Bank logos
 import bankLogo1 from '../logo/bank1.png'
@@ -27,6 +28,7 @@ import certLogo from '../cert/cert.png'
 const navItemsConfig = [
   { key: 'home', path: '/', icon: iconHome },
   { key: 'wallet', path: '/wallet', icon: iconWallet },
+  { key: 'refer', path: '/refer', icon: iconRefer },
   { key: 'history', path: '/history', icon: iconHistory },
   { key: 'promo', path: '/promotions', icon: iconPromo },
   { key: 'livechat', path: '/livechat', icon: iconLivechat },
