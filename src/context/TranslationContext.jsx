@@ -8,11 +8,13 @@ const translations = {
     // Navigation
     home: 'HOME',
     wallet: 'WALLET',
+    refer: 'REFER',
     history: 'HISTORY',
     promo: 'PROMO',
     livechat: 'LIVECHAT',
     settings: 'SETTINGS',
     more: 'MORE',
+    referFriend: 'Refer a Friend',
 
     // Sidebar
     translate: 'Translate',
@@ -332,11 +334,13 @@ const translations = {
     // Navigation
     home: '首页',
     wallet: '钱包',
+    refer: '推荐',
     history: '历史',
     promo: '优惠',
     livechat: '客服',
     settings: '设置',
     more: '更多',
+    referFriend: '推荐好友',
 
     // Sidebar
     translate: '语言',
@@ -656,11 +660,13 @@ const translations = {
     // Navigation
     home: 'ホーム',
     wallet: 'ウォレット',
+    refer: '紹介',
     history: '履歴',
     promo: 'プロモ',
     livechat: 'チャット',
     settings: '設定',
     more: 'もっと',
+    referFriend: '友達を紹介',
 
     // Sidebar
     translate: '言語',
@@ -980,11 +986,13 @@ const translations = {
     // Navigation
     home: 'ГЛАВНАЯ',
     wallet: 'КОШЕЛЕК',
+    refer: 'ДРУЗЬЯ',
     history: 'ИСТОРИЯ',
     promo: 'АКЦИИ',
     livechat: 'ЧАТ',
     settings: 'НАСТРОЙКИ',
     more: 'ЕЩЕ',
+    referFriend: 'Пригласить друга',
 
     // Sidebar
     translate: 'Язык',
