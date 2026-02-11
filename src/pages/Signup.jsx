@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { otpService } from '../services/otpService'
@@ -10,13 +10,18 @@ import './Signup.css'
 
 export default function Signup() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { login, isAuthenticated } = useAuth()
   const { showToast } = useToast()
+
+  // Get referral code from URL if present
+  const refCodeFromUrl = searchParams.get('ref') || ''
 
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
     password: '',
+    referralCode: refCodeFromUrl,
   })
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -117,6 +122,7 @@ export default function Signup() {
         lastName,
         phoneNumber: formattedPhone,
         password: formData.password,
+        referralCode: formData.referralCode || undefined,
       })
 
       if (!result || !result.success) {
@@ -349,6 +355,30 @@ export default function Signup() {
                 </p>
               )}
             </div>
+
+            <div className="form-row-inline referral-row">
+              <label className="form-label-inline">Referral Code</label>
+              <div className="referral-input-wrap">
+                <input
+                  type="text"
+                  name="referralCode"
+                  value={formData.referralCode}
+                  onChange={handleChange}
+                  placeholder="Enter referral code (optional)"
+                  className="form-input-inline"
+                  autoComplete="off"
+                />
+                <div className="referral-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <p className="form-hint-golden referral-hint">Have a friend's referral code? Enter it above for bonus rewards!</p>
 
             <button
               type="submit"
