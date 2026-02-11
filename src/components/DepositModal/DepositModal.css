@@ -852,6 +852,59 @@
   box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35);
 }
 
+/* Deposit Reference Card - IMPORTANT */
+.deposit-reference-card {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.1) 100%);
+  border: 2px solid rgba(245, 158, 11, 0.4);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+.reference-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #f59e0b;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.reference-header svg {
+  color: #f59e0b;
+}
+
+.reference-id-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+}
+
+.reference-id {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fbbf24;
+  letter-spacing: 0.5px;
+  word-break: break-all;
+}
+
+.reference-warning {
+  font-size: 12px;
+  color: #fcd34d;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.reference-warning strong {
+  color: #f59e0b;
+}
+
 /* Bank Details Card */
 .bank-details-card {
   background: #0f1410;

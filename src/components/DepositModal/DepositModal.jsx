@@ -17,6 +17,7 @@ export default function DepositModal({ isOpen, onClose }) {
   const [bankLoading, setBankLoading] = useState(false)
   const [step, setStep] = useState('amount') // 'amount', 'bank-details', 'processing', 'success'
   const [bankDetails, setBankDetails] = useState(null)
+  const [depositId, setDepositId] = useState(null)
   const [copied, setCopied] = useState('')
 
   // Reset modal state when closed
@@ -25,6 +26,7 @@ export default function DepositModal({ isOpen, onClose }) {
       setAmount('')
       setStep('amount')
       setBankDetails(null)
+      setDepositId(null)
       setCopied('')
     }
   }, [isOpen])
@@ -57,16 +59,24 @@ export default function DepositModal({ isOpen, onClose }) {
       return
     }
 
-    // Fetch bank details
+    // Initiate deposit to get depositId and assigned bank from API
     setBankLoading(true)
-    const result = await bankService.getAvailableBanks()
+    const result = await walletService.initiateDeposit(user?.accountId, depositAmount)
     setBankLoading(false)
 
-    if (result.success && result.recommendedBank) {
-      setBankDetails(result.recommendedBank)
+    if (result.success) {
+      // Set deposit ID and bank details from API response
+      setDepositId(result.depositId)
+      setBankDetails({
+        bankName: result.bankName,
+        accountName: result.accountName,
+        bsb: result.bsb,
+        accountNumber: result.accountNumber,
+        payId: result.payId,
+      })
       setStep('bank-details')
     } else {
-      showToast('Unable to fetch bank details. Please try again.', 'error')
+      showToast(result.error || 'Unable to initiate deposit. Please try again.', 'error')
     }
   }
 
@@ -75,25 +85,19 @@ export default function DepositModal({ isOpen, onClose }) {
     setStep('processing')
 
     try {
-      // Initiate deposit request - uses real API endpoint POST /api/deposits/initiate
-      const result = await walletService.initiateDeposit(user?.accountId, parseFloat(amount))
-
-      if (result.success) {
-        // Try to verify the deposit (submit for admin review)
+      // Deposit already initiated in handleProceedToBank, now verify it
+      if (depositId) {
         try {
-          await walletService.verifyDeposit(result.depositId)
+          await walletService.verifyDeposit(depositId)
         } catch (e) {
           // Verify is optional - deposit is already PENDING
           console.log('Verify step skipped:', e)
         }
-
-        setStep('success')
-        showToast('Deposit request submitted! Awaiting admin approval.', 'success')
-        notifyTransactionUpdate() // Refresh transaction history
-      } else {
-        setStep('bank-details')
-        showToast(result.error || 'Deposit request failed', 'error')
       }
+
+      setStep('success')
+      showToast('Deposit request submitted! Awaiting admin approval.', 'success')
+      notifyTransactionUpdate() // Refresh transaction history
     } catch (error) {
       console.error('Deposit error:', error)
       setStep('bank-details')
@@ -168,6 +172,40 @@ export default function DepositModal({ isOpen, onClose }) {
               </div>
               <h2>Transfer Details</h2>
               <p>Transfer <strong>${parseFloat(amount).toFixed(2)}</strong> to the bank account below</p>
+            </div>
+
+            {/* Deposit Reference ID - IMPORTANT */}
+            <div className="deposit-reference-card">
+              <div className="reference-header">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+                <span>Your Deposit Reference</span>
+              </div>
+              <div className="reference-id-row">
+                <span className="reference-id">{depositId || 'Loading...'}</span>
+                <button
+                  className={`copy-btn ${copied === 'depositId' ? 'copied' : ''}`}
+                  onClick={() => handleCopy(depositId, 'depositId')}
+                >
+                  {copied === 'depositId' ? (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                  )}
+                </button>
+              </div>
+              <p className="reference-warning">
+                ⚠️ <strong>IMPORTANT:</strong> Use this reference in your bank transfer description/reference field
+              </p>
             </div>
 
             <div className="bank-details-card">
