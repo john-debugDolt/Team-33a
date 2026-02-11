@@ -348,6 +348,34 @@
   color: var(--emerald-400);
 }
 
+.benefit-icon.deposit {
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.2) 0%, rgba(147, 51, 234, 0.1) 100%);
+}
+
+.benefit-icon.deposit svg {
+  color: #a855f7;
+}
+
+.benefit-icon.play {
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.2) 0%, rgba(13, 148, 136, 0.1) 100%);
+}
+
+.benefit-icon.play svg {
+  color: #14b8a6;
+}
+
+.benefit-item.highlight {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.02) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+
+.benefit-item.highlight .benefit-text strong {
+  color: var(--emerald-400);
+  font-size: 15px;
+}
+
 .benefit-text {
   display: flex;
   flex-direction: column;

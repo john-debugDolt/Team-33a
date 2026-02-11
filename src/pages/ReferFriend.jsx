@@ -7,6 +7,14 @@ import './ReferFriend.css'
 
 const API_BASE = 'https://accounts.team33.mx'
 
+// Default commission rates (can be overridden by admin settings)
+const DEFAULT_COMMISSION_CONFIG = {
+  depositCommissionRate: 0.10, // 10%
+  depositCommissionMaxCount: 5,
+  playCommissionRate: 0.05, // 5%
+  playCommissionUntil: null, // forever
+}
+
 export default function ReferFriend() {
   const { user, isAuthenticated } = useAuth()
   const { showToast } = useToast()
@@ -16,6 +24,16 @@ export default function ReferFriend() {
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState(null)
+
+  // Commission rates (loaded from localStorage if admin has set them)
+  const [commissionConfig, setCommissionConfig] = useState(() => {
+    try {
+      const saved = localStorage.getItem('commission_config')
+      return saved ? JSON.parse(saved) : DEFAULT_COMMISSION_CONFIG
+    } catch {
+      return DEFAULT_COMMISSION_CONFIG
+    }
+  })
 
   // Fetch referral code on mount
   useEffect(() => {
@@ -202,6 +220,30 @@ export default function ReferFriend() {
         <div className="refer-card benefits-card">
           <h3>Your Benefits</h3>
           <div className="benefits-list">
+            <div className="benefit-item highlight">
+              <div className="benefit-icon deposit">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </div>
+              <div className="benefit-text">
+                <strong>{(commissionConfig.depositCommissionRate * 100).toFixed(0)}% Deposit Commission</strong>
+                <span>Earn {(commissionConfig.depositCommissionRate * 100).toFixed(0)}% on your friend's first {commissionConfig.depositCommissionMaxCount} deposits</span>
+              </div>
+            </div>
+            <div className="benefit-item highlight">
+              <div className="benefit-icon play">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/>
+                  <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/>
+                  <path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/>
+                </svg>
+              </div>
+              <div className="benefit-text">
+                <strong>{(commissionConfig.playCommissionRate * 100).toFixed(0)}% Play Commission</strong>
+                <span>Earn {(commissionConfig.playCommissionRate * 100).toFixed(0)}% on all bets placed by your referrals{commissionConfig.playCommissionUntil ? ` until ${new Date(commissionConfig.playCommissionUntil).toLocaleDateString()}` : ' forever'}</span>
+              </div>
+            </div>
             <div className="benefit-item">
               <div className="benefit-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -210,32 +252,8 @@ export default function ReferFriend() {
                 </svg>
               </div>
               <div className="benefit-text">
-                <strong>Lifetime Commission</strong>
-                <span>Earn from your referrals forever</span>
-              </div>
-            </div>
-            <div className="benefit-item">
-              <div className="benefit-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                </svg>
-              </div>
-              <div className="benefit-text">
-                <strong>Deposit Bonus</strong>
-                <span>Commission on friend's deposits</span>
-              </div>
-            </div>
-            <div className="benefit-item">
-              <div className="benefit-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/>
-                  <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/>
-                  <path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/>
-                </svg>
-              </div>
-              <div className="benefit-text">
-                <strong>Play Commission</strong>
-                <span>Earn when your referrals play</span>
+                <strong>Automatic Payouts</strong>
+                <span>Commissions credited directly to your wallet</span>
               </div>
             </div>
           </div>
