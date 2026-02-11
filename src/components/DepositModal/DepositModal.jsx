@@ -87,10 +87,6 @@ export default function DepositModal({ isOpen, onClose }) {
           console.log('Verify step skipped:', e)
         }
 
-        // Increment bank usage for rotation
-        if (bankDetails?.id) {
-          bankService.incrementBankUsage(bankDetails.id)
-        }
         setStep('success')
         showToast('Deposit request submitted! Awaiting admin approval.', 'success')
         notifyTransactionUpdate() // Refresh transaction history
