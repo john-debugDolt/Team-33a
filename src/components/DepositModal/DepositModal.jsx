@@ -74,14 +74,19 @@ export default function DepositModal({ isOpen, onClose }) {
     setLoading(true)
     setStep('processing')
 
-    // Initiate deposit request - uses real API endpoint POST /api/deposits/initiate
-    const result = await walletService.initiateDeposit(user?.accountId, parseFloat(amount))
+    try {
+      // Initiate deposit request - uses real API endpoint POST /api/deposits/initiate
+      const result = await walletService.initiateDeposit(user?.accountId, parseFloat(amount))
 
-    if (result.success) {
-      // After initiating, verify the deposit (submit for admin review)
-      const verifyResult = await walletService.verifyDeposit(result.depositId)
+      if (result.success) {
+        // Try to verify the deposit (submit for admin review)
+        try {
+          await walletService.verifyDeposit(result.depositId)
+        } catch (e) {
+          // Verify is optional - deposit is already PENDING
+          console.log('Verify step skipped:', e)
+        }
 
-      if (verifyResult.success) {
         // Increment bank usage for rotation
         if (bankDetails?.id) {
           bankService.incrementBankUsage(bankDetails.id)
@@ -90,14 +95,13 @@ export default function DepositModal({ isOpen, onClose }) {
         showToast('Deposit request submitted! Awaiting admin approval.', 'success')
         notifyTransactionUpdate() // Refresh transaction history
       } else {
-        // Deposit initiated but verification failed - still show as pending
-        setStep('success')
-        showToast('Deposit submitted. Awaiting verification.', 'success')
-        notifyTransactionUpdate()
+        setStep('bank-details')
+        showToast(result.error || 'Deposit request failed', 'error')
       }
-    } else {
+    } catch (error) {
+      console.error('Deposit error:', error)
       setStep('bank-details')
-      showToast(result.error || 'Deposit request failed', 'error')
+      showToast('Something went wrong. Please try again.', 'error')
     }
 
     setLoading(false)

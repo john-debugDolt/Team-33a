@@ -39,16 +39,21 @@ class WalletService {
       const data = await response.json();
 
       if (response.status === 201 || response.ok) {
+        // Handle assignedBank object from API response
+        const bank = data.assignedBank || {};
         return {
           success: true,
           depositId: data.depositId,
           amount: data.amount,
           status: data.status,
-          bankId: data.bankId,
-          bankName: data.bankName,
-          accountName: data.accountName,
-          bsb: data.bsb,
-          accountNumber: data.accountNumber,
+          message: data.message,
+          // Bank details from assignedBank object
+          bankId: bank.bankId || data.bankId,
+          bankName: bank.bankName || data.bankName,
+          accountName: bank.accountName || data.accountName,
+          bsb: bank.bsb || data.bsb,
+          accountNumber: bank.accountNumber || data.accountNumber,
+          payId: bank.payId || data.payId,
         };
       }
 
