@@ -29,19 +29,26 @@ class AccountService {
    * Create a new account
    * POST /api/accounts
    */
-  async createAccount({ firstName, lastName, phoneNumber, password }) {
+  async createAccount({ firstName, lastName, phoneNumber, password, referralCode }) {
     try {
       const formattedPhone = formatPhoneNumber(phoneNumber);
+
+      // Build request body, only include referralCode if provided
+      const requestBody = {
+        firstName,
+        lastName,
+        phoneNumber: formattedPhone,
+        password,
+      };
+
+      if (referralCode) {
+        requestBody.referralCode = referralCode;
+      }
 
       const response = await fetch(`${API_BASE}/api/accounts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          phoneNumber: formattedPhone,
-          password,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       // Handle empty or non-JSON responses

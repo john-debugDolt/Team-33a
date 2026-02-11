@@ -74,23 +74,27 @@ export default function DepositModal({ isOpen, onClose }) {
     setLoading(true)
     setStep('processing')
 
-    // Create pending deposit request for admin approval
-    const result = await walletService.requestDeposit(parseFloat(amount), 'Bank Transfer', {
-      bank: bankDetails?.bankName || 'Bank Transfer',
-      paymentMethod: 'Bank Transfer',
-      bankAccountNumber: bankDetails?.accountNumber,
-      bankBSB: bankDetails?.bsb,
-      bankId: bankDetails?.id, // Include bank ID for tracking
-    })
+    // Initiate deposit request - uses real API endpoint POST /api/deposits/initiate
+    const result = await walletService.initiateDeposit(user?.accountId, parseFloat(amount))
 
     if (result.success) {
-      // Increment bank usage for rotation
-      if (bankDetails?.id) {
-        bankService.incrementBankUsage(bankDetails.id)
+      // After initiating, verify the deposit (submit for admin review)
+      const verifyResult = await walletService.verifyDeposit(result.depositId)
+
+      if (verifyResult.success) {
+        // Increment bank usage for rotation
+        if (bankDetails?.id) {
+          bankService.incrementBankUsage(bankDetails.id)
+        }
+        setStep('success')
+        showToast('Deposit request submitted! Awaiting admin approval.', 'success')
+        notifyTransactionUpdate() // Refresh transaction history
+      } else {
+        // Deposit initiated but verification failed - still show as pending
+        setStep('success')
+        showToast('Deposit submitted. Awaiting verification.', 'success')
+        notifyTransactionUpdate()
       }
-      setStep('success')
-      showToast(result.message || 'Deposit request submitted! Awaiting admin approval.', 'success')
-      notifyTransactionUpdate() // Refresh transaction history
     } else {
       setStep('bank-details')
       showToast(result.error || 'Deposit request failed', 'error')

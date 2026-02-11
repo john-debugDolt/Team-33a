@@ -420,6 +420,70 @@
   height: 16px;
 }
 
+/* ========== Referral Code Section ========== */
+.referral-row {
+  margin-top: 8px;
+}
+
+.referral-input-wrap {
+  flex: 1;
+  position: relative;
+}
+
+.referral-input-wrap .form-input-inline {
+  padding-right: 50px;
+  width: 100%;
+}
+
+.referral-icon {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--emerald-500);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.referral-hint {
+  color: var(--emerald-400) !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+}
+
+/* Password input wrapper */
+.password-input-wrap {
+  flex: 1;
+  position: relative;
+}
+
+.password-input-wrap .form-input-inline {
+  padding-right: 50px;
+  width: 100%;
+}
+
+.password-toggle-golden {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.password-toggle-golden:hover {
+  color: var(--emerald-500);
+  background: rgba(16, 185, 129, 0.1);
+}
+
 /* ========== TABLET & MOBILE - Stacked Layout ========== */
 @media (max-width: 1023px) {
   .signup-layout {
