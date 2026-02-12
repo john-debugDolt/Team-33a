@@ -7,13 +7,9 @@ import './ReferFriend.css'
 
 const API_BASE = 'https://accounts.team33.mx'
 
-// Default commission rates (can be overridden by admin settings)
-const DEFAULT_COMMISSION_CONFIG = {
-  depositCommissionRate: 0.10, // 10%
-  depositCommissionMaxCount: 5,
-  playCommissionRate: 0.05, // 5%
-  playCommissionUntil: null, // forever
-}
+// Default commission rates (fallback if API fails)
+const DEFAULT_DEPOSIT_RATE = 0.10 // 10%
+const DEFAULT_PLAY_RATE = 0.05 // 5%
 
 export default function ReferFriend() {
   const { user, isAuthenticated } = useAuth()
@@ -25,15 +21,35 @@ export default function ReferFriend() {
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState(null)
 
-  // Commission rates (loaded from localStorage if admin has set them)
-  const [commissionConfig, setCommissionConfig] = useState(() => {
-    try {
-      const saved = localStorage.getItem('commission_config')
-      return saved ? JSON.parse(saved) : DEFAULT_COMMISSION_CONFIG
-    } catch {
-      return DEFAULT_COMMISSION_CONFIG
+  // Commission rates (fetched from public API)
+  const [depositRate, setDepositRate] = useState(DEFAULT_DEPOSIT_RATE)
+  const [playRate, setPlayRate] = useState(DEFAULT_PLAY_RATE)
+
+  // Fetch commission rates from public API
+  useEffect(() => {
+    const fetchCommissionRates = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/commission-rates`)
+        if (response.ok) {
+          const rates = await response.json()
+          // Find DEPOSIT and PLAY rates
+          const depositRateObj = rates.find(r => r.rateType === 'DEPOSIT')
+          const playRateObj = rates.find(r => r.rateType === 'PLAY')
+
+          if (depositRateObj?.rate !== undefined) {
+            setDepositRate(depositRateObj.rate)
+          }
+          if (playRateObj?.rate !== undefined) {
+            setPlayRate(playRateObj.rate)
+          }
+        }
+      } catch (err) {
+        console.warn('[ReferFriend] Could not fetch commission rates, using defaults:', err)
+      }
     }
-  })
+
+    fetchCommissionRates()
+  }, [])
 
   // Fetch referral code on mount
   useEffect(() => {
@@ -227,8 +243,8 @@ export default function ReferFriend() {
                 </svg>
               </div>
               <div className="benefit-text">
-                <strong>{(commissionConfig.depositCommissionRate * 100).toFixed(0)}% Deposit Commission</strong>
-                <span>Earn {(commissionConfig.depositCommissionRate * 100).toFixed(0)}% on your friend's first {commissionConfig.depositCommissionMaxCount} deposits</span>
+                <strong>{(depositRate * 100).toFixed(0)}% Deposit Commission</strong>
+                <span>Earn {(depositRate * 100).toFixed(0)}% commission when your referred friends make deposits</span>
               </div>
             </div>
             <div className="benefit-item highlight">
@@ -240,8 +256,8 @@ export default function ReferFriend() {
                 </svg>
               </div>
               <div className="benefit-text">
-                <strong>{(commissionConfig.playCommissionRate * 100).toFixed(0)}% Play Commission</strong>
-                <span>Earn {(commissionConfig.playCommissionRate * 100).toFixed(0)}% on all bets placed by your referrals{commissionConfig.playCommissionUntil ? ` until ${new Date(commissionConfig.playCommissionUntil).toLocaleDateString()}` : ' forever'}</span>
+                <strong>{(playRate * 100).toFixed(0)}% Play Commission</strong>
+                <span>Earn {(playRate * 100).toFixed(0)}% commission on all bets placed by your referrals</span>
               </div>
             </div>
             <div className="benefit-item">

@@ -25,6 +25,7 @@ class ChatService {
     this.sessionId = null;
     this.accountId = null;
     this.pollInterval = null;
+    this.seenMessageIds = new Set(); // Track messages already shown to user
   }
 
   subscribe(callback) {
@@ -239,7 +240,12 @@ class ChatService {
       const result = await this.getMessages();
       if (result.success) {
         result.messages.forEach(msg => {
-          if (msg.senderType !== 'USER') {
+          // Create a unique ID for the message
+          const messageId = msg.messageId || msg.id || `${msg.createdAt}-${msg.content}`;
+
+          // Only notify for messages we haven't seen yet and are not from current user
+          if (msg.senderType !== 'USER' && !this.seenMessageIds.has(messageId)) {
+            this.seenMessageIds.add(messageId);
             this.notify({ type: 'message', message: msg });
           }
         });
