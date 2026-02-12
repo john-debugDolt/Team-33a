@@ -8,7 +8,7 @@ import AuthPrompt from '../components/AuthPrompt/AuthPrompt';
 import './History.css';
 
 export default function History() {
-  const { isAuthenticated, transactionVersion } = useAuth();
+  const { isAuthenticated, transactionVersion, user } = useAuth();
   const { t } = useTranslation();
 
   const transactionTypes = [
@@ -41,22 +41,33 @@ export default function History() {
   });
 
   const fetchTransactions = async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !user?.accountId) return;
     setLoading(true);
     try {
-      const result = await walletService.getTransactions({
-        page: pagination.page - 1, // API uses 0-based pagination
-        limit: 10,
-        type: filters.type,
-        status: filters.status,
-      });
+      const result = await walletService.getTransactions(user.accountId);
 
       if (result.success) {
-        setTransactions(result.data.transactions || []);
+        let txList = result.transactions || [];
+
+        // Apply client-side filtering
+        if (filters.type !== 'all') {
+          txList = txList.filter(tx => (tx.type || '').toLowerCase() === filters.type);
+        }
+        if (filters.status !== 'all') {
+          txList = txList.filter(tx => (tx.status || '').toLowerCase() === filters.status);
+        }
+
+        // Client-side pagination
+        const totalItems = txList.length;
+        const totalPages = Math.ceil(totalItems / 10) || 1;
+        const startIdx = (pagination.page - 1) * 10;
+        const paginatedTx = txList.slice(startIdx, startIdx + 10);
+
+        setTransactions(paginatedTx);
         setPagination(prev => ({
           ...prev,
-          totalPages: result.data.pagination?.totalPages || 1,
-          total: result.data.pagination?.total || 0,
+          totalPages,
+          total: totalItems,
         }));
       } else {
         console.log('Failed to fetch transactions:', result.error);
@@ -71,7 +82,7 @@ export default function History() {
 
   useEffect(() => {
     fetchTransactions();
-  }, [pagination.page, filters, isAuthenticated, transactionVersion]);
+  }, [pagination.page, filters, isAuthenticated, transactionVersion, user?.accountId]);
 
   // Show auth prompt if not logged in (after all hooks)
   if (!isAuthenticated) {

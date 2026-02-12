@@ -136,7 +136,13 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
-      // Proxy Games API
+      // Proxy ClotPlay Games List API (for game thumbnails from accounts backend)
+      '/api/games/clotplay': {
+        target: BACKEND_URL,
+        changeOrigin: true,
+        secure: false,
+      },
+      // Proxy Games API (for game launch)
       '/api/games': {
         target: 'https://api.team33.mx',
         changeOrigin: true,

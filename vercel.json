@@ -58,6 +58,10 @@
       "destination": "https://k8s-team33-keycloak-320152ed2f-65380cdab2265c8a.elb.ap-southeast-2.amazonaws.com/:path*"
     },
     {
+      "source": "/api/games/clotplay",
+      "destination": "https://accounts.team33.mx/api/games/clotplay"
+    },
+    {
       "source": "/api/games",
       "destination": "https://api.team33.mx/api/games"
     },

@@ -252,6 +252,84 @@ class AccountService {
       return { success: false, error: 'Failed to delete account' };
     }
   }
+
+  /**
+   * Update password
+   * PATCH /api/accounts/{accountId}/password
+   *
+   * @param {string} accountId - Account ID
+   * @param {string} currentPassword - Current password
+   * @param {string} newPassword - New password (min 6 chars)
+   * @returns {Object} - { success: boolean, error?: string }
+   */
+  async updatePassword(accountId, currentPassword, newPassword) {
+    try {
+      // Validate new password length
+      if (!newPassword || newPassword.length < 6) {
+        return {
+          success: false,
+          error: 'New password must be at least 6 characters long.',
+        };
+      }
+
+      // Validate current password is provided
+      if (!currentPassword) {
+        return {
+          success: false,
+          error: 'Current password is required.',
+        };
+      }
+
+      const response = await fetch(`${API_BASE}/api/accounts/${accountId}/password`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+        }),
+      });
+
+      // 204 No Content means success
+      if (response.status === 204) {
+        return { success: true };
+      }
+
+      // Handle error responses
+      let errorMessage = 'Failed to update password';
+      try {
+        const data = await response.json();
+        errorMessage = data.error || data.message || errorMessage;
+      } catch (e) {
+        // No JSON body
+      }
+
+      // Handle specific error cases
+      if (response.status === 400) {
+        return {
+          success: false,
+          error: errorMessage,
+        };
+      }
+
+      if (response.status === 404) {
+        return {
+          success: false,
+          error: 'Account not found.',
+        };
+      }
+
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    } catch (error) {
+      console.error('[AccountService] Update password error:', error);
+      return {
+        success: false,
+        error: 'Network error. Please check your connection.',
+      };
+    }
+  }
 }
 
 export const accountService = new AccountService();

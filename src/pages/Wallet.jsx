@@ -36,9 +36,11 @@ export default function Wallet() {
   const { t } = useTranslation()
 
   const [checkInLoading, setCheckInLoading] = useState(false)
-  const [transactions, setTransactions] = useState([])
   const [showDepositModal, setShowDepositModal] = useState(false)
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
+  const [commissionEarnings, setCommissionEarnings] = useState([])
+  const [pendingCommissionTotal, setPendingCommissionTotal] = useState(0)
+  const [commissionLoading, setCommissionLoading] = useState(false)
   const [checkInStatus, setCheckInStatus] = useState({
     currentDay: 1,
     checkedDays: [],
@@ -60,24 +62,47 @@ export default function Wallet() {
       }
     }
 
-    // Load transactions
-    const txResult = await walletService.getTransactions({ limit: 5 })
-    if (txResult.success) {
-      setTransactions(txResult.data.transactions || [])
+    // Load check-in status
+    try {
+      if (typeof walletService.getCheckInStatus === 'function') {
+        const checkInResult = await walletService.getCheckInStatus(user?.accountId)
+        if (checkInResult?.success && checkInResult.data) {
+          const data = checkInResult.data
+          setCheckInStatus({
+            currentDay: data.currentDay || 1,
+            checkedDays: data.checkedDays || [],
+            canCheckIn: data.canCheckIn ?? !data.isCheckedToday,
+            currentStreak: data.currentStreak || 0,
+            nextReward: data.nextReward || checkInDays[0].reward,
+            lastCheckIn: data.lastCheckIn,
+          })
+        }
+      }
+    } catch (err) {
+      console.error('[Wallet] Check-in status error:', err)
     }
 
-    // Load check-in status
-    const checkInResult = await walletService.getCheckInStatus(user?.accountId)
-    if (checkInResult.success && checkInResult.data) {
-      const data = checkInResult.data
-      setCheckInStatus({
-        currentDay: data.currentDay || 1,
-        checkedDays: data.checkedDays || [],
-        canCheckIn: data.canCheckIn ?? !data.isCheckedToday,
-        currentStreak: data.currentStreak || 0,
-        nextReward: data.nextReward || checkInDays[0].reward,
-        lastCheckIn: data.lastCheckIn,
-      })
+    // Load commission earnings
+    if (user?.accountId) {
+      setCommissionLoading(true)
+      try {
+        const [commResult, pendingResult] = await Promise.all([
+          walletService.getCommissionEarnings(user.accountId),
+          walletService.getPendingCommissionTotal(user.accountId)
+        ])
+        console.log('[Wallet] Account:', user.accountId, 'Commission result:', commResult, 'Pending:', pendingResult)
+        if (commResult.success && commResult.earnings) {
+          setCommissionEarnings(commResult.earnings)
+        }
+        if (pendingResult.success) {
+          setPendingCommissionTotal(pendingResult.pendingTotal || 0)
+        }
+      } catch (err) {
+        console.error('[Wallet] Commission fetch error:', err)
+      }
+      setCommissionLoading(false)
+    } else {
+      console.log('[Wallet] No accountId, skipping commission fetch')
     }
   }, [isAuthenticated, user?.accountId, updateBalance])
 
@@ -320,67 +345,109 @@ export default function Wallet() {
             )}
           </div>
 
-          {/* Transaction History */}
-          <div className="modern-card">
+
+          {/* Commission Earnings Card */}
+          <div className="modern-card commission-card">
             <div className="card-header">
               <div className="card-title">
-                <div className="title-icon history">
+                <div className="title-icon commission">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M3 3v5h5M3.05 13A9 9 0 1 0 6 5.3L3 8"/>
-                    <path d="M12 7v5l4 2"/>
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                   </svg>
                 </div>
                 <div>
-                  <h3>{t('recentTransactions')}</h3>
-                  <p className="card-subtitle">{t('transactionHistory')}</p>
+                  <h3>{t('commissionEarnings') || 'Commission Earnings'}</h3>
+                  <p className="card-subtitle">{t('referralRewards') || 'Referral Rewards'}</p>
                 </div>
               </div>
-              <Link to="/history" className="see-all-btn">{t('viewAll')}</Link>
+              <Link to="/refer" className="see-all-btn">{t('referFriend') || 'Refer Friend'}</Link>
             </div>
 
-            <div className="transactions-modern">
-              {transactions.length === 0 ? (
-                <div className="no-transactions">
-                  <p>{t('noTransactions')}</p>
+            {/* Commission Summary */}
+            <div className="commission-summary">
+              <div className="commission-stat pending-stat">
+                <div className="stat-icon-small pending">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                </div>
+                <div className="stat-info">
+                  <span className="stat-label-small">{t('pending') || 'Pending'}</span>
+                  <span className="stat-value-small pending">${pendingCommissionTotal.toFixed(2)}</span>
+                </div>
+              </div>
+              <div className="commission-stat total-stat">
+                <div className="stat-icon-small total">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                  </svg>
+                </div>
+                <div className="stat-info">
+                  <span className="stat-label-small">{t('totalEarned') || 'Total Earned'}</span>
+                  <span className="stat-value-small total">
+                    ${commissionEarnings.reduce((sum, c) => sum + parseFloat(c.commissionAmount || c.amount || 0), 0).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Commission Earnings List */}
+            <div className="commission-list">
+              {commissionLoading ? (
+                <div className="commission-loading">
+                  <ButtonSpinner />
+                  <span>{t('loading') || 'Loading...'}</span>
+                </div>
+              ) : commissionEarnings.length === 0 ? (
+                <div className="no-commissions">
+                  <div className="empty-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                      <circle cx="9" cy="7" r="4"/>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                  </div>
+                  <p>{t('noCommissions') || 'No commission earnings yet'}</p>
+                  <span className="empty-hint">{t('referFriendsToEarn') || 'Refer friends to start earning!'}</span>
                 </div>
               ) : (
-                transactions.map((tx, index) => {
-                  const txType = (tx.type || '').toLowerCase()
-                  const isPositive = ['deposit', 'bonus', 'win', 'daily_bonus', 'spin_bonus', 'game_win'].includes(txType)
-                  const txStatus = (tx.status || 'pending').toLowerCase()
-                  const statusDisplay = txStatus === 'completed' || txStatus === 'approved' ? 'completed' : txStatus === 'pending' || txStatus === 'pending_review' ? 'pending' : 'failed'
+                commissionEarnings.slice(0, 5).map((comm, index) => {
+                  const commType = (comm.commissionType || comm.type || 'DEPOSIT').toUpperCase()
+                  const commStatus = (comm.status || 'PENDING').toLowerCase()
+                  const commAmount = parseFloat(comm.commissionAmount || comm.amount || 0)
 
                   return (
                     <div
-                      key={tx.id || tx.reference || index}
-                      className="tx-row"
+                      key={comm.id || index}
+                      className="commission-row"
                       style={{ animationDelay: `${index * 0.05}s` }}
                     >
-                      <div className={`tx-icon-modern ${txType}`}>
-                        {isPositive ? (
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <div className={`commission-type-icon ${commType.toLowerCase()}`}>
+                        {commType === 'DEPOSIT' ? (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M12 19V5M5 12l7 7 7-7"/>
                           </svg>
                         ) : (
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M12 5v14M5 12l7-7 7 7"/>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M16 12l-4-4-4 4M12 16V8"/>
                           </svg>
                         )}
                       </div>
-                      <div className="tx-info">
-                        <span className="tx-title">
-                          {tx.description || (txType === 'deposit' ? t('deposit') : txType === 'withdraw' || txType === 'withdrawal' ? t('withdraw') : t('bonuses'))}
+                      <div className="commission-info">
+                        <span className="commission-title">
+                          {commType === 'DEPOSIT' ? (t('depositCommission') || 'Deposit Commission') : (t('playCommission') || 'Play Commission')}
                         </span>
-                        <span className="tx-datetime">
-                          {new Date(tx.createdAt).toLocaleDateString()} • {new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <span className="commission-date">
+                          {new Date(comm.createdAt).toLocaleDateString()} • {((comm.commissionRate || 0) * 100).toFixed(0)}% of ${parseFloat(comm.sourceAmount || 0).toFixed(2)}
                         </span>
                       </div>
-                      <div className="tx-right">
-                        <span className={`tx-amount-modern ${isPositive ? 'deposit' : 'withdraw'}`}>
-                          {isPositive ? '+' : '-'}${(Number(tx.amount) || 0).toFixed(2)}
-                        </span>
-                        <span className={`tx-status-badge ${statusDisplay}`}>
-                          {statusDisplay === 'completed' ? t('completed') : statusDisplay === 'pending' ? t('pending') : t('failed')}
+                      <div className="commission-right">
+                        <span className="commission-amount">+${commAmount.toFixed(2)}</span>
+                        <span className={`commission-status ${commStatus}`}>
+                          {commStatus === 'credited' ? (t('credited') || 'Credited') : (t('pending') || 'Pending')}
                         </span>
                       </div>
                     </div>

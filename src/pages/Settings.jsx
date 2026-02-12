@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useTranslation } from '../context/TranslationContext';
-import { authService } from '../services/authService';
+import { accountService } from '../services/accountService';
 import { ButtonSpinner } from '../components/LoadingSpinner/LoadingSpinner';
 import AuthPrompt from '../components/AuthPrompt/AuthPrompt';
 import './Settings.css';
@@ -68,28 +68,43 @@ export default function Settings() {
   const handlePasswordChange = async (e) => {
     e.preventDefault();
 
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      showToast(t('error'), 'error');
+    // Validate current password is provided
+    if (!passwordForm.currentPassword) {
+      showToast('Current password is required', 'error');
       return;
     }
 
-    if (passwordForm.newPassword.length < 6) {
-      showToast(t('error'), 'error');
+    // Validate new password length
+    if (!passwordForm.newPassword || passwordForm.newPassword.length < 6) {
+      showToast('New password must be at least 6 characters', 'error');
+      return;
+    }
+
+    // Validate passwords match
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      showToast('Passwords do not match', 'error');
       return;
     }
 
     setLoading(true);
 
-    const result = await authService.changePassword(
-      passwordForm.currentPassword,
-      passwordForm.newPassword
-    );
+    try {
+      const result = await accountService.updatePassword(
+        user.accountId,
+        passwordForm.currentPassword,
+        passwordForm.newPassword
+      );
 
-    if (result.success) {
-      showToast(t('passwordChanged'), 'success');
-      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    } else {
-      showToast(result.message || t('error'), 'error');
+      if (result.success) {
+        showToast(t('passwordChanged') || 'Password updated successfully', 'success');
+        setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      } else {
+        // Show specific error message from API
+        showToast(result.error || 'Failed to update password', 'error');
+      }
+    } catch (error) {
+      console.error('[Settings] Password update error:', error);
+      showToast('Network error. Please try again.', 'error');
     }
 
     setLoading(false);

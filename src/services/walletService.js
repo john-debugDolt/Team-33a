@@ -308,6 +308,56 @@ class WalletService {
       currency,
     }).format(amount || 0);
   }
+
+  /**
+   * Get commission earnings for an account
+   * GET /api/accounts/{accountId}/commissions
+   *
+   * @param {string} accountId - Account ID
+   * @param {Object} params - Optional filters (status: PENDING|CREDITED, type: DEPOSIT|PLAY)
+   */
+  async getCommissionEarnings(accountId, params = {}) {
+    try {
+      const queryParams = new URLSearchParams(params).toString();
+      const url = `${API_BASE}/api/accounts/${accountId}/commissions${queryParams ? `?${queryParams}` : ''}`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (response.ok) {
+        const earnings = Array.isArray(data) ? data : (data.content || data.earnings || []);
+        return { success: true, earnings };
+      }
+
+      return { success: false, error: 'Failed to fetch commission earnings', earnings: [] };
+    } catch (error) {
+      console.error('[WalletService] Get commission earnings error:', error);
+      return { success: false, error: 'Failed to fetch commission earnings', earnings: [] };
+    }
+  }
+
+  /**
+   * Get pending commission total for an account
+   * GET /api/accounts/{accountId}/commissions/pending-total
+   *
+   * @param {string} accountId - Account ID
+   */
+  async getPendingCommissionTotal(accountId) {
+    try {
+      const response = await fetch(`${API_BASE}/api/accounts/${accountId}/commissions/pending-total`);
+      const data = await response.json();
+
+      if (response.ok) {
+        const pendingTotal = typeof data === 'number' ? data : (data.pendingTotal ?? data.total ?? 0);
+        return { success: true, pendingTotal };
+      }
+
+      return { success: false, error: 'Failed to fetch pending total', pendingTotal: 0 };
+    } catch (error) {
+      console.error('[WalletService] Get pending commission total error:', error);
+      return { success: false, error: 'Failed to fetch pending total', pendingTotal: 0 };
+    }
+  }
 }
 
 export const walletService = new WalletService();
