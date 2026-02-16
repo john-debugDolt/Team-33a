@@ -119,15 +119,20 @@ export default function Home() {
     { id: 5, name: 'Maria L.', avatar: 'M', date: '1 week ago', stars: 5, text: 'The VIP program is excellent. Great bonuses and exclusive promotions for loyal players.' }
   ])
 
-  // Fetch banners on mount
+  // Fetch banners on mount (skip if endpoint doesn't exist)
   useEffect(() => {
     const fetchBanners = async () => {
-      const result = await apiClient.get('/banners')
-      if (result.success && result.data?.banners?.length > 0) {
-        setBanners(result.data.banners)
+      try {
+        const result = await apiClient.get('/banners')
+        if (result.success && result.data?.banners?.length > 0) {
+          setBanners(result.data.banners)
+        }
+      } catch (err) {
+        // Banners API may not exist - silently ignore
       }
     }
-    fetchBanners()
+    // Disabled - banners endpoint not available
+    // fetchBanners()
   }, [])
 
   // Sync balance when game closes and listen for game messages
