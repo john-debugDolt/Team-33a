@@ -136,13 +136,20 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      // Proxy Games API (for game launch) - must come BEFORE /api/games/clotplay
+      // so vite doesn't match it first
+      '/api/games/launch': {
+        target: 'https://api.team33.mx',
+        changeOrigin: true,
+        secure: true,
+      },
       // Proxy ClotPlay Games List API (for game thumbnails from accounts backend)
       '/api/games/clotplay': {
         target: 'http://accounts.team33.mx',
         changeOrigin: true,
         secure: false,
       },
-      // Proxy Games API (for game launch)
+      // Fallback for other /api/games requests
       '/api/games': {
         target: 'https://api.team33.mx',
         changeOrigin: true,
