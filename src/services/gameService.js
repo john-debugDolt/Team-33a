@@ -13,25 +13,43 @@ let cachedApiGames = null;
 let cacheTimestamp = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
 
+// ClotPlay API endpoint - use direct URL since Vercel can't proxy HTTP
+const CLOTPLAY_API = 'https://accounts.team33.mx/api/games/clotplay';
+
 // Fetch games from ClotPlay API
 export const fetchClotPlayGames = async (page = 1, perPage = 100) => {
   try {
-    console.log('[GameService] Fetching games from /api/games/clotplay');
-    const response = await fetch(`/api/games/clotplay?page=${page}&perPage=${perPage}`);
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+    // Try proxy first (for local dev), then direct API (for production)
+    const urls = [
+      `/api/games/clotplay?page=${page}&perPage=${perPage}`,
+      `${CLOTPLAY_API}?page=${page}&perPage=${perPage}`
+    ];
+
+    for (const url of urls) {
+      try {
+        console.log('[GameService] Trying to fetch games from:', url);
+        const response = await fetch(url);
+        if (!response.ok) {
+          console.log('[GameService] Response not OK:', response.status);
+          continue;
+        }
+        const data = await response.json();
+        console.log('[GameService] API response code:', data.code, 'games count:', data.data?.length);
+        if (data.code === 0 && data.data && data.data.length > 0) {
+          return {
+            success: true,
+            games: data.data,
+            pagination: data.pagination
+          };
+        }
+        console.log('[GameService] Invalid response from', url, '- trying next');
+      } catch (err) {
+        console.log('[GameService] Error fetching from', url, ':', err.message);
+      }
     }
-    const data = await response.json();
-    console.log('[GameService] API response code:', data.code, 'games count:', data.data?.length);
-    if (data.code === 0 && data.data) {
-      return {
-        success: true,
-        games: data.data,
-        pagination: data.pagination
-      };
-    }
-    console.error('[GameService] Invalid API response:', data);
-    return { success: false, games: [], error: 'Invalid API response' };
+
+    console.error('[GameService] All API endpoints failed');
+    return { success: false, games: [], error: 'All API endpoints failed' };
   } catch (error) {
     console.error('[GameService] Failed to fetch ClotPlay games:', error);
     return { success: false, games: [], error: error.message };

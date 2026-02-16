@@ -59,7 +59,7 @@
     },
     {
       "source": "/api/games/clotplay",
-      "destination": "http://accounts.team33.mx/api/games/clotplay"
+      "destination": "https://accounts.team33.mx/api/games/clotplay"
     },
     {
       "source": "/api/games",

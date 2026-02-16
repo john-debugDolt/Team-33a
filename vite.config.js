@@ -145,9 +145,9 @@ export default defineConfig({
       },
       // Proxy ClotPlay Games List API (for game thumbnails from accounts backend)
       '/api/games/clotplay': {
-        target: 'http://accounts.team33.mx',
+        target: 'https://accounts.team33.mx',
         changeOrigin: true,
-        secure: false,
+        secure: true,
       },
       // Fallback for other /api/games requests
       '/api/games': {
