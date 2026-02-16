@@ -981,18 +981,7 @@ export default function Home() {
           🎡
           {canSpin && <span className="spin-badge">FREE</span>}
         </button>
-
-        {/* Chat Support Button */}
-        <button
-          className="floating-btn chat-btn"
-          onClick={() => navigate('/live-chat')}
-          title="Live Support"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
-          <span className="chat-badge">24/7</span>
-        </button>
+        {/* Chat button moved to FloatingChat component in Layout */}
       </div>
 
       {/* Daily Spin Wheel Modal */}

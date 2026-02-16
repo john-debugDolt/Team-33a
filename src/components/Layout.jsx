@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useTranslation } from '../context/TranslationContext'
+import FloatingChat from './FloatingChat/FloatingChat'
 import logo from '../images/New logo.png'
 import loginBtnImg from '../images/login new.png'
 import signupBtnImg from '../images/signup new.png'
@@ -341,6 +342,9 @@ export default function Layout({ children }) {
           <p>&copy; 2025 Team33 {t('allRightsReserved')}.</p>
         </div>
       </footer>
+
+      {/* Floating Chat Widget */}
+      <FloatingChat />
 
       {/* Welcome Popup */}
       {showWelcomePopup && (
