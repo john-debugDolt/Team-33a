@@ -16,11 +16,13 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
 // Fetch games from ClotPlay API
 export const fetchClotPlayGames = async (page = 1, perPage = 100) => {
   try {
+    console.log('[GameService] Fetching games from /api/games/clotplay');
     const response = await fetch(`/api/games/clotplay?page=${page}&perPage=${perPage}`);
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
     const data = await response.json();
+    console.log('[GameService] API response code:', data.code, 'games count:', data.data?.length);
     if (data.code === 0 && data.data) {
       return {
         success: true,
@@ -28,9 +30,10 @@ export const fetchClotPlayGames = async (page = 1, perPage = 100) => {
         pagination: data.pagination
       };
     }
+    console.error('[GameService] Invalid API response:', data);
     return { success: false, games: [], error: 'Invalid API response' };
   } catch (error) {
-    console.error('Failed to fetch ClotPlay games:', error);
+    console.error('[GameService] Failed to fetch ClotPlay games:', error);
     return { success: false, games: [], error: error.message };
   }
 };
@@ -82,10 +85,14 @@ export const getPortraitUrl = (game) => {
   // If game has thumbnails from API
   if (game.thumbnails) {
     const langThumbs = game.thumbnails[lang] || game.thumbnails['en'] || Object.values(game.thumbnails)[0];
-    if (langThumbs?.portrait) return langThumbs.portrait;
+    if (langThumbs?.portrait) {
+      console.log('[GameService] Using thumbnail for', game.name, ':', langThumbs.portrait);
+      return langThumbs.portrait;
+    }
   }
   // Fallback to portrait image if set
   if (game.portraitImage) return game.portraitImage;
+  console.log('[GameService] No thumbnail found for', game.name, '- using placeholder');
   return '/placeholder-game.png';
 };
 
