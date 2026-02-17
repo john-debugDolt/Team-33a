@@ -517,10 +517,10 @@
   .withdraw-modal {
     max-width: none;
     width: 100%;
-    border-radius: 20px 20px 0 0;
+    border-radius: 5vw 5vw 0 0;
     max-height: 90vh;
     max-height: 90dvh;
-    padding: 16px 14px 60px 14px;
+    padding: 4% 3.5% 15% 3.5%;
     animation: modalSlideUpMobile 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     overflow-y: scroll;
     overflow-x: hidden;
@@ -535,8 +535,8 @@
   .withdraw-modal::after {
     content: '';
     display: block;
-    height: env(safe-area-inset-bottom, 20px);
-    min-height: 20px;
+    height: env(safe-area-inset-bottom, 5%);
+    min-height: 5%;
   }
 
   @keyframes modalSlideUpMobile {
@@ -551,260 +551,260 @@
   }
 
   .modal-close-btn {
-    top: 10px;
-    right: 10px;
-    width: 32px;
-    height: 32px;
+    top: 2.5%;
+    right: 2.5%;
+    width: 8vw;
+    height: 8vw;
     z-index: 10;
   }
 
   .modal-icon {
-    width: 44px;
-    height: 44px;
-    margin-bottom: 10px;
+    width: 11vw;
+    height: 11vw;
+    margin-bottom: 2.5%;
   }
 
   .modal-icon svg {
-    width: 20px;
-    height: 20px;
+    width: 5vw;
+    height: 5vw;
   }
 
   .modal-header {
-    margin-bottom: 12px;
-    padding-right: 30px;
+    margin-bottom: 3%;
+    padding-right: 7.5%;
   }
 
   .modal-header h2 {
-    font-size: 17px;
-    margin-bottom: 2px;
+    font-size: 4.25vw;
+    margin-bottom: 0.5%;
   }
 
   .modal-header p {
-    font-size: 12px;
+    font-size: 3vw;
   }
 
   .current-balance {
-    padding: 10px 12px;
-    margin-bottom: 12px;
-    border-radius: 10px;
+    padding: 2.5% 3%;
+    margin-bottom: 3%;
+    border-radius: 2.5vw;
   }
 
   .current-balance span:first-child {
-    font-size: 12px;
+    font-size: 3vw;
   }
 
   .current-balance .balance-value {
-    font-size: 16px;
+    font-size: 4vw;
   }
 
   .amount-section {
-    margin-bottom: 12px;
+    margin-bottom: 3%;
   }
 
   .amount-section label,
   .payment-section label,
   .bank-section label {
-    font-size: 10px;
-    margin-bottom: 6px;
+    font-size: 2.5vw;
+    margin-bottom: 1.5%;
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
 
   .amount-input-wrap {
-    padding: 0 12px;
-    border-radius: 10px;
+    padding: 0 3%;
+    border-radius: 2.5vw;
   }
 
   .amount-input-wrap .currency {
-    font-size: 18px;
-    margin-right: 4px;
+    font-size: 4.5vw;
+    margin-right: 1%;
   }
 
   .amount-input-wrap input {
-    font-size: 22px;
-    padding: 10px 0;
+    font-size: 5.5vw;
+    padding: 2.5% 0;
   }
 
   .quick-amounts {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 10px;
+    gap: 2%;
+    margin-top: 2.5%;
     justify-content: center;
   }
 
   .quick-amount-btn {
     flex: 0 0 auto;
-    padding: 10px 16px;
-    font-size: 14px;
+    padding: 2.5% 4%;
+    font-size: 3.5vw;
     font-weight: 600;
-    border-radius: 8px;
-    min-height: 42px;
-    min-width: 60px;
+    border-radius: 2vw;
+    min-height: 10.5vw;
+    min-width: 15%;
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
   .payment-section {
-    margin-bottom: 12px;
+    margin-bottom: 3%;
   }
 
   .payment-methods {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
+    gap: 1.5%;
   }
 
   .payment-method-btn {
     flex-direction: column;
-    gap: 3px;
-    padding: 10px 6px;
-    border-radius: 10px;
+    gap: 0.75%;
+    padding: 2.5% 1.5%;
+    border-radius: 2.5vw;
     min-height: auto;
   }
 
   .method-icon {
-    font-size: 18px;
+    font-size: 4.5vw;
   }
 
   .method-name {
-    font-size: 10px;
+    font-size: 2.5vw;
     line-height: 1.2;
   }
 
   .method-fee {
-    font-size: 8px;
+    font-size: 2vw;
   }
 
   .bank-section {
-    margin-bottom: 12px;
+    margin-bottom: 3%;
   }
 
   .bank-input {
-    padding: 10px 12px;
-    font-size: 14px;
-    margin-bottom: 8px;
-    border-radius: 10px;
+    padding: 2.5% 3%;
+    font-size: 3.5vw;
+    margin-bottom: 2%;
+    border-radius: 2.5vw;
   }
 
   .deposit-summary,
   .withdraw-summary {
-    padding: 10px;
-    border-radius: 10px;
-    margin-bottom: 12px;
+    padding: 2.5%;
+    border-radius: 2.5vw;
+    margin-bottom: 3%;
   }
 
   .summary-row {
-    padding: 5px 0;
-    font-size: 12px;
+    padding: 1.25% 0;
+    font-size: 3vw;
   }
 
   .summary-row.total {
-    padding-top: 10px;
-    margin-top: 5px;
-    font-size: 14px;
+    padding-top: 2.5%;
+    margin-top: 1.25%;
+    font-size: 3.5vw;
   }
 
   .deposit-submit-btn,
   .withdraw-submit-btn {
-    padding: 12px;
-    font-size: 14px;
-    border-radius: 10px;
+    padding: 3%;
+    font-size: 3.5vw;
+    border-radius: 2.5vw;
   }
 
   .deposit-note,
   .withdraw-note {
-    margin-top: 10px;
-    font-size: 10px;
+    margin-top: 2.5%;
+    font-size: 2.5vw;
   }
 
   .balance-warning {
-    padding: 10px 12px;
-    margin-bottom: 12px;
-    font-size: 11px;
-    gap: 8px;
+    padding: 2.5% 3%;
+    margin-bottom: 3%;
+    font-size: 2.75vw;
+    gap: 2%;
   }
 
   .balance-warning svg {
-    width: 16px;
-    height: 16px;
+    width: 4vw;
+    height: 4vw;
     flex-shrink: 0;
   }
 
   /* Success state mobile */
   .deposit-success,
   .withdraw-success {
-    padding: 20px 10px;
+    padding: 5% 2.5%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 280px;
+    min-height: 70vw;
   }
 
   .deposit-success .success-icon,
   .withdraw-success .success-icon {
-    width: 56px;
-    height: 56px;
-    margin-bottom: 14px;
+    width: 14vw;
+    height: 14vw;
+    margin-bottom: 3.5%;
   }
 
   .deposit-success .success-icon svg,
   .withdraw-success .success-icon svg {
-    width: 28px;
-    height: 28px;
+    width: 7vw;
+    height: 7vw;
   }
 
   .deposit-success h2,
   .withdraw-success h2 {
-    font-size: 16px;
-    margin-bottom: 10px;
+    font-size: 4vw;
+    margin-bottom: 2.5%;
     line-height: 1.3;
   }
 
   .deposit-success .success-amount,
   .withdraw-success .success-amount {
-    font-size: 24px;
-    margin-bottom: 6px;
+    font-size: 6vw;
+    margin-bottom: 1.5%;
   }
 
   .deposit-success .success-balance,
   .withdraw-success .success-balance {
-    font-size: 12px;
-    margin-bottom: 8px;
+    font-size: 3vw;
+    margin-bottom: 2%;
   }
 
   .deposit-success .success-note,
   .withdraw-success .success-note {
-    font-size: 11px;
-    margin-top: 6px;
-    margin-bottom: 14px;
-    padding: 0 8px;
+    font-size: 2.75vw;
+    margin-top: 1.5%;
+    margin-bottom: 3.5%;
+    padding: 0 2%;
     line-height: 1.4;
   }
 
   .deposit-done-btn,
   .withdraw-done-btn {
-    padding: 12px 32px;
-    font-size: 14px;
-    border-radius: 10px;
+    padding: 3% 8%;
+    font-size: 3.5vw;
+    border-radius: 2.5vw;
     width: 100%;
-    max-width: 200px;
-    margin-bottom: 16px;
+    max-width: 50%;
+    margin-bottom: 4%;
   }
 
   /* Ensure note has bottom margin */
   .deposit-note,
   .withdraw-note {
-    margin-bottom: 10px;
+    margin-bottom: 2.5%;
   }
 
   /* Processing state mobile */
   .deposit-processing,
   .withdraw-processing {
-    padding: 30px 14px;
-    min-height: 200px;
+    padding: 7.5% 3.5%;
+    min-height: 50vw;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -812,18 +812,18 @@
   }
 
   .processing-spinner {
-    margin-bottom: 16px;
+    margin-bottom: 4%;
   }
 
   .deposit-processing h2,
   .withdraw-processing h2 {
-    font-size: 16px;
-    margin-bottom: 6px;
+    font-size: 4vw;
+    margin-bottom: 1.5%;
   }
 
   .deposit-processing p,
   .withdraw-processing p {
-    font-size: 12px;
+    font-size: 3vw;
   }
 }
 
@@ -1082,70 +1082,70 @@
 /* Mobile styles for bank details */
 @media (max-width: 480px) {
   .modal-back-btn {
-    font-size: 13px;
-    margin-bottom: 12px;
+    font-size: 3.25vw;
+    margin-bottom: 3%;
   }
 
   .bank-details-card {
-    padding: 14px;
-    margin-bottom: 14px;
+    padding: 3.5%;
+    margin-bottom: 3.5%;
   }
 
   .bank-name-header {
-    font-size: 14px;
-    padding-bottom: 12px;
-    margin-bottom: 12px;
+    font-size: 3.5vw;
+    padding-bottom: 3%;
+    margin-bottom: 3%;
   }
 
   .bank-detail-row {
-    padding: 10px 0;
+    padding: 2.5% 0;
   }
 
   .bank-detail-row.payid {
-    margin: 10px -14px;
-    padding: 12px 14px;
+    margin: 2.5% -3.5%;
+    padding: 3% 3.5%;
   }
 
   .detail-label {
-    font-size: 10px;
+    font-size: 2.5vw;
   }
 
   .detail-value {
-    font-size: 14px;
+    font-size: 3.5vw;
   }
 
   .copy-btn {
-    width: 32px;
-    height: 32px;
+    width: 8vw;
+    height: 8vw;
   }
 
   .transfer-amount-display {
-    padding-top: 12px;
-    margin-top: 12px;
+    padding-top: 3%;
+    margin-top: 3%;
   }
 
   .transfer-amount-display .amount {
-    font-size: 20px;
+    font-size: 5vw;
   }
 
   .transfer-instructions {
-    padding: 12px;
-    margin-bottom: 14px;
+    padding: 3%;
+    margin-bottom: 3.5%;
   }
 
   .instruction-item {
-    padding: 8px 0;
-    gap: 10px;
+    padding: 2% 0;
+    gap: 2.5%;
   }
 
   .instruction-number {
-    width: 20px;
-    height: 20px;
-    font-size: 10px;
+    width: 5vw;
+    height: 5vw;
+    font-size: 2.5vw;
   }
 
   .instruction-item span:last-child {
-    font-size: 12px;
+    font-size: 3vw;
   }
 }
 
@@ -1153,65 +1153,65 @@
 @media (max-width: 360px) {
   .deposit-modal,
   .withdraw-modal {
-    padding: 14px 10px 50px 10px;
+    padding: 4% 2.75% 14% 2.75%;
     max-height: 92vh;
     max-height: 92dvh;
   }
 
   .modal-header h2 {
-    font-size: 15px;
+    font-size: 4.2vw;
   }
 
   .quick-amounts {
     grid-template-columns: repeat(5, 1fr);
-    gap: 4px;
+    gap: 1%;
   }
 
   .quick-amount-btn {
-    padding: 6px 2px;
-    font-size: 11px;
-    min-height: 32px;
+    padding: 1.7% 0.6%;
+    font-size: 3vw;
+    min-height: 9vw;
   }
 
   .amount-input-wrap input {
-    font-size: 20px;
-    padding: 8px 0;
+    font-size: 5.5vw;
+    padding: 2.2% 0;
   }
 
   .amount-input-wrap .currency {
-    font-size: 16px;
+    font-size: 4.5vw;
   }
 
   .payment-methods {
     grid-template-columns: repeat(2, 1fr);
-    gap: 5px;
+    gap: 1.4%;
   }
 
   .payment-method-btn {
-    padding: 8px 4px;
+    padding: 2.2% 1%;
   }
 
   .method-icon {
-    font-size: 16px;
+    font-size: 4.5vw;
   }
 
   .method-name {
-    font-size: 9px;
+    font-size: 2.5vw;
   }
 
   .deposit-success h2,
   .withdraw-success h2 {
-    font-size: 15px;
+    font-size: 4.2vw;
   }
 
   .deposit-success .success-amount,
   .withdraw-success .success-amount {
-    font-size: 22px;
+    font-size: 6.1vw;
   }
 
   .deposit-done-btn,
   .withdraw-done-btn {
-    padding: 10px 24px;
-    font-size: 13px;
+    padding: 2.8% 6.7%;
+    font-size: 3.6vw;
   }
 }

@@ -6215,184 +6215,187 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 
 @media (max-width: 480px) {
   .wallet-hero {
-    padding: 28px 20px;
-    border-radius: 24px;
+    padding: 6% 5%;
+    border-radius: 5vw;
   }
 
   .balance-label {
-    font-size: 17px;
+    font-size: 4vw;
     font-weight: 600;
   }
 
   .balance-amount-large .balance-value {
-    font-size: 56px;
+    font-size: 12vw;
   }
 
   .balance-amount-large .currency-sign,
   .balance-amount-large .balance-cents {
-    font-size: 28px;
+    font-size: 6vw;
   }
 
   .balance-change {
-    font-size: 16px;
+    font-size: 3.5vw;
   }
 
   .balance-stats {
-    flex-direction: column;
-    gap: 16px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 2.5%;
+    width: 100%;
   }
 
   .stat-item {
-    width: 100%;
-    padding: 20px;
+    flex: 1 1 45%;
+    min-width: 45%;
+    padding: 3%;
     background: rgba(255, 255, 255, 0.04);
-    border-radius: 16px;
+    border-radius: 3vw;
   }
 
   .stat-icon {
-    width: 52px;
-    height: 52px;
-    font-size: 24px;
+    width: 10vw;
+    height: 10vw;
+    font-size: 5vw;
   }
 
   .stat-label {
-    font-size: 16px;
+    font-size: 2.8vw;
     font-weight: 500;
   }
 
   .stat-value {
-    font-size: 22px;
+    font-size: 5.5vw;
     font-weight: 700;
   }
 
   .quick-actions {
     grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    gap: 4%;
   }
 
   .quick-action-btn {
-    padding: 22px 16px;
-    border-radius: 18px;
+    padding: 5% 4%;
+    border-radius: 4.5vw;
   }
 
   .action-icon {
-    width: 60px;
-    height: 60px;
-    font-size: 28px;
+    width: 15vw;
+    height: 15vw;
+    font-size: 7vw;
   }
 
   .quick-action-btn span {
-    font-size: 16px;
+    font-size: 4vw;
     font-weight: 600;
   }
 
   .preset-amounts {
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 3%;
   }
 
   .preset-btn {
-    padding: 18px;
-    font-size: 18px;
+    padding: 4.5%;
+    font-size: 4.5vw;
     font-weight: 600;
-    border-radius: 14px;
-    min-height: 56px;
+    border-radius: 3.5vw;
+    min-height: 14vw;
   }
 
   .action-form {
-    padding: 28px 20px;
+    padding: 7% 5%;
   }
 
   .action-tabs {
-    gap: 8px;
+    gap: 2%;
   }
 
   .action-tab {
-    padding: 16px 18px;
-    font-size: 16px;
+    padding: 4% 4.5%;
+    font-size: 4vw;
     font-weight: 600;
-    border-radius: 14px;
-    min-height: 52px;
+    border-radius: 3.5vw;
+    min-height: 13vw;
   }
 
   .amount-input-modern .currency-symbol {
-    font-size: 30px;
-    padding: 0 16px;
+    font-size: 7.5vw;
+    padding: 0 4%;
   }
 
   .amount-input-modern input {
-    font-size: 36px;
-    padding: 18px 16px 18px 0;
+    font-size: 9vw;
+    padding: 4.5% 4% 4.5% 0;
   }
 
   .input-group label {
-    font-size: 16px;
+    font-size: 4vw;
     font-weight: 600;
   }
 
   .text-input-modern input {
-    font-size: 18px;
-    padding: 18px;
-    min-height: 60px;
+    font-size: 4.5vw;
+    padding: 4.5%;
+    min-height: 15vw;
   }
 
   .submit-btn {
-    min-height: 62px;
-    font-size: 18px;
+    min-height: 15.5vw;
+    font-size: 4.5vw;
     font-weight: 700;
-    border-radius: 16px;
+    border-radius: 4vw;
   }
 
   .tx-row {
-    padding: 18px;
-    gap: 14px;
-    border-radius: 16px;
+    padding: 4.5%;
+    gap: 3.5%;
+    border-radius: 4vw;
   }
 
   .tx-icon-modern {
-    width: 52px;
-    height: 52px;
-    font-size: 24px;
+    width: 13vw;
+    height: 13vw;
+    font-size: 6vw;
   }
 
   .tx-title {
-    font-size: 18px;
+    font-size: 4.5vw;
     font-weight: 600;
   }
 
   .tx-datetime {
-    font-size: 14px;
+    font-size: 3.5vw;
   }
 
   .tx-amount-modern {
-    font-size: 20px;
+    font-size: 5vw;
     font-weight: 700;
   }
 
   .tx-status-badge {
-    font-size: 13px;
-    padding: 6px 10px;
+    font-size: 3.25vw;
+    padding: 1.5% 2.5%;
     font-weight: 600;
   }
 
   /* Checkin grid */
   .checkin-grid {
-    gap: 10px;
+    gap: 2.5%;
   }
 
   .checkin-box {
-    padding: 16px 8px;
-    border-radius: 14px;
+    padding: 4% 2%;
+    border-radius: 3.5vw;
   }
 
   .checkin-box .day-label {
-    font-size: 13px;
+    font-size: 3.25vw;
     font-weight: 600;
   }
 
   .reward-amount {
-    font-size: 14px;
-    padding: 6px 8px;
+    font-size: 3.5vw;
+    padding: 1.5% 2%;
     font-weight: 700;
   }
 
@@ -6949,174 +6952,179 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 
   /* Wallet Page - compact and professional */
   .wallet-hero {
-    padding: 20px 16px;
-    border-radius: 16px;
+    padding: 5% 4%;
+    border-radius: 4vw;
   }
 
   .balance-label {
-    font-size: 13px;
+    font-size: 3.25vw;
     font-weight: 500;
   }
 
   .balance-amount-large .balance-value {
-    font-size: 36px;
+    font-size: 9vw;
   }
 
   .balance-amount-large .currency-sign,
   .balance-amount-large .balance-cents {
-    font-size: 18px;
+    font-size: 4.5vw;
   }
 
   .balance-change {
-    font-size: 12px;
+    font-size: 3vw;
   }
 
   .balance-stats {
-    flex-direction: column;
-    gap: 10px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 2.5%;
+    width: 100%;
   }
 
   .stat-item {
-    width: 100%;
-    padding: 14px;
+    flex: 1 1 45%;
+    min-width: 45%;
+    padding: 3.5%;
     background: rgba(255, 255, 255, 0.04);
-    border-radius: 12px;
+    border-radius: 3vw;
   }
 
   .stat-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 16px;
+    width: 9vw;
+    height: 9vw;
+    font-size: 4vw;
   }
 
   .stat-label {
-    font-size: 12px;
+    font-size: 3vw;
     font-weight: 500;
   }
 
   .stat-value {
-    font-size: 16px;
+    font-size: 4vw;
     font-weight: 600;
   }
 
   .quick-actions {
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    gap: 2.5%;
   }
 
   .quick-action-btn {
-    padding: 14px 12px;
-    border-radius: 12px;
+    padding: 3.5% 3%;
+    border-radius: 3vw;
   }
 
   .action-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 18px;
+    width: 10vw;
+    height: 10vw;
+    font-size: 4.5vw;
   }
 
   .quick-action-btn span {
-    font-size: 12px;
+    font-size: 3vw;
     font-weight: 500;
   }
 
   .preset-amounts {
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    gap: 2%;
   }
 
   .preset-btn {
-    padding: 12px;
-    font-size: 13px;
+    padding: 3%;
+    font-size: 3.25vw;
     font-weight: 600;
-    border-radius: 10px;
-    min-height: 44px;
+    border-radius: 2.5vw;
+    min-height: 11vw;
   }
 
   .action-form {
-    padding: 20px 16px;
+    padding: 5% 4%;
   }
 
   .action-tabs {
-    gap: 6px;
+    gap: 1.5%;
   }
 
   .action-tab {
-    padding: 10px 14px;
-    font-size: 13px;
+    padding: 2.5% 3.5%;
+    font-size: 3.25vw;
     font-weight: 500;
-    border-radius: 10px;
-    min-height: 40px;
+    border-radius: 2.5vw;
+    min-height: 10vw;
   }
 
   /* Transaction items - compact */
   .transaction-item {
-    padding: 10px;
-    gap: 10px;
+    padding: 2.5%;
+    gap: 2.5%;
   }
 
   .tx-icon {
-    width: 32px;
-    height: 32px;
+    width: 8vw;
+    height: 8vw;
   }
 
   .tx-type {
-    font-size: 13px;
+    font-size: 3.25vw;
   }
 
   .tx-amount {
-    font-size: 13px;
+    font-size: 3.25vw;
   }
 
   /* Check-in section - compact */
   .checkin-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 6px;
+    gap: 1.5%;
   }
 
   .checkin-days {
     grid-template-columns: repeat(7, 1fr);
-    gap: 3px;
+    gap: 0.75%;
   }
 
   .checkin-day {
-    padding: 6px 2px;
-    gap: 3px;
+    padding: 1.5% 0.5%;
+    gap: 0.75%;
   }
 
   .day-icon {
-    width: 20px;
-    height: 20px;
+    width: 5vw;
+    height: 5vw;
   }
 
   .day-icon svg {
-    width: 12px;
-    height: 12px;
+    width: 3vw;
+    height: 3vw;
   }
 
   .day-label {
-    font-size: 8px;
+    font-size: 2vw;
   }
 
   .day-reward {
-    font-size: 7px;
-    padding: 2px 3px;
+    font-size: 1.75vw;
+    padding: 0.5% 0.75%;
   }
 
   .checkin-btn {
-    padding: 10px 14px;
-    font-size: 12px;
+    padding: 2.5% 3.5%;
+    font-size: 3vw;
   }
 
   /* Balance details */
   .balance-details {
-    flex-direction: column;
-    gap: 12px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 3%;
   }
 
   .wallet-tabs {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
   }
 
   .quick-amounts {
@@ -7134,16 +7142,16 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
   }
 
   .payment-form {
-    padding: 14px;
+    padding: 3.5%;
   }
 
   /* Auth pages - compact */
   .auth-page {
-    padding: 60px 14px 24px;
+    padding: 15% 3.5% 6%;
   }
 
   .auth-back {
-    top: 12px;
+    top: 3%;
     left: 12px;
     padding: 6px 12px;
     font-size: 12px;
