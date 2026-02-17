@@ -1,7 +1,7 @@
 /* Floating Chat Button */
 .floating-chat-btn {
   position: fixed;
-  bottom: 20px;
+  bottom: 170px;
   right: 20px;
   width: 56px;
   height: 56px;
@@ -67,7 +67,7 @@
 /* Chat Window */
 .floating-chat-window {
   position: fixed;
-  bottom: 20px;
+  bottom: 100px;
   right: 20px;
   width: 360px;
   height: 520px;
@@ -654,7 +654,7 @@
   }
 
   .floating-chat-btn {
-    bottom: 16px;
+    bottom: 150px;
     right: 16px;
   }
 }
