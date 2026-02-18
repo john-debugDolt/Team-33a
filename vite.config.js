@@ -136,9 +136,9 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
-      // Proxy Bonuses API (public for active bonuses, uses admin service)
+      // Proxy Bonuses API (public for active bonuses via accounts service)
       '/api/bonuses': {
-        target: 'https://api.team33.mx',
+        target: 'https://accounts.team33.mx',
         changeOrigin: true,
         secure: true,
         rewrite: (path) => path.replace(/^\/api\/bonuses/, '/api/admin/bonuses'),
