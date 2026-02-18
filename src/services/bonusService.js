@@ -201,6 +201,62 @@ class BonusService {
     if (bonus.endDate && new Date(bonus.endDate) < new Date()) return false;
     return true;
   }
+
+  /**
+   * Claim a direct credit bonus
+   * POST /api/bonuses/claim
+   * For bonuses that can be claimed directly without deposit
+   */
+  async claimBonus(bonusId, accountId) {
+    try {
+      const response = await apiClient.post('/api/bonuses/claim', {
+        bonusId,
+        accountId
+      });
+
+      if (response.success) {
+        return {
+          success: true,
+          message: response.data?.message || 'Bonus claimed successfully!',
+          data: response.data
+        };
+      }
+
+      return {
+        success: false,
+        message: response.message || response.error || 'Failed to claim bonus'
+      };
+    } catch (error) {
+      console.error('[BonusService] Error claiming bonus:', error);
+      return {
+        success: false,
+        message: error.message || 'Network error while claiming bonus'
+      };
+    }
+  }
+
+  /**
+   * Get user's bonus claims
+   * GET /api/bonuses/claims/account/{accountId}
+   */
+  async getUserClaims(accountId) {
+    try {
+      const response = await apiClient.get(`/api/bonuses/claims/account/${accountId}`);
+
+      if (Array.isArray(response)) {
+        return response;
+      }
+
+      if (response.success && Array.isArray(response.data)) {
+        return response.data;
+      }
+
+      return [];
+    } catch (error) {
+      console.error('[BonusService] Error fetching user claims:', error);
+      return [];
+    }
+  }
 }
 
 export const bonusService = new BonusService();
