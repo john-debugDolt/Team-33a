@@ -1,30 +1,30 @@
 /* Auth Prompt - Glossy Emerald Design */
 .auth-prompt-page {
-  min-height: calc(100vh - 200px);
+  min-height: calc(100vh - 13.9vw);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
+  padding: 2.78% 1.39%;
 }
 
 .auth-prompt-card {
   width: 100%;
-  max-width: 420px;
+  max-width: 29.17vw;
   background: linear-gradient(
     145deg,
     #141e19 0%,
     #0f1914 50%,
     #0a0f0c 100%
   );
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(1.39vw);
+  -webkit-backdrop-filter: blur(1.39vw);
   border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: 24px;
-  padding: 48px 40px;
+  border-radius: 1.67vw;
+  padding: 3.33% 2.78%;
   text-align: center;
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    0 0 60px rgba(16, 185, 129, 0.06),
+    0 0.56vw 2.22vw rgba(0, 0, 0, 0.4),
+    0 0 4.17vw rgba(16, 185, 129, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   position: relative;
   overflow: hidden;
@@ -47,9 +47,9 @@
 }
 
 .auth-prompt-icon {
-  width: 88px;
-  height: 88px;
-  margin: 0 auto 24px;
+  width: 6.11vw;
+  height: 6.11vw;
+  margin: 0 auto 1.67%;
   background: linear-gradient(
     135deg,
     rgba(16, 185, 129, 0.2) 0%,
@@ -62,42 +62,42 @@
   justify-content: center;
   color: var(--emerald-400);
   box-shadow:
-    0 0 30px rgba(16, 185, 129, 0.2),
+    0 0 2.08vw rgba(16, 185, 129, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .auth-prompt-card h2 {
-  font-size: 26px;
+  font-size: 1.81vw;
   font-weight: 700;
   background: linear-gradient(135deg, #fff 0%, var(--emerald-300) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin: 0 0 12px 0;
+  margin: 0 0 0.83% 0;
 }
 
 .auth-prompt-card p {
-  font-size: 15px;
+  font-size: 1.04vw;
   color: rgba(255, 255, 255, 0.5);
-  margin: 0 0 32px 0;
+  margin: 0 0 2.22% 0;
   line-height: 1.6;
 }
 
 .auth-prompt-buttons {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 32px;
+  gap: 0.83%;
+  margin-bottom: 2.22%;
 }
 
 .auth-prompt-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 16px 24px;
-  border-radius: 12px;
-  font-size: 16px;
+  gap: 0.69%;
+  padding: 1.11% 1.67%;
+  border-radius: 0.83vw;
+  font-size: 1.11vw;
   font-weight: 600;
   text-decoration: none;
   transition: all 0.3s ease;
@@ -115,7 +115,7 @@
   background-size: 200% 200%;
   color: #fff;
   box-shadow:
-    0 4px 15px rgba(16, 185, 129, 0.4),
+    0 0.28vw 1.04vw rgba(16, 185, 129, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
@@ -144,7 +144,7 @@
 .auth-prompt-btn.primary:hover {
   transform: translateY(-2px);
   box-shadow:
-    0 8px 25px rgba(16, 185, 129, 0.5),
+    0 0.56vw 1.74vw rgba(16, 185, 129, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
@@ -163,16 +163,16 @@
 .auth-prompt-features {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding-top: 24px;
+  gap: 0.83%;
+  padding-top: 1.67%;
   border-top: 1px solid rgba(16, 185, 129, 0.12);
 }
 
 .feature-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 14px;
+  gap: 0.83%;
+  font-size: 0.97vw;
   color: rgba(255, 255, 255, 0.6);
 }
 
@@ -184,104 +184,104 @@
 /* Responsive */
 @media (max-width: 768px) {
   .auth-prompt-page {
-    padding: 24px 16px;
+    padding: 3.13% 2.08%;
     padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
     min-height: auto;
     align-items: flex-start;
   }
 
   .auth-prompt-card {
-    padding: 36px 28px;
-    border-radius: 20px;
+    padding: 4.69% 3.65%;
+    border-radius: 2.6vw;
   }
 
   .auth-prompt-icon {
-    width: 80px;
-    height: 80px;
+    width: 10.42vw;
+    height: 10.42vw;
   }
 
   .auth-prompt-icon svg {
-    width: 40px;
-    height: 40px;
+    width: 5.21vw;
+    height: 5.21vw;
   }
 
   .auth-prompt-card h2 {
-    font-size: 24px;
+    font-size: 3.13vw;
   }
 
   .auth-prompt-card p {
-    font-size: 14px;
+    font-size: 1.82vw;
   }
 
   .auth-prompt-btn {
-    padding: 14px 20px;
-    font-size: 15px;
-    border-radius: 10px;
+    padding: 1.82% 2.6%;
+    font-size: 1.95vw;
+    border-radius: 1.3vw;
   }
 }
 
 @media (max-width: 480px) {
   .auth-prompt-page {
-    padding: 16px 12px;
+    padding: 3.33% 2.5%;
     padding-bottom: calc(85px + env(safe-area-inset-bottom, 0px));
   }
 
   .auth-prompt-card {
-    padding: 32px 22px;
-    border-radius: 18px;
+    padding: 6.67% 4.58%;
+    border-radius: 3.75vw;
   }
 
   .auth-prompt-icon {
-    width: 72px;
-    height: 72px;
-    margin-bottom: 20px;
+    width: 15vw;
+    height: 15vw;
+    margin-bottom: 4.17%;
   }
 
   .auth-prompt-icon svg {
-    width: 36px;
-    height: 36px;
+    width: 7.5vw;
+    height: 7.5vw;
   }
 
   .auth-prompt-card h2 {
-    font-size: 22px;
+    font-size: 4.58vw;
   }
 
   .auth-prompt-card p {
-    font-size: 14px;
-    margin-bottom: 28px;
+    font-size: 2.92vw;
+    margin-bottom: 5.83%;
   }
 
   .auth-prompt-buttons {
-    margin-bottom: 28px;
+    margin-bottom: 5.83%;
   }
 
   .auth-prompt-btn {
-    padding: 14px 18px;
-    border-radius: 10px;
+    padding: 2.92% 3.75%;
+    border-radius: 2.08vw;
   }
 
   .feature-item {
-    font-size: 13px;
+    font-size: 2.71vw;
   }
 }
 
 @media (max-width: 360px) {
   .auth-prompt-card {
-    padding: 28px 18px;
-    border-radius: 16px;
+    padding: 7.78% 5vw;
+    border-radius: 4.44vw;
   }
 
   .auth-prompt-icon {
-    width: 64px;
-    height: 64px;
+    width: 17.78vw;
+    height: 17.78vw;
   }
 
   .auth-prompt-card h2 {
-    font-size: 20px;
+    font-size: 5.56vw;
   }
 
   .auth-prompt-btn {
-    padding: 12px 16px;
-    font-size: 14px;
+    padding: 3.33% 4.44%;
+    font-size: 3.89vw;
   }
 }
