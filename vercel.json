@@ -55,11 +55,11 @@
     },
     {
       "source": "/api/bonuses",
-      "destination": "https://api.team33.mx/api/admin/bonuses"
+      "destination": "https://accounts.team33.mx/api/admin/bonuses"
     },
     {
       "source": "/api/bonuses/:path*",
-      "destination": "https://api.team33.mx/api/admin/bonuses/:path*"
+      "destination": "https://accounts.team33.mx/api/admin/bonuses/:path*"
     },
     {
       "source": "/auth/keycloak/:path*",
