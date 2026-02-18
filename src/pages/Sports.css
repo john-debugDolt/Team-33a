@@ -5,7 +5,7 @@
 
 .sports-hero {
   position: relative;
-  min-height: 41.67vw;
+  min-height: 600px;
   overflow: hidden;
 }
 
@@ -27,16 +27,16 @@
 .sports-content {
   position: relative;
   z-index: 1;
-  max-width: 97.22vw;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 2.78% 2.08%;
+  padding: 40px 30px;
 }
 
 /* Sports Tabs */
 .sports-tabs {
   display: flex;
-  gap: 0.69%;
-  margin-bottom: 2.08%;
+  gap: 10px;
+  margin-bottom: 30px;
   flex-wrap: wrap;
 }
 
@@ -44,13 +44,13 @@
   background: rgba(0, 0, 0, 0.5);
   border: 2px solid transparent;
   color: #fff;
-  padding: 0.83% 2.08%;
-  border-radius: 0.56vw;
+  padding: 12px 30px;
+  border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.97vw;
+  font-size: 14px;
   transition: all 0.3s;
-  backdrop-filter: blur(0.69vw);
+  backdrop-filter: blur(10px);
 }
 
 .sports-tab:hover {
@@ -67,21 +67,21 @@
 /* Sports Provider Cards Grid */
 .sports-providers-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(19.44vw, 1fr));
-  gap: 1.39%;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
 }
 
 .sports-provider-card {
-  border-radius: 1.11vw;
+  border-radius: 16px;
   overflow: hidden;
   background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(0.69vw);
+  backdrop-filter: blur(10px);
   transition: all 0.3s;
 }
 
 .sports-provider-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 1.39vw 2.78vw rgba(0, 0, 0, 0.4);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
 .provider-card-inner {
@@ -111,7 +111,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 1.39%;
+  padding: 20px;
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
   display: flex;
   justify-content: space-between;
@@ -119,18 +119,18 @@
 }
 
 .provider-name {
-  font-size: 1.25vw;
+  font-size: 18px;
   font-weight: 700;
   color: #fff;
-  text-shadow: 0 0.14vw 0.28vw rgba(0, 0, 0, 0.5);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .play-now-btn {
   background: linear-gradient(135deg, var(--primary-gold), var(--primary-gold-dark));
   color: var(--bg-dark);
   border: none;
-  padding: 0.69% 1.67%;
-  border-radius: 0.56vw;
+  padding: 10px 24px;
+  border-radius: 8px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
@@ -138,21 +138,21 @@
 
 .play-now-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 0.28vw 1.04vw rgba(209, 174, 53, 0.4);
+  box-shadow: 0 4px 15px rgba(209, 174, 53, 0.4);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .sports-page {
-    padding-bottom: calc(5.56% + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
 
   .sports-hero {
-    min-height: 34.72vw;
+    min-height: 500px;
   }
 
   .sports-content {
-    padding: 1.39% 1.04%;
+    padding: 20px 15px;
   }
 
   .sports-tabs {
@@ -160,8 +160,8 @@
   }
 
   .sports-tab {
-    padding: 0.69% 1.39%;
-    font-size: 0.9vw;
+    padding: 10px 20px;
+    font-size: 13px;
   }
 
   .sports-providers-grid {
@@ -169,59 +169,59 @@
   }
 
   .provider-name {
-    font-size: 1.11vw;
+    font-size: 16px;
   }
 
   .play-now-btn {
-    padding: 0.56% 1.11%;
-    font-size: 0.9vw;
+    padding: 8px 16px;
+    font-size: 13px;
   }
 }
 
 @media (max-width: 480px) {
   .sports-page {
-    padding-bottom: calc(6.94% + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
   }
 
   .sports-content {
-    padding: 1.67% 1.11%;
+    padding: 24px 16px;
   }
 
   .sports-tabs {
-    gap: 0.83%;
-    margin-bottom: 1.94%;
+    gap: 12px;
+    margin-bottom: 28px;
   }
 
   .sports-tab {
-    padding: 1.11% 1.67%;
-    font-size: 1.11vw;
+    padding: 16px 24px;
+    font-size: 16px;
     font-weight: 700;
-    border-radius: 0.97vw;
-    min-height: 3.75vw;
+    border-radius: 14px;
+    min-height: 54px;
   }
 
   .sports-providers-grid {
-    gap: 1.25%;
+    gap: 18px;
   }
 
   .sports-provider-card {
-    border-radius: 1.39vw;
+    border-radius: 20px;
   }
 
   .provider-card-overlay {
-    padding: 1.53%;
+    padding: 22px;
   }
 
   .provider-name {
-    font-size: 1.39vw;
+    font-size: 20px;
     font-weight: 800;
   }
 
   .play-now-btn {
-    padding: 0.97% 1.67%;
-    font-size: 1.11vw;
+    padding: 14px 24px;
+    font-size: 16px;
     font-weight: 700;
-    border-radius: 0.83vw;
-    min-height: 3.61vw;
+    border-radius: 12px;
+    min-height: 52px;
   }
 }

@@ -1,10 +1,10 @@
 /* Floating Chat Button */
 .floating-chat-btn {
   position: fixed;
-  bottom: 11.8vw;        /* was: 170px */
-  right: 1.4vw;          /* was: 20px */
-  width: 3.9vw;          /* was: 56px */
-  height: 3.9vw;         /* was: 56px */
+  bottom: 170px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   border: none;
@@ -31,28 +31,28 @@
 
 .floating-chat-btn .chat-label {
   position: absolute;
-  bottom: -0.42vw;       /* was: -6px */
-  right: -0.42vw;        /* was: -6px */
+  bottom: -6px;
+  right: -6px;
   background: #10b981;
   color: white;
-  font-size: 0.7vw;      /* was: 10px */
+  font-size: 10px;
   font-weight: 600;
-  padding: 1.5% 4%;      /* was: 2px 6px */
-  border-radius: 0.56vw; /* was: 8px */
+  padding: 2px 6px;
+  border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .floating-chat-btn .unread-badge {
   position: absolute;
-  top: -0.28vw;          /* was: -4px */
-  right: -0.28vw;        /* was: -4px */
+  top: -4px;
+  right: -4px;
   background: #ef4444;
   color: white;
-  font-size: 0.76vw;     /* was: 11px */
+  font-size: 11px;
   font-weight: 700;
-  min-width: 1.39vw;     /* was: 20px */
-  height: 1.39vw;        /* was: 20px */
-  border-radius: 0.69vw; /* was: 10px */
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -67,12 +67,12 @@
 /* Chat Window */
 .floating-chat-window {
   position: fixed;
-  bottom: 6.94vw;        /* was: 100px */
-  right: 1.39vw;         /* was: 20px */
-  width: 25vw;           /* was: 360px */
-  height: 36.1vw;        /* was: 520px */
+  bottom: 100px;
+  right: 20px;
+  width: 360px;
+  height: 520px;
   background: #1a1a2e;
-  border-radius: 1.11vw; /* was: 16px */
+  border-radius: 16px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
@@ -97,7 +97,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 3.5% 4%;      /* was: 14px 16px */
+  padding: 14px 16px;
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
 }
@@ -105,19 +105,19 @@
 .fchat-header-info {
   display: flex;
   align-items: center;
-  gap: 2.5%;             /* was: 10px */
+  gap: 10px;
 }
 
 .fchat-avatar {
-  width: 2.5vw;          /* was: 36px */
-  height: 2.5vw;         /* was: 36px */
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 0.97vw;     /* was: 14px */
+  font-size: 14px;
 }
 
 .fchat-avatar.has-agent {
@@ -131,20 +131,20 @@
 
 .fchat-title {
   font-weight: 600;
-  font-size: 0.97vw;     /* was: 14px */
+  font-size: 14px;
 }
 
 .fchat-status {
-  font-size: 0.76vw;     /* was: 11px */
+  font-size: 11px;
   opacity: 0.9;
   display: flex;
   align-items: center;
-  gap: 1%;               /* was: 4px */
+  gap: 4px;
 }
 
 .fchat-status .status-dot {
-  width: 0.42vw;         /* was: 6px */
-  height: 0.42vw;        /* was: 6px */
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: #9ca3af;
 }
@@ -167,8 +167,8 @@
 .fchat-close-btn {
   background: rgba(255, 255, 255, 0.2);
   border: none;
-  width: 2.22vw;         /* was: 32px */
-  height: 2.22vw;        /* was: 32px */
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -199,41 +199,41 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 6%;           /* was: 24px */
+  padding: 24px;
   text-align: center;
 }
 
 .fchat-welcome-icon {
-  width: 5.56vw;         /* was: 80px */
-  height: 5.56vw;        /* was: 80px */
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
   display: flex;
   align-items: center;
   justify-content: center;
   color: #8b5cf6;
-  margin-bottom: 4%;     /* was: 16px */
+  margin-bottom: 16px;
 }
 
 .fchat-welcome h3 {
   color: white;
-  font-size: 1.25vw;     /* was: 18px */
-  margin: 0 0 2% 0;      /* was: 0 0 8px 0 */
+  font-size: 18px;
+  margin: 0 0 8px 0;
 }
 
 .fchat-welcome p {
   color: #9ca3af;
-  font-size: 0.9vw;      /* was: 13px */
-  margin: 0 0 5% 0;      /* was: 0 0 20px 0 */
+  font-size: 13px;
+  margin: 0 0 20px 0;
 }
 
 .fchat-start-btn {
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
   border: none;
-  padding: 3% 8%;        /* was: 12px 32px */
-  border-radius: 1.74vw; /* was: 25px */
-  font-size: 0.97vw;     /* was: 14px */
+  padding: 12px 32px;
+  border-radius: 25px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -250,18 +250,18 @@
 
 .fchat-login-prompt p {
   color: #9ca3af;
-  font-size: 0.9vw;      /* was: 13px */
-  margin-bottom: 3%;     /* was: 12px */
+  font-size: 13px;
+  margin-bottom: 12px;
 }
 
 .fchat-login-btn {
   display: inline-block;
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
-  padding: 2.5% 7%;      /* was: 10px 28px */
-  border-radius: 1.39vw; /* was: 20px */
+  padding: 10px 28px;
+  border-radius: 20px;
   text-decoration: none;
-  font-size: 0.9vw;      /* was: 13px */
+  font-size: 13px;
   font-weight: 600;
   transition: all 0.3s ease;
 }
@@ -271,28 +271,28 @@
 }
 
 .fchat-social-links {
-  margin-top: 6%;        /* was: 24px */
-  padding-top: 5%;       /* was: 20px */
+  margin-top: 24px;
+  padding-top: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   width: 100%;
 }
 
 .fchat-social-links span {
   color: #6b7280;
-  font-size: 0.83vw;     /* was: 12px */
+  font-size: 12px;
   display: block;
-  margin-bottom: 3%;     /* was: 12px */
+  margin-bottom: 12px;
 }
 
 .fchat-social-btns {
   display: flex;
   justify-content: center;
-  gap: 3%;               /* was: 12px */
+  gap: 12px;
 }
 
 .fchat-social-btns a {
-  width: 2.78vw;         /* was: 40px */
-  height: 2.78vw;        /* was: 40px */
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.1);
   display: flex;
@@ -312,14 +312,14 @@
 .fchat-messages {
   flex: 1;
   overflow-y: auto;
-  padding: 4%;           /* was: 16px */
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 3%;               /* was: 12px */
+  gap: 12px;
 }
 
 .fchat-messages::-webkit-scrollbar {
-  width: 0.28vw;         /* was: 4px */
+  width: 4px;
 }
 
 .fchat-messages::-webkit-scrollbar-track {
@@ -328,12 +328,12 @@
 
 .fchat-messages::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 0.14vw; /* was: 2px */
+  border-radius: 2px;
 }
 
 .fchat-msg {
   display: flex;
-  gap: 2%;               /* was: 8px */
+  gap: 8px;
   max-width: 85%;
 }
 
@@ -348,15 +348,15 @@
 }
 
 .fchat-msg-avatar {
-  width: 1.94vw;         /* was: 28px */
-  height: 1.94vw;        /* was: 28px */
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 0.76vw;     /* was: 11px */
+  font-size: 11px;
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -364,34 +364,34 @@
 .fchat-msg-content {
   display: flex;
   flex-direction: column;
-  gap: 1%;               /* was: 4px */
+  gap: 4px;
 }
 
 .fchat-msg-bubble {
-  padding: 2.5% 3.5%;    /* was: 10px 14px */
-  border-radius: 1.11vw; /* was: 16px */
-  font-size: 0.9vw;      /* was: 13px */
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 13px;
   line-height: 1.4;
 }
 
 .fchat-msg-user .fchat-msg-bubble {
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
-  border-bottom-right-radius: 0.28vw; /* was: 4px */
+  border-bottom-right-radius: 4px;
 }
 
 .fchat-msg-agent .fchat-msg-bubble {
   background: #1e1e32;
   color: #e5e7eb;
-  border-bottom-left-radius: 0.28vw;  /* was: 4px */
+  border-bottom-left-radius: 4px;
 }
 
 .fchat-msg-system .fchat-msg-bubble {
   background: rgba(99, 102, 241, 0.15);
   color: #a5b4fc;
   text-align: center;
-  font-size: 0.83vw;     /* was: 12px */
-  padding: 2% 3%;        /* was: 8px 12px */
+  font-size: 12px;
+  padding: 8px 12px;
 }
 
 .fchat-msg-bubble p {
@@ -400,7 +400,7 @@
 }
 
 .fchat-msg-time {
-  font-size: 0.69vw;     /* was: 10px */
+  font-size: 10px;
   color: #6b7280;
 }
 
@@ -412,13 +412,13 @@
 .fchat-msg-bubble.typing {
   display: flex;
   align-items: center;
-  gap: 1%;               /* was: 4px */
-  padding: 3% 4%;        /* was: 12px 16px */
+  gap: 4px;
+  padding: 12px 16px;
 }
 
 .typing-dot {
-  width: 0.42vw;         /* was: 6px */
-  height: 0.42vw;        /* was: 6px */
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: #9ca3af;
   animation: typingBounce 1.4s infinite ease-in-out;
@@ -430,14 +430,14 @@
 
 @keyframes typingBounce {
   0%, 60%, 100% { transform: translateY(0); }
-  30% { transform: translateY(-0.28vw); } /* was: -4px */
+  30% { transform: translateY(-4px); }
 }
 
 /* Input Area */
 .fchat-input-area {
   display: flex;
-  gap: 2%;               /* was: 8px */
-  padding: 3%;           /* was: 12px */
+  gap: 8px;
+  padding: 12px;
   background: #1a1a2e;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -446,10 +446,10 @@
   flex: 1;
   background: #0f0f1a;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 1.39vw; /* was: 20px */
-  padding: 2.5% 4%;      /* was: 10px 16px */
+  border-radius: 20px;
+  padding: 10px 16px;
   color: white;
-  font-size: 0.9vw;      /* was: 13px */
+  font-size: 13px;
   outline: none;
   transition: border-color 0.2s ease;
 }
@@ -463,8 +463,8 @@
 }
 
 .fchat-send-btn {
-  width: 2.78vw;         /* was: 40px */
-  height: 2.78vw;        /* was: 40px */
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   border: none;
@@ -489,15 +489,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2%;               /* was: 8px */
+  gap: 8px;
   color: #9ca3af;
-  font-size: 0.9vw;      /* was: 13px */
+  font-size: 13px;
   width: 100%;
 }
 
 .fchat-connecting .spinner {
-  width: 1.11vw;         /* was: 16px */
-  height: 1.11vw;        /* was: 16px */
+  width: 16px;
+  height: 16px;
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-top-color: #6366f1;
   border-radius: 50%;
@@ -513,8 +513,8 @@
   background: transparent;
   border: none;
   color: #ef4444;
-  font-size: 0.83vw;     /* was: 12px */
-  padding: 2%;           /* was: 8px */
+  font-size: 12px;
+  padding: 8px;
   cursor: pointer;
   transition: opacity 0.2s ease;
 }
@@ -531,26 +531,26 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 6%;           /* was: 24px */
+  padding: 24px;
   text-align: center;
 }
 
 .fchat-rating h4 {
   color: white;
-  font-size: 1.11vw;     /* was: 16px */
-  margin: 0 0 2% 0;      /* was: 0 0 8px 0 */
+  font-size: 16px;
+  margin: 0 0 8px 0;
 }
 
 .fchat-rating p {
   color: #9ca3af;
-  font-size: 0.9vw;      /* was: 13px */
-  margin: 0 0 4% 0;      /* was: 0 0 16px 0 */
+  font-size: 13px;
+  margin: 0 0 16px 0;
 }
 
 .fchat-stars {
   display: flex;
-  gap: 2%;               /* was: 8px */
-  margin-bottom: 4%;     /* was: 16px */
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 .fchat-stars .star-btn {
@@ -571,13 +571,13 @@
   width: 100%;
   background: #1e1e32;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.56vw; /* was: 8px */
-  padding: 2.5%;         /* was: 10px */
+  border-radius: 8px;
+  padding: 10px;
   color: white;
-  font-size: 0.83vw;     /* was: 12px */
+  font-size: 12px;
   resize: none;
   outline: none;
-  margin-bottom: 4%;     /* was: 16px */
+  margin-bottom: 16px;
 }
 
 .fchat-rating textarea:focus {
@@ -590,16 +590,16 @@
 
 .fchat-rating-btns {
   display: flex;
-  gap: 3%;               /* was: 12px */
+  gap: 12px;
 }
 
 .fchat-rating-btns .submit-btn {
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
   border: none;
-  padding: 2.5% 6%;      /* was: 10px 24px */
-  border-radius: 1.39vw; /* was: 20px */
-  font-size: 0.9vw;      /* was: 13px */
+  padding: 10px 24px;
+  border-radius: 20px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -614,9 +614,9 @@
   background: transparent;
   color: #9ca3af;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 2.5% 6%;      /* was: 10px 24px */
-  border-radius: 1.39vw; /* was: 20px */
-  font-size: 0.9vw;      /* was: 13px */
+  padding: 10px 24px;
+  border-radius: 20px;
+  font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -634,7 +634,7 @@
 
 .fchat-rating-success h4 {
   color: white;
-  margin: 4% 0 2% 0;     /* was: 16px 0 8px 0 */
+  margin: 16px 0 8px 0;
 }
 
 .fchat-rating-success p {
@@ -654,130 +654,7 @@
   }
 
   .floating-chat-btn {
-    bottom: 31.25vw;     /* was: 150px  (150/480*100) */
-    right: 3.33vw;       /* was: 16px   (16/480*100) */
-    width: 11.67vw;      /* was: 56px   (56/480*100) */
-    height: 11.67vw;     /* was: 56px   (56/480*100) */
-  }
-
-  .fchat-avatar {
-    width: 7.5vw;        /* was: 36px   (36/480*100) */
-    height: 7.5vw;       /* was: 36px   (36/480*100) */
-    font-size: 2.92vw;   /* was: 14px   (14/480*100) */
-  }
-
-  .fchat-title {
-    font-size: 2.92vw;   /* was: 14px */
-  }
-
-  .fchat-status {
-    font-size: 2.29vw;   /* was: 11px */
-  }
-
-  .fchat-close-btn {
-    width: 6.67vw;       /* was: 32px */
-    height: 6.67vw;      /* was: 32px */
-  }
-
-  .fchat-welcome-icon {
-    width: 16.67vw;      /* was: 80px */
-    height: 16.67vw;     /* was: 80px */
-  }
-
-  .fchat-welcome h3 {
-    font-size: 3.75vw;   /* was: 18px */
-  }
-
-  .fchat-welcome p,
-  .fchat-login-prompt p {
-    font-size: 2.71vw;   /* was: 13px */
-  }
-
-  .fchat-start-btn,
-  .fchat-login-btn {
-    font-size: 2.92vw;   /* was: 14px / 13px */
-    border-radius: 5.21vw; /* was: 25px */
-  }
-
-  .fchat-social-links span {
-    font-size: 2.5vw;    /* was: 12px */
-  }
-
-  .fchat-social-btns a {
-    width: 8.33vw;       /* was: 40px */
-    height: 8.33vw;      /* was: 40px */
-  }
-
-  .fchat-msg-avatar {
-    width: 5.83vw;       /* was: 28px */
-    height: 5.83vw;      /* was: 28px */
-    font-size: 2.29vw;   /* was: 11px */
-  }
-
-  .fchat-msg-bubble {
-    font-size: 2.71vw;   /* was: 13px */
-    border-radius: 3.33vw; /* was: 16px */
-  }
-
-  .fchat-msg-system .fchat-msg-bubble {
-    font-size: 2.5vw;    /* was: 12px */
-  }
-
-  .fchat-msg-time {
-    font-size: 2.08vw;   /* was: 10px */
-  }
-
-  .fchat-input-area input {
-    font-size: 2.71vw;   /* was: 13px */
-    border-radius: 4.17vw; /* was: 20px */
-  }
-
-  .fchat-send-btn {
-    width: 8.33vw;       /* was: 40px */
-    height: 8.33vw;      /* was: 40px */
-  }
-
-  .fchat-connecting {
-    font-size: 2.71vw;   /* was: 13px */
-  }
-
-  .fchat-connecting .spinner {
-    width: 3.33vw;       /* was: 16px */
-    height: 3.33vw;      /* was: 16px */
-  }
-
-  .fchat-end-btn {
-    font-size: 2.5vw;    /* was: 12px */
-  }
-
-  .fchat-rating h4 {
-    font-size: 3.33vw;   /* was: 16px */
-  }
-
-  .fchat-rating p {
-    font-size: 2.71vw;   /* was: 13px */
-  }
-
-  .fchat-rating textarea {
-    font-size: 2.5vw;    /* was: 12px */
-    border-radius: 1.67vw; /* was: 8px */
-  }
-
-  .fchat-rating-btns .submit-btn,
-  .fchat-rating-btns .skip-btn {
-    font-size: 2.71vw;   /* was: 13px */
-    border-radius: 4.17vw; /* was: 20px */
-  }
-
-  .fchat-chat-label {
-    font-size: 2.08vw;   /* was: 10px */
-    border-radius: 1.67vw; /* was: 8px */
-  }
-
-  .fchat-unread-badge {
-    font-size: 2.29vw;   /* was: 11px */
-    min-width: 4.17vw;   /* was: 20px */
-    height: 4.17vw;      /* was: 20px */
-    border-radius: 2.08vw; /* was: 10px */
+    bottom: 150px;
+    right: 16px;
   }
 }
