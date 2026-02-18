@@ -1,0 +1,35 @@
+# API Rewrites - Bonuses (must come before catch-all)
+/api/bonuses/*  https://accounts.team33.mx/api/admin/bonuses/:splat  200
+/api/bonuses  https://accounts.team33.mx/api/admin/bonuses  200
+
+# API Rewrites - Accounts Service
+/api/accounts/*  https://accounts.team33.mx/api/accounts/:splat  200
+/api/accounts  https://accounts.team33.mx/api/accounts  200
+
+/api/otp/*  https://accounts.team33.mx/api/otp/:splat  200
+
+/api/deposits/*  https://accounts.team33.mx/api/deposits/:splat  200
+/api/deposits  https://accounts.team33.mx/api/deposits  200
+
+/api/withdrawals/*  https://accounts.team33.mx/api/withdrawals/:splat  200
+/api/withdrawals  https://accounts.team33.mx/api/withdrawals  200
+
+/api/banks/*  https://accounts.team33.mx/api/banks/:splat  200
+/api/banks  https://accounts.team33.mx/api/banks  200
+
+/api/wallets/*  https://accounts.team33.mx/api/wallets/:splat  200
+/api/wallets  https://accounts.team33.mx/api/wallets  200
+
+/api/chat/*  https://accounts.team33.mx/api/chat/:splat  200
+/api/chat  https://accounts.team33.mx/api/chat  200
+
+# Games API
+/api/games/clotplay  https://accounts.team33.mx/api/games/clotplay  200
+/api/games/*  https://api.team33.mx/api/games/:splat  200
+/api/games  https://api.team33.mx/api/games  200
+
+# Keycloak Auth
+/auth/keycloak/*  https://k8s-team33-keycloak-320152ed2f-65380cdab2265c8a.elb.ap-southeast-2.amazonaws.com/:splat  200
+
+# SPA catch-all (must be last)
+/*  /index.html  200
