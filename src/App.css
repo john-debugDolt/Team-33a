@@ -4978,6 +4978,265 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
   box-shadow: 0 0 25px rgba(167, 139, 250, 0.4);
 }
 
+/* Disabled withdraw button */
+.quick-action-btn.disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  position: relative;
+}
+
+.quick-action-btn.disabled:hover {
+  transform: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.quick-action-btn.disabled .action-icon.withdraw {
+  background: linear-gradient(135deg, rgba(156, 163, 175, 0.25), rgba(107, 114, 128, 0.15));
+  color: #9ca3af;
+  border-color: rgba(156, 163, 175, 0.3);
+  box-shadow: none;
+}
+
+.action-lock-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+}
+
+/* ================================
+   WALLET INFO CARDS
+   ================================ */
+
+.wallet-info-cards {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.wallet-info-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(145deg, rgba(30, 40, 30, 0.8), rgba(20, 28, 20, 0.9));
+  border: 1px solid rgba(74, 222, 128, 0.15);
+  border-radius: 14px;
+  padding: 14px 16px;
+  transition: all 0.3s ease;
+}
+
+.wallet-info-card:hover {
+  border-color: rgba(74, 222, 128, 0.3);
+  background: linear-gradient(145deg, rgba(35, 45, 35, 0.85), rgba(25, 33, 25, 0.95));
+}
+
+.wallet-info-card.loading {
+  justify-content: center;
+  gap: 8px;
+}
+
+.info-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.wallet-info-card.minimum-card .info-card-icon {
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.25), rgba(59, 130, 246, 0.15));
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+.wallet-info-card.turnover-card .info-card-icon {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(245, 158, 11, 0.15));
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.wallet-info-card.turnover-card.complete .info-card-icon,
+.wallet-info-card.turnover-card.none .info-card-icon {
+  background: linear-gradient(135deg, rgba(74, 222, 128, 0.25), rgba(34, 197, 94, 0.15));
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.info-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.info-card-label {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-card-value {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.info-card-value.complete {
+  color: #4ade80;
+}
+
+/* Turnover Progress Bar */
+.turnover-progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.turnover-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.turnover-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #fbbf24, #f59e0b, #fbbf24);
+  background-size: 200% 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+  animation: progressShimmer 2s linear infinite;
+  position: relative;
+}
+
+.turnover-progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  background: #fff;
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+}
+
+@keyframes progressShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.turnover-progress-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.turnover-progress-text .progress-amount {
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.turnover-progress-text .progress-separator {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.turnover-progress-text .progress-total {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.turnover-progress-text .progress-percent {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+/* Turnover Warning Banner */
+.turnover-warning-banner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.1));
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-top: 16px;
+}
+
+.turnover-warning-banner .warning-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(220, 38, 38, 0.2));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ef4444;
+  flex-shrink: 0;
+}
+
+.turnover-warning-banner .warning-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.turnover-warning-banner .warning-title {
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.turnover-warning-banner .warning-text {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+}
+
+.turnover-warning-banner .warning-action-btn {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.turnover-warning-banner .warning-action-btn:hover {
+  background: linear-gradient(135deg, #f87171, #ef4444);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+}
+
 /* Wallet Grid Layout */
 .wallet-grid {
   display: grid;
@@ -6272,6 +6531,80 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
   .action-icon {
     width: 44px;
     height: 44px;
+  }
+
+  /* Wallet Info Cards - Mobile */
+  .wallet-info-cards {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .wallet-info-card {
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+
+  .info-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+  }
+
+  .info-card-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .info-card-label {
+    font-size: 10px;
+  }
+
+  .info-card-value {
+    font-size: 14px;
+  }
+
+  .turnover-progress-bar {
+    height: 6px;
+  }
+
+  .turnover-progress-text {
+    font-size: 11px;
+  }
+
+  /* Turnover Warning Banner - Mobile */
+  .turnover-warning-banner {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    margin-top: 14px;
+  }
+
+  .turnover-warning-banner .warning-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+
+  .turnover-warning-banner .warning-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .turnover-warning-banner .warning-title {
+    font-size: 12px;
+  }
+
+  .turnover-warning-banner .warning-text {
+    font-size: 12px;
+  }
+
+  .turnover-warning-banner .warning-action-btn {
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    margin-top: 4px;
   }
 
   .checkin-grid {
