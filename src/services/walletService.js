@@ -274,13 +274,17 @@ class WalletService {
   }
 
   /**
-   * Get all transactions (deposits + withdrawals)
+   * Get all transactions (deposits + withdrawals + bonus claims)
    */
   async getTransactions(accountId) {
     try {
-      const [depositsResult, withdrawalsResult] = await Promise.all([
+      // Import bonusService dynamically to avoid circular dependency
+      const { default: bonusService } = await import('./bonusService');
+
+      const [depositsResult, withdrawalsResult, bonusClaimsResult] = await Promise.all([
         this.getDeposits(accountId),
         this.getWithdrawals(accountId),
+        bonusService.getUserClaims(accountId),
       ]);
 
       const deposits = (depositsResult.deposits || []).map(d => ({
@@ -289,6 +293,7 @@ class WalletService {
         amount: d.amount,
         status: d.status?.toLowerCase(),
         createdAt: d.createdAt,
+        description: 'Deposit',
       }));
 
       const withdrawals = (withdrawalsResult.withdrawals || []).map(w => ({
@@ -297,9 +302,23 @@ class WalletService {
         amount: w.amount,
         status: w.status?.toLowerCase(),
         createdAt: w.createdAt,
+        description: 'Withdrawal',
       }));
 
-      const transactions = [...deposits, ...withdrawals]
+      // Map bonus claims to transaction format
+      const bonuses = (bonusClaimsResult || []).map(b => ({
+        id: b.claimId || b.id,
+        type: 'bonus',
+        amount: b.bonusAmount || b.amount || 0,
+        status: this.mapBonusStatus(b.status),
+        createdAt: b.claimedAt || b.createdAt,
+        description: b.bonusName || b.displayName || 'Bonus',
+        bonusCode: b.bonusCode,
+        turnoverRequired: b.turnoverRequired,
+        turnoverCompleted: b.turnoverCompleted,
+      }));
+
+      const transactions = [...deposits, ...withdrawals, ...bonuses]
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       return { success: true, transactions };
@@ -307,6 +326,24 @@ class WalletService {
       console.error('[WalletService] Get transactions error:', error);
       return { success: false, error: 'Failed to fetch transactions', transactions: [] };
     }
+  }
+
+  /**
+   * Map bonus claim status to display status
+   */
+  mapBonusStatus(status) {
+    const statusMap = {
+      'CLAIMED': 'completed',
+      'CREDITED': 'completed',
+      'ACTIVE': 'pending',
+      'COMPLETING': 'pending',
+      'COMPLETED': 'completed',
+      'PENDING': 'pending',
+      'EXPIRED': 'failed',
+      'FORFEITED': 'failed',
+      'CANCELLED': 'failed',
+    };
+    return statusMap[status] || status?.toLowerCase() || 'pending';
   }
 
   /**
