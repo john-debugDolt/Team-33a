@@ -203,34 +203,61 @@ class BonusService {
   }
 
   /**
-   * Claim a direct credit bonus
+   * Claim a FREE bonus (minDeposit = 0)
    * POST /api/bonuses/claim
-   * For bonuses that can be claimed directly without deposit
+   * Credits bonus amount directly to user's wallet
+   *
+   * @param {string} accountId - User's account ID
+   * @param {number} bonusId - Bonus ID (optional if bonusCode provided)
+   * @param {string} bonusCode - Bonus code (optional if bonusId provided)
    */
-  async claimBonus(bonusId, accountId) {
+  async claimFreeBonus(accountId, bonusId = null, bonusCode = null) {
     try {
-      const response = await apiClient.post('/api/bonuses/claim', {
-        bonusId,
-        accountId
+      const body = { accountId };
+
+      // Either bonusId or bonusCode is required
+      if (bonusId) body.bonusId = bonusId;
+      if (bonusCode) body.bonusCode = bonusCode;
+
+      const response = await fetch('https://accounts.team33.mx/api/bonuses/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
       });
 
-      if (response.success) {
+      const data = await response.json();
+
+      if (response.ok) {
         return {
           success: true,
-          message: response.data?.message || 'Bonus claimed successfully!',
-          data: response.data
+          bonusAmount: data.bonusAmount,
+          status: data.status,
+          claimId: data.id,
+          turnoverRequired: data.turnoverRequired,
+          data
         };
+      }
+
+      // Handle specific error cases
+      if (data.message?.includes('Already claimed')) {
+        return { success: false, error: 'You have already claimed this bonus' };
+      }
+      if (data.message?.includes('requires deposit')) {
+        return { success: false, error: 'This bonus requires a deposit' };
+      }
+      if (data.message?.includes('not available')) {
+        return { success: false, error: 'This bonus is no longer available' };
       }
 
       return {
         success: false,
-        message: response.message || response.error || 'Failed to claim bonus'
+        error: data.message || 'Failed to claim bonus'
       };
     } catch (error) {
-      console.error('[BonusService] Error claiming bonus:', error);
+      console.error('[BonusService] Error claiming free bonus:', error);
       return {
         success: false,
-        message: error.message || 'Network error while claiming bonus'
+        error: 'Network error. Please try again.'
       };
     }
   }

@@ -9,46 +9,17 @@ import AuthPrompt from '../components/AuthPrompt/AuthPrompt'
 import DepositModal from '../components/DepositModal/DepositModal'
 import WithdrawModal from '../components/WithdrawModal/WithdrawModal'
 
-const checkInDays = [
-  { day: 1, reward: 10 },
-  { day: 2, reward: 20 },
-  { day: 3, reward: 30 },
-  { day: 4, reward: 50 },
-  { day: 5, reward: 75 },
-  { day: 6, reward: 100 },
-  { day: 7, reward: 200 },
-]
-
-// Calculate time until next check-in (midnight)
-const getTimeUntilMidnight = () => {
-  const now = new Date()
-  const midnight = new Date(now)
-  midnight.setHours(24, 0, 0, 0)
-  const diff = midnight - now
-  const hours = Math.floor(diff / (1000 * 60 * 60))
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-  return { hours, minutes, total: diff }
-}
 
 export default function Wallet() {
   const { user, isAuthenticated, updateBalance } = useAuth()
   const { showToast } = useToast()
   const { t } = useTranslation()
 
-  const [checkInLoading, setCheckInLoading] = useState(false)
   const [showDepositModal, setShowDepositModal] = useState(false)
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
   const [commissionEarnings, setCommissionEarnings] = useState([])
   const [pendingCommissionTotal, setPendingCommissionTotal] = useState(0)
   const [commissionLoading, setCommissionLoading] = useState(false)
-  const [checkInStatus, setCheckInStatus] = useState({
-    currentDay: 1,
-    checkedDays: [],
-    canCheckIn: true,
-    currentStreak: 0,
-    nextReward: 10,
-  })
-  const [timeUntilReset, setTimeUntilReset] = useState(getTimeUntilMidnight())
 
   // Load wallet data
   const loadWalletData = useCallback(async () => {
@@ -60,26 +31,6 @@ export default function Wallet() {
       if (balanceResult.success && balanceResult.balance !== undefined) {
         updateBalance(balanceResult.balance)
       }
-    }
-
-    // Load check-in status
-    try {
-      if (typeof walletService.getCheckInStatus === 'function') {
-        const checkInResult = await walletService.getCheckInStatus(user?.accountId)
-        if (checkInResult?.success && checkInResult.data) {
-          const data = checkInResult.data
-          setCheckInStatus({
-            currentDay: data.currentDay || 1,
-            checkedDays: data.checkedDays || [],
-            canCheckIn: data.canCheckIn ?? !data.isCheckedToday,
-            currentStreak: data.currentStreak || 0,
-            nextReward: data.nextReward || checkInDays[0].reward,
-            lastCheckIn: data.lastCheckIn,
-          })
-        }
-      }
-    } catch (err) {
-      console.error('[Wallet] Check-in status error:', err)
     }
 
     // Load commission earnings
@@ -111,56 +62,6 @@ export default function Wallet() {
     loadWalletData()
   }, [loadWalletData])
 
-  // Update countdown timer every minute
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const newTime = getTimeUntilMidnight()
-      setTimeUntilReset(newTime)
-
-      // If we've passed midnight, reload check-in status
-      if (newTime.total <= 0) {
-        loadWalletData()
-      }
-    }, 60000) // Update every minute
-
-    return () => clearInterval(timer)
-  }, [loadWalletData])
-
-  const handleCheckIn = async () => {
-    if (!checkInStatus.canCheckIn || checkInLoading) return
-
-    setCheckInLoading(true)
-    const result = await walletService.checkIn(user?.accountId)
-
-    if (result.success) {
-      showToast(result.message || `Claimed $${result.data?.reward || checkInStatus.nextReward} bonus!`, 'success')
-
-      // Update check-in status
-      setCheckInStatus(prev => ({
-        ...prev,
-        checkedDays: result.data?.checkedDays || [...prev.checkedDays, prev.currentDay],
-        currentDay: (prev.currentDay % 7) + 1,
-        currentStreak: result.data?.currentStreak || prev.currentStreak + 1,
-        canCheckIn: false,
-        nextReward: checkInDays[result.data?.currentStreak || 0]?.reward || checkInDays[0].reward,
-      }))
-
-      // Update user balance in context
-      if (updateBalance && result.data?.balance) {
-        updateBalance(result.data.balance)
-      }
-
-      // Refresh transactions to show the bonus
-      const txResult = await walletService.getTransactions({ limit: 5 })
-      if (txResult.success) {
-        setTransactions(txResult.data.transactions || [])
-      }
-    } else {
-      showToast(result.message || 'Check-in failed', 'error')
-    }
-
-    setCheckInLoading(false)
-  }
 
   // Show auth prompt if not logged in
   if (!isAuthenticated) {
@@ -268,82 +169,25 @@ export default function Wallet() {
       <div className="wallet-grid">
         {/* Left Column */}
         <div className="wallet-column">
-          {/* Daily Check-in Card */}
-          <div className="modern-card checkin-card">
-            <div className="card-header">
-              <div className="card-title">
-                <div className="title-icon checkin">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3>{t('dailyRewards')}</h3>
-                  <p className="card-subtitle">{t('claimBonus')}</p>
-                </div>
+          {/* Promotions Banner */}
+          <Link to="/promotions" className="promo-banner-card">
+            <div className="promo-banner-bg"></div>
+            <div className="promo-banner-content">
+              <div className="promo-banner-icon">
+                <span>🎁</span>
               </div>
-              <div className="streak-badge">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2L9.1 9.1 2 12l7.1 2.9L12 22l2.9-7.1L22 12l-7.1-2.9z"/>
+              <div className="promo-banner-text">
+                <h3>{t('exclusiveBonuses') || 'Exclusive Bonuses'}</h3>
+                <p>{t('claimYourRewards') || 'Claim amazing rewards & promo codes!'}</p>
+              </div>
+              <div className="promo-banner-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
                 </svg>
-                <span>{checkInStatus.checkedDays?.length || checkInStatus.currentStreak || 0} {t('days')}</span>
               </div>
             </div>
-
-            <div className="checkin-grid">
-              {checkInDays.map((dayInfo) => {
-                const isChecked = checkInStatus.checkedDays?.includes(dayInfo.day) || false
-                const isToday = dayInfo.day === checkInStatus.currentDay
-                const isFuture = dayInfo.day > checkInStatus.currentDay
-                const canClaim = isToday && checkInStatus.canCheckIn && !checkInLoading
-
-                return (
-                  <div
-                    key={dayInfo.day}
-                    className={`checkin-box ${isChecked ? 'checked' : ''} ${isToday ? 'today' : ''} ${isFuture ? 'future' : ''} ${canClaim ? 'claimable' : ''}`}
-                    onClick={canClaim ? handleCheckIn : undefined}
-                    role={canClaim ? 'button' : undefined}
-                    tabIndex={canClaim ? 0 : undefined}
-                    onKeyDown={canClaim ? (e) => e.key === 'Enter' && handleCheckIn() : undefined}
-                  >
-                    <div className="box-content">
-                      {checkInLoading && isToday ? (
-                        <div className="box-spinner">
-                          <ButtonSpinner />
-                        </div>
-                      ) : isChecked ? (
-                        <div className="checked-icon">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                            <polyline points="20 6 9 17 4 12"/>
-                          </svg>
-                        </div>
-                      ) : (
-                        <div className="gift-icon">
-                          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                            <path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
-                          </svg>
-                        </div>
-                      )}
-                      <span className="day-label">{t('dayReward', { day: dayInfo.day })}</span>
-                      <span className="reward-amount">+${dayInfo.reward}</span>
-                      {canClaim && <span className="tap-hint">{t('claimNow')}</span>}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* Countdown to next check-in */}
-            {!checkInStatus.canCheckIn && (
-              <div className="checkin-countdown">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10"/>
-                  <polyline points="12 6 12 12 16 14"/>
-                </svg>
-                <span>{timeUntilReset.hours}{t('hours')} {timeUntilReset.minutes}{t('minutes')}</span>
-              </div>
-            )}
-          </div>
+            <div className="promo-banner-shine"></div>
+          </Link>
 
 
           {/* Commission Earnings Card */}

@@ -5453,6 +5453,116 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
   color: var(--secondary-light);
 }
 
+/* Promotions Banner Card */
+.promo-banner-card {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+  border-radius: 16px;
+  padding: 20px 24px;
+  text-decoration: none;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.promo-banner-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4);
+}
+
+.promo-banner-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+.promo-banner-content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 1;
+}
+
+.promo-banner-icon {
+  width: 56px;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.promo-banner-icon span {
+  font-size: 28px;
+}
+
+.promo-banner-text {
+  flex: 1;
+}
+
+.promo-banner-text h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 4px;
+}
+
+.promo-banner-text p {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+}
+
+.promo-banner-arrow {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.promo-banner-card:hover .promo-banner-arrow {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateX(4px);
+}
+
+.promo-banner-shine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  animation: promoBannerShine 3s infinite;
+  pointer-events: none;
+}
+
+@keyframes promoBannerShine {
+  0% { left: -100%; }
+  50%, 100% { left: 100%; }
+}
+
 /* Commission Earnings Card */
 .commission-card {
   background: linear-gradient(145deg, var(--bg-card) 0%, rgba(26, 92, 74, 0.08) 100%);
@@ -7143,6 +7253,35 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 
   .payment-form {
     padding: 3.5%;
+  }
+
+  /* Promo Banner - compact */
+  .promo-banner-card {
+    padding: 16px 18px;
+    border-radius: 14px;
+  }
+
+  .promo-banner-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+
+  .promo-banner-icon span {
+    font-size: 24px;
+  }
+
+  .promo-banner-text h3 {
+    font-size: 16px;
+  }
+
+  .promo-banner-text p {
+    font-size: 12px;
+  }
+
+  .promo-banner-arrow {
+    width: 36px;
+    height: 36px;
   }
 
   /* Auth pages - compact */
