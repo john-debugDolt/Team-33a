@@ -1,7 +1,7 @@
 .promo-detail {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 1.39%;
 }
 
 .promo-detail-image {
@@ -19,12 +19,12 @@
 
 .promo-category {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  padding: 6px 12px;
+  top: 0.83%;
+  right: 0.83%;
+  padding: 0.42% 0.83%;
   background: linear-gradient(135deg, var(--accent-gold), var(--accent-coral));
-  border-radius: 4px;
-  font-size: 11px;
+  border-radius: 0.28vw;
+  font-size: 0.76vw;
   font-weight: 700;
   text-transform: uppercase;
   color: #0a0d0a;
@@ -33,18 +33,18 @@
 .promo-detail-content {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 1.11%;
 }
 
 .promo-title {
-  font-size: 24px;
+  font-size: 1.67vw;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
 }
 
 .promo-subtitle {
-  font-size: 16px;
+  font-size: 1.11vw;
   color: var(--text-secondary);
   margin: 0;
 }
@@ -52,8 +52,8 @@
 .promo-meta {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  padding: 16px;
+  gap: 0.83%;
+  padding: 1.11%;
   background: #0f1410;
   border-radius: var(--radius-md);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -63,83 +63,83 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 0.28%;
   text-align: center;
 }
 
 .meta-label {
-  font-size: 11px;
+  font-size: 0.76vw;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .meta-value {
-  font-size: 16px;
+  font-size: 1.11vw;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .meta-value.highlight {
   color: var(--accent-gold);
-  font-size: 20px;
+  font-size: 1.39vw;
 }
 
 .promo-validity {
-  font-size: 13px;
+  font-size: 0.9vw;
   color: var(--text-muted);
   text-align: center;
-  padding: 8px;
+  padding: 0.56%;
   background: #0f1410;
   border-radius: var(--radius-sm);
 }
 
 .promo-description {
-  font-size: 14px;
+  font-size: 0.97vw;
   color: var(--text-secondary);
   line-height: 1.7;
 }
 
 .promo-description h4 {
   color: var(--text-primary);
-  font-size: 15px;
-  margin: 16px 0 8px;
+  font-size: 1.04vw;
+  margin: 1.11% 0 0.56%;
 }
 
 .promo-description ul {
-  margin: 8px 0;
-  padding-left: 20px;
+  margin: 0.56% 0;
+  padding-left: 1.39%;
 }
 
 .promo-description li {
-  margin-bottom: 6px;
+  margin-bottom: 0.42%;
 }
 
 .promo-terms {
-  padding: 16px;
+  padding: 1.11%;
   background: #0a0d0a;
   border-radius: var(--radius-md);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .promo-terms h3 {
-  font-size: 13px;
+  font-size: 0.9vw;
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 12px;
+  margin-bottom: 0.83%;
 }
 
 .promo-terms ul {
   margin: 0;
-  padding-left: 16px;
+  padding-left: 1.11%;
 }
 
 .promo-terms li {
-  font-size: 13px;
+  font-size: 0.9vw;
   color: var(--text-muted);
-  margin-bottom: 6px;
+  margin-bottom: 0.42%;
   line-height: 1.5;
 }
 
@@ -149,21 +149,21 @@
 
 .btn-claim {
   width: 100%;
-  padding: 16px 24px;
+  padding: 1.11% 1.67%;
   background: linear-gradient(135deg, var(--accent-gold), var(--accent-coral));
   border: none;
   border-radius: var(--radius-md);
   color: #0a0d0a;
-  font-size: 16px;
+  font-size: 1.11vw;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  margin-top: 8px;
+  margin-top: 0.56%;
 }
 
 .btn-claim:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+  box-shadow: 0 0.28vw 0.83vw rgba(245, 158, 11, 0.4);
 }
 
 @media (max-width: 768px) {
@@ -172,10 +172,10 @@
   }
 
   .promo-title {
-    font-size: 20px;
+    font-size: 2.6vw;
   }
 
   .meta-value.highlight {
-    font-size: 18px;
+    font-size: 2.34vw;
   }
 }

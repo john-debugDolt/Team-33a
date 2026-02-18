@@ -212,8 +212,8 @@ body::before {
 
 @media (max-width: 768px) {
   .app::after {
-    bottom: 56px; /* Above bottom nav */
-    height: 60px;
+    bottom: 11.67vw; /* Above bottom nav */
+    height: 12.5vw;
   }
 }
 
@@ -2422,7 +2422,7 @@ body::before {
 
 @media (max-width: 768px) {
   :root {
-    --section-padding: 16px;
+    --section-padding: 2%;
   }
 
   /* Hide promo banner on mobile */
@@ -2432,7 +2432,7 @@ body::before {
 
   .header {
     top: 0;
-    height: calc(56px + var(--safe-area-top));
+    height: calc(11.67vw + var(--safe-area-top));
     padding-top: var(--safe-area-top);
     background: linear-gradient(180deg,
       var(--emerald-800) 0%,
@@ -2448,19 +2448,19 @@ body::before {
   }
 
   .header-content {
-    padding: 0 12px;
-    padding-left: max(12px, var(--safe-area-left));
-    padding-right: max(12px, var(--safe-area-right));
+    padding: 0 2.5%;
+    padding-left: max(2.5%, var(--safe-area-left));
+    padding-right: max(2.5%, var(--safe-area-right));
   }
 
   .logo-img {
-    height: 36px;
+    height: 7.5vw;
   }
 
   /* Smaller brand text on mobile */
   .header-brand-text {
-    font-size: 24px;
-    letter-spacing: 1.5px;
+    font-size: 5vw;
+    letter-spacing: 0.3vw;
   }
 
   .header-brand-text::before {
@@ -2483,34 +2483,34 @@ body::before {
   }
 
   .app main {
-    padding-top: calc(56px + var(--safe-area-top) + 12px);
-    padding-bottom: calc(70px + var(--safe-area-bottom));
-    min-height: calc(100vh - 56px - 70px);
+    padding-top: calc(11.67vw + var(--safe-area-top) + 2.5%);
+    padding-bottom: calc(14.58vw + var(--safe-area-bottom));
+    min-height: calc(100vh - 11.67vw - 14.58vw);
   }
 
   .banner-carousel {
-    margin: 8px auto 12px;
+    margin: 1.67% auto 2.5%;
     padding-top: 0;
   }
 
   .banner-wrapper {
-    border-radius: 12px;
+    border-radius: 2.5vw;
   }
 
   .carousel-btn {
-    width: 40px;
-    height: 40px;
-    font-size: 14px;
-    border-radius: 10px;
+    width: 8.33vw;
+    height: 8.33vw;
+    font-size: 2.92vw;
+    border-radius: 2.08vw;
     opacity: 1;
   }
 
-  .carousel-btn.prev { left: 8px; }
-  .carousel-btn.next { right: 8px; }
+  .carousel-btn.prev { left: 1.67vw; }
+  .carousel-btn.next { right: 1.67vw; }
 
   .game-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    gap: 2.08%;
     padding: 0 var(--section-padding);
   }
 
@@ -2532,14 +2532,14 @@ body::before {
   }
 
   .game-name {
-    padding: 10px 8px;
-    font-size: 11px;
+    padding: 2% 1.67%;
+    font-size: 2.29vw;
     font-weight: 600;
   }
 
   .play-btn {
-    padding: 12px 18px;
-    font-size: 12px;
+    padding: 2.5% 3.75%;
+    font-size: 2.5vw;
     min-height: var(--touch-target-min);
     font-weight: 600;
   }
@@ -2555,15 +2555,15 @@ body::before {
   }
 
   .provider-filters {
-    padding: 12px var(--section-padding);
-    gap: 8px;
+    padding: 2.5% var(--section-padding);
+    gap: 1.67%;
     -webkit-overflow-scrolling: touch;
   }
 
   .provider-btn {
-    padding: 12px 18px;
-    font-size: 12px;
-    border-radius: 24px;
+    padding: 2.5% 3.75%;
+    font-size: 2.5vw;
+    border-radius: 5vw;
     min-height: var(--touch-target-min);
     font-weight: 600;
     white-space: nowrap;
@@ -2580,7 +2580,7 @@ body::before {
     background: transparent;
     border: none;
     outline: none;
-    border-radius: 12px;
+    border-radius: 2.5vw;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
@@ -2598,15 +2598,15 @@ body::before {
 
   .footer-content {
     grid-template-columns: 1fr 1fr;
-    gap: 32px;
+    gap: 4%;
   }
 
   .footer {
-    padding: 40px 16px 20px;
+    padding: 5% 2% 2.5%;
   }
 
   .footer-section h4 {
-    font-size: 13px;
+    font-size: 2.71vw;
   }
 }
 
@@ -2614,8 +2614,8 @@ body::before {
   /* Optimized game grid for phones */
   .game-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    padding: 0 12px;
+    gap: 2.08%;
+    padding: 0 2.5%;
   }
 
   .game-card:hover {
@@ -2623,12 +2623,12 @@ body::before {
   }
 
   .game-card {
-    border-radius: 12px;
+    border-radius: 2.5vw;
   }
 
   .game-name {
-    padding: 10px 8px;
-    font-size: 12px;
+    padding: 2% 1.67%;
+    font-size: 2.5vw;
     font-weight: 600;
   }
 
@@ -2640,125 +2640,125 @@ body::before {
   .play-btn {
     opacity: 1;
     transform: translateY(0);
-    padding: 10px 16px;
-    font-size: 12px;
-    min-height: 40px;
+    padding: 2% 3.33%;
+    font-size: 2.5vw;
+    min-height: 8.33vw;
     font-weight: 600;
   }
 
   .footer-content {
     grid-template-columns: 1fr;
-    gap: 24px;
+    gap: 5%;
   }
 
   .footer {
-    padding: 30px 16px;
-    padding-bottom: calc(80px + var(--safe-area-bottom));
+    padding: 6.25% 3.33%;
+    padding-bottom: calc(16.67vw + var(--safe-area-bottom));
   }
 
   .footer-section h4 {
-    font-size: 14px;
-    margin-bottom: 12px;
+    font-size: 2.92vw;
+    margin-bottom: 2.5%;
   }
 
   .footer-section a {
-    font-size: 13px;
-    padding: 6px 0;
+    font-size: 2.71vw;
+    padding: 1.25% 0;
   }
 
   .footer-badge-img {
-    height: 32px;
+    height: 6.67vw;
   }
 
   .footer-banks {
-    margin: 20px auto 0;
-    padding: 16px 0;
+    margin: 4% auto 0;
+    padding: 3.33% 0;
   }
 
   .footer-banks h4 {
-    font-size: 12px;
-    margin-bottom: 12px;
+    font-size: 2.5vw;
+    margin-bottom: 2.5%;
   }
 
   .bank-logos {
-    gap: 12px;
+    gap: 2.5%;
   }
 
   .bank-logo {
-    height: 24px;
+    height: 5vw;
   }
 
   .marquee {
-    padding: 12px 14px;
+    padding: 2.5% 2.92%;
   }
 
   .marquee::before,
   .marquee::after {
-    width: 20px;
+    width: 4.17vw;
   }
 
   .marquee-scroll {
-    font-size: 13px;
+    font-size: 2.71vw;
   }
 
   .marquee-icon {
-    font-size: 18px;
+    font-size: 3.75vw;
   }
 
   .banner-wrapper {
-    border-radius: 14px;
+    border-radius: 2.92vw;
   }
 
   .banner-carousel {
-    margin: 0 auto 10px;
+    margin: 0 auto 2.08%;
     padding-top: 0;
   }
 
   .carousel-btn {
-    width: 40px;
-    height: 40px;
+    width: 8.33vw;
+    height: 8.33vw;
   }
 
   .carousel-dots {
-    margin-top: 10px;
-    gap: 8px;
+    margin-top: 2%;
+    gap: 1.67%;
   }
 
   .dot {
-    width: 8px;
-    height: 8px;
-    min-width: 8px;
-    min-height: 8px;
+    width: 1.67vw;
+    height: 1.67vw;
+    min-width: 1.67vw;
+    min-height: 1.67vw;
   }
 
   .dot.active {
-    width: 22px;
+    width: 4.58vw;
   }
 
   .pagination {
-    margin: 20px auto;
-    padding-bottom: 20px;
-    gap: 8px;
+    margin: 4% auto;
+    padding-bottom: 4%;
+    gap: 1.67%;
   }
 
   .page-btn {
-    min-width: 40px;
-    min-height: 40px;
-    height: 40px;
-    font-size: 14px;
-    border-radius: 10px;
+    min-width: 8.33vw;
+    min-height: 8.33vw;
+    height: 8.33vw;
+    font-size: 2.92vw;
+    border-radius: 2.08vw;
   }
 
   .provider-filters {
-    gap: 8px;
-    padding: 12px 12px;
+    gap: 1.67%;
+    padding: 2.5% 2.5%;
   }
 
   .provider-btn {
-    padding: 10px 16px;
-    font-size: 12px;
-    min-height: 40px;
-    border-radius: 20px;
+    padding: 2% 3.33%;
+    font-size: 2.5vw;
+    min-height: 8.33vw;
+    border-radius: 4.17vw;
     font-weight: 600;
   }
 
@@ -2769,71 +2769,71 @@ body::before {
     left: 0 !important;
     right: 0 !important;
     transform: none !important;
-    padding: 6px var(--safe-area-left) 0 var(--safe-area-right);
-    padding-bottom: max(8px, var(--safe-area-bottom));
+    padding: 1.25% var(--safe-area-left) 0 var(--safe-area-right);
+    padding-bottom: max(1.67%, var(--safe-area-bottom));
   }
 
   .bottom-nav-item {
-    padding: 8px 4px;
-    gap: 4px;
+    padding: 1.67% 0.83%;
+    gap: 0.83%;
   }
 
   .bottom-nav-icon {
-    width: 22px;
-    height: 22px;
+    width: 4.58vw;
+    height: 4.58vw;
   }
 
   .bottom-nav-item span {
-    font-size: 10px;
+    font-size: 2.08vw;
     font-weight: 600;
   }
 
   /* Header - professional sizing */
   .header-brand-text {
-    font-size: 24px;
-    letter-spacing: 1.5px;
+    font-size: 5vw;
+    letter-spacing: 0.3vw;
   }
 
   .logo-img {
-    height: 36px;
+    height: 7.5vw;
   }
 
   .header {
-    height: calc(52px + var(--safe-area-top));
+    height: calc(10.83vw + var(--safe-area-top));
   }
 
   .header-content {
-    padding: 0 12px;
+    padding: 0 2.5%;
   }
 
   /* Games count label */
   .games-count {
-    font-size: 13px;
-    padding: 10px 12px;
+    font-size: 2.71vw;
+    padding: 2% 2.5%;
     font-weight: 600;
   }
 
   /* Hamburger - touch-friendly but compact */
   .hamburger-btn {
-    width: 44px;
-    height: 44px;
+    width: 9.17vw;
+    height: 9.17vw;
   }
 
   .hamburger-line {
-    width: 22px;
-    height: 2px;
+    width: 4.58vw;
+    height: 0.42vw;
   }
 
   /* Section titles */
   .section-title {
-    font-size: 18px;
-    padding: 0 12px;
+    font-size: 3.75vw;
+    padding: 0 2.5%;
   }
 
   /* User balance in header */
   .user-balance {
-    font-size: 13px;
-    padding: 8px 12px;
+    font-size: 2.71vw;
+    padding: 1.67% 2.5%;
   }
 }
 
@@ -3360,11 +3360,11 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 /* Auth Page Responsive */
 @media (max-width: 768px) {
   .auth-card {
-    padding: 36px 24px;
+    padding: 4.69% 3.13%;
   }
 
   .auth-header h1 {
-    font-size: 24px;
+    font-size: 5vw;
   }
 
   .form-row {
@@ -3378,27 +3378,27 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 
 @media (max-width: 480px) {
   .auth-page {
-    padding: 20px 16px;
+    padding: 4.17% 3.33%;
   }
 
   .auth-card {
-    padding: 28px 20px;
+    padding: 5.83% 4.17%;
     border-radius: var(--radius-lg);
   }
 
   .auth-header h1 {
-    font-size: 22px;
+    font-size: 4.58vw;
   }
 
   .form-options {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 2.5%;
   }
 
   .auth-btn {
-    padding: 14px 20px;
-    font-size: 14px;
+    padding: 2.92% 4.17%;
+    font-size: 2.92vw;
   }
 }
 
@@ -3579,42 +3579,42 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 /* Login Page Responsive */
 @media (max-width: 480px) {
   .login-page {
-    padding: 70px 20px 30px;
+    padding: 14.58% 4.17% 6.25%;
   }
 
   .login-back {
-    top: 16px;
-    left: 16px;
-    padding: 8px 14px;
-    font-size: 13px;
+    top: 3.33%;
+    left: 3.33%;
+    padding: 1.67% 2.92%;
+    font-size: 2.71vw;
   }
 
   .login-logo img {
-    width: 80px;
+    width: 16.67vw;
   }
 
   .login-logo h1 {
-    font-size: 38px;
+    font-size: 7.92vw;
   }
 
   .login-input {
-    padding: 16px 24px;
-    font-size: 15px;
+    padding: 3.33% 5%;
+    font-size: 3.13vw;
   }
 
   .login-btn {
-    padding: 16px 24px;
-    font-size: 16px;
+    padding: 3.33% 5%;
+    font-size: 3.33vw;
   }
 
   .login-links {
-    gap: 24px;
+    gap: 5%;
     flex-wrap: wrap;
     justify-content: center;
   }
 
   .login-links a {
-    font-size: 13px;
+    font-size: 2.71vw;
   }
 }
 
@@ -3831,36 +3831,36 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 /* Signup Page Responsive */
 @media (max-width: 480px) {
   .signup-page {
-    padding: 70px 20px 30px;
+    padding: 14.58% 4.17% 6.25%;
   }
 
   .signup-back {
-    top: 16px;
-    left: 16px;
-    padding: 8px 14px;
-    font-size: 13px;
+    top: 3.33%;
+    left: 3.33%;
+    padding: 1.67% 2.92%;
+    font-size: 2.71vw;
   }
 
   .signup-logo img {
-    width: 70px;
+    width: 14.58vw;
   }
 
   .signup-logo h1 {
-    font-size: 34px;
+    font-size: 7.08vw;
   }
 
   .signup-input {
-    padding: 14px 22px;
-    font-size: 14px;
+    padding: 2.92% 4.58%;
+    font-size: 2.92vw;
   }
 
   .signup-btn {
-    padding: 16px 24px;
-    font-size: 15px;
+    padding: 3.33% 5%;
+    font-size: 3.13vw;
   }
 
   .signup-terms span {
-    font-size: 13px;
+    font-size: 2.71vw;
   }
 }
 
@@ -4546,53 +4546,53 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 /* Wallet Page Responsive */
 @media (max-width: 768px) {
   .wallet-page {
-    padding: 16px;
-    gap: 16px;
+    padding: 2%;
+    gap: 2%;
   }
 
   .wallet-balance-card {
-    padding: 20px;
+    padding: 2.6%;
   }
 
   .balance-amount .currency {
-    font-size: 20px;
-    margin-top: 6px;
+    font-size: 4.17vw;
+    margin-top: 1.25%;
   }
 
   .balance-amount .amount {
-    font-size: 36px;
+    font-size: 7.5vw;
   }
 
   .balance-details {
-    gap: 24px;
+    gap: 3%;
   }
 
   .wallet-tabs {
-    gap: 8px;
+    gap: 1%;
   }
 
   .wallet-tab {
-    padding: 14px 16px;
-    font-size: 14px;
+    padding: 1.83% 2%;
+    font-size: 2.92vw;
   }
 
   .amount-input {
-    font-size: 24px;
-    padding: 18px 18px 18px 45px;
+    font-size: 5vw;
+    padding: 2.34% 2.34% 2.34% 5.86%;
   }
 
   .currency-prefix {
-    font-size: 20px;
-    left: 16px;
+    font-size: 4.17vw;
+    left: 2%;
   }
 
   .quick-amounts {
-    gap: 8px;
+    gap: 1%;
   }
 
   .quick-amount-btn {
-    padding: 10px 12px;
-    font-size: 13px;
+    padding: 1.3% 1.56%;
+    font-size: 2.71vw;
   }
 
   .payment-methods {
@@ -4600,47 +4600,47 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
   }
 
   .checkin-days {
-    gap: 6px;
+    gap: 0.78%;
   }
 
   .checkin-day {
-    padding: 12px 4px;
+    padding: 1.56% 0.52%;
   }
 
   .day-icon {
-    width: 28px;
-    height: 28px;
+    width: 5.83vw;
+    height: 5.83vw;
   }
 
   .day-icon svg {
-    width: 16px;
-    height: 16px;
+    width: 3.33vw;
+    height: 3.33vw;
   }
 
   .day-label {
-    font-size: 10px;
+    font-size: 2.08vw;
   }
 
   .day-reward {
-    font-size: 9px;
-    padding: 3px 6px;
+    font-size: 1.88vw;
+    padding: 0.39% 0.78%;
   }
 
   .check-mark {
-    width: 14px;
-    height: 14px;
+    width: 2.92vw;
+    height: 2.92vw;
   }
 
   .check-mark svg {
-    width: 8px;
-    height: 8px;
+    width: 1.67vw;
+    height: 1.67vw;
   }
 }
 
 @media (max-width: 480px) {
   .balance-details {
     flex-direction: column;
-    gap: 16px;
+    gap: 3.33%;
   }
 
   .wallet-tabs {
@@ -4653,61 +4653,61 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
   }
 
   .transaction-item {
-    padding: 12px;
-    gap: 12px;
+    padding: 2.5%;
+    gap: 2.5%;
   }
 
   .tx-icon {
-    width: 38px;
-    height: 38px;
+    width: 7.92vw;
+    height: 7.92vw;
   }
 
   .tx-type {
-    font-size: 14px;
+    font-size: 2.92vw;
   }
 
   .tx-amount {
-    font-size: 15px;
+    font-size: 3.13vw;
   }
 
   .checkin-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 8px;
+    gap: 1.67%;
   }
 
   .checkin-days {
     grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
+    gap: 0.83%;
   }
 
   .checkin-day {
-    padding: 8px 2px;
-    gap: 4px;
+    padding: 1.67% 0.42%;
+    gap: 0.83%;
   }
 
   .day-icon {
-    width: 24px;
-    height: 24px;
+    width: 5vw;
+    height: 5vw;
   }
 
   .day-icon svg {
-    width: 14px;
-    height: 14px;
+    width: 2.92vw;
+    height: 2.92vw;
   }
 
   .day-label {
-    font-size: 9px;
+    font-size: 1.88vw;
   }
 
   .day-reward {
-    font-size: 8px;
-    padding: 2px 4px;
+    font-size: 1.67vw;
+    padding: 0.42% 0.83%;
   }
 
   .checkin-btn {
-    padding: 14px 16px;
-    font-size: 14px;
+    padding: 2.92% 3.33%;
+    font-size: 2.92vw;
   }
 }
 
@@ -6016,7 +6016,7 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
   }
 
   .payment-form {
-    padding: 16px;
+    padding: 3.33%;
   }
 }
 
@@ -6120,96 +6120,96 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 
 @media (max-width: 768px) {
   .wallet-page-modern {
-    padding: 0 12px 32px;
+    padding: 0 1.56% 4.17%;
   }
 
   .wallet-hero {
-    padding: 24px 20px;
-    border-radius: 20px;
+    padding: 3.13% 2.6%;
+    border-radius: 4.17vw;
   }
 
   .balance-amount-large .balance-value {
-    font-size: 42px;
+    font-size: 8.75vw;
   }
 
   .balance-amount-large .currency-sign,
   .balance-amount-large .balance-cents {
-    font-size: 22px;
+    font-size: 4.58vw;
   }
 
   .balance-stats {
-    gap: 20px;
+    gap: 2.6%;
   }
 
   .stat-icon {
-    width: 40px;
-    height: 40px;
+    width: 8.33vw;
+    height: 8.33vw;
   }
 
   .stat-value {
-    font-size: 16px;
+    font-size: 3.33vw;
   }
 
   .quick-actions {
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 1.56%;
   }
 
   .quick-action-btn {
-    padding: 16px 12px;
+    padding: 2% 1.56%;
   }
 
   .action-icon {
-    width: 44px;
-    height: 44px;
+    width: 9.17vw;
+    height: 9.17vw;
   }
 
   .checkin-grid {
     grid-template-columns: repeat(7, 1fr);
-    gap: 6px;
+    gap: 0.78%;
   }
 
   .checkin-box {
-    padding: 10px 4px;
-    border-radius: 10px;
+    padding: 1.3% 0.52%;
+    border-radius: 2.08vw;
   }
 
   .gift-icon svg {
-    width: 22px;
-    height: 22px;
+    width: 4.58vw;
+    height: 4.58vw;
   }
 
   .checked-icon {
-    width: 26px;
-    height: 26px;
+    width: 5.42vw;
+    height: 5.42vw;
   }
 
   .checked-icon svg {
-    width: 14px;
-    height: 14px;
+    width: 2.92vw;
+    height: 2.92vw;
   }
 
   .checkin-box .day-label {
-    font-size: 9px;
+    font-size: 1.88vw;
   }
 
   .reward-amount {
-    font-size: 10px;
-    padding: 3px 5px;
+    font-size: 2.08vw;
+    padding: 0.39% 0.65%;
   }
 
   .payment-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    gap: 1.3%;
   }
 
   .payment-option {
-    padding: 16px 12px;
+    padding: 2% 1.56%;
   }
 
   .payment-icon {
-    width: 48px;
-    height: 48px;
+    width: 10vw;
+    height: 10vw;
   }
 }
 
@@ -6400,41 +6400,41 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
   }
 
   .claim-btn {
-    min-height: 60px;
-    font-size: 18px;
+    min-height: 12.5vw;
+    font-size: 3.75vw;
     font-weight: 700;
-    border-radius: 16px;
+    border-radius: 3.33vw;
   }
 
   .card-header h3 {
-    font-size: 20px;
+    font-size: 4.17vw;
     font-weight: 700;
   }
 
   .card-subtitle {
-    font-size: 15px;
+    font-size: 3.13vw;
   }
 
   .modern-card {
-    border-radius: 20px;
+    border-radius: 4.17vw;
   }
 
   .payment-grid {
-    gap: 14px;
+    gap: 2.92%;
   }
 
   .payment-option {
-    padding: 22px 16px;
-    border-radius: 16px;
+    padding: 4.58% 3.33%;
+    border-radius: 3.33vw;
   }
 
   .payment-icon {
-    width: 60px;
-    height: 60px;
+    width: 12.5vw;
+    height: 12.5vw;
   }
 
   .payment-name {
-    font-size: 14px;
+    font-size: 2.92vw;
   }
 }
 
@@ -6679,26 +6679,26 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 
 @media (max-width: 480px) {
   .auth-page {
-    padding: 70px 16px 30px;
+    padding: 14.58% 3.33% 6.25%;
   }
 
   .auth-back {
-    top: 16px;
-    left: 16px;
-    padding: 8px 14px;
-    font-size: 13px;
+    top: 3.33%;
+    left: 3.33%;
+    padding: 1.67% 2.92%;
+    font-size: 2.71vw;
   }
 
   .auth-container {
-    padding: 28px 24px;
+    padding: 5.83% 5%;
   }
 
   .auth-title {
-    font-size: 24px;
+    font-size: 5vw;
   }
 
   .auth-logo img {
-    height: 50px;
+    height: 10.42vw;
   }
 }
 
@@ -6713,30 +6713,30 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 
   /* Header - compact */
   .header {
-    height: 44px !important;
+    height: 9.17vw !important;
   }
 
   .header-content {
-    padding: 0 10px !important;
+    padding: 0 2.08% !important;
   }
 
   .header-brand-text {
-    font-size: 22px !important;
-    letter-spacing: 1px !important;
+    font-size: 4.58vw !important;
+    letter-spacing: 0.21vw !important;
   }
 
   .hamburger-btn {
-    width: 32px;
-    height: 32px;
+    width: 6.67vw;
+    height: 6.67vw;
   }
 
   .hamburger-line {
-    width: 16px;
-    height: 1.5px;
+    width: 3.33vw;
+    height: 0.31vw;
   }
 
   .logo-img {
-    height: 28px !important;
+    height: 5.83vw !important;
   }
 
   /* Bottom Navigation - professional compact sizing */
@@ -6752,202 +6752,202 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
   }
 
   .bottom-nav-item {
-    padding: 6px 4px;
-    gap: 3px;
+    padding: 1.25% 0.83%;
+    gap: 0.63%;
   }
 
   .bottom-nav-icon {
-    width: 20px;
-    height: 20px;
+    width: 4.17vw;
+    height: 4.17vw;
   }
 
   .bottom-nav-item span {
-    font-size: 9px;
+    font-size: 1.88vw;
     font-weight: 600;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.06vw;
   }
 
   /* Main content padding adjustment */
   .app main {
-    padding-top: 88px;
+    padding-top: 18.33vw;
   }
 
   .app::after {
-    bottom: 44px !important;
-    height: 40px !important;
+    bottom: 9.17vw !important;
+    height: 8.33vw !important;
   }
 
   /* Game Grid - properly sized for mobile */
   .game-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    padding: 0 12px;
+    gap: 2.08%;
+    padding: 0 2.5%;
   }
 
   .game-card {
-    border-radius: 10px;
+    border-radius: 2.08vw;
   }
 
   .game-name {
-    padding: 8px 6px;
-    font-size: 11px;
+    padding: 1.67% 1.25%;
+    font-size: 2.29vw;
     font-weight: 600;
   }
 
   .play-btn {
-    padding: 8px 12px;
-    font-size: 11px;
-    min-height: 36px;
+    padding: 1.67% 2.5%;
+    font-size: 2.29vw;
+    min-height: 7.5vw;
     font-weight: 600;
   }
 
   /* Banner Carousel - compact */
   .banner-carousel {
-    margin: 0 auto 8px;
+    margin: 0 auto 1.67%;
     padding-top: 0;
   }
 
   .banner-wrapper {
-    border-radius: 10px;
+    border-radius: 2.08vw;
   }
 
   .carousel-btn {
-    width: 32px;
-    height: 32px;
+    width: 6.67vw;
+    height: 6.67vw;
   }
 
   .carousel-dots {
-    margin-top: 8px;
-    gap: 6px;
+    margin-top: 1.67%;
+    gap: 1.25%;
   }
 
   .dot {
-    width: 8px;
-    height: 8px;
-    min-width: 8px;
-    min-height: 8px;
+    width: 1.67vw;
+    height: 1.67vw;
+    min-width: 1.67vw;
+    min-height: 1.67vw;
   }
 
   .dot.active {
-    width: 20px;
+    width: 4.17vw;
   }
 
   /* Marquee - compact */
   .marquee {
-    padding: 10px 12px;
+    padding: 2.08% 2.5%;
   }
 
   .marquee::before,
   .marquee::after {
-    width: 20px;
+    width: 4.17vw;
   }
 
   .marquee-scroll {
-    font-size: 12px;
+    font-size: 2.5vw;
   }
 
   .marquee-icon {
-    font-size: 14px;
+    font-size: 2.92vw;
   }
 
   /* Footer - reasonable size */
   .footer {
-    padding: 24px 16px;
+    padding: 5% 3.33%;
     padding-bottom: calc(80px + var(--safe-area-bottom));
   }
 
   .footer-content {
-    gap: 20px;
+    gap: 4%;
   }
 
   .footer-section h4 {
-    font-size: 14px;
-    margin-bottom: 10px;
+    font-size: 2.92vw;
+    margin-bottom: 2%;
   }
 
   .footer-section a {
-    font-size: 13px;
-    padding: 4px 0;
+    font-size: 2.71vw;
+    padding: 0.83% 0;
   }
 
   /* Login Page - professional sizing */
   .login-page {
-    padding: 60px 16px 24px;
+    padding: 12.5% 3.33% 5%;
   }
 
   .login-back {
-    top: 12px;
-    left: 12px;
-    padding: 6px 12px;
-    font-size: 12px;
+    top: 2.5%;
+    left: 2.5%;
+    padding: 1.25% 2.5%;
+    font-size: 2.5vw;
   }
 
   .login-logo img {
-    width: 60px;
+    width: 12.5vw;
   }
 
   .login-logo h1 {
-    font-size: 28px;
+    font-size: 5.83vw;
   }
 
   .login-container {
-    gap: 24px;
+    gap: 5%;
   }
 
   .login-form {
-    gap: 12px;
+    gap: 2.5%;
   }
 
   .login-input {
-    padding: 12px 16px;
-    font-size: 14px;
+    padding: 2.5% 3.33%;
+    font-size: 2.92vw;
   }
 
   .login-btn {
-    padding: 12px 20px;
-    font-size: 14px;
+    padding: 2.5% 4.17%;
+    font-size: 2.92vw;
   }
 
   .login-links {
-    gap: 16px;
+    gap: 3.33%;
   }
 
   .login-links a {
-    font-size: 12px;
+    font-size: 2.5vw;
   }
 
   /* Signup Page - professional sizing */
   .signup-page {
-    padding: 60px 16px 24px;
+    padding: 12.5% 3.33% 5%;
   }
 
   .signup-back {
-    top: 12px;
-    left: 12px;
-    padding: 6px 12px;
-    font-size: 12px;
+    top: 2.5%;
+    left: 2.5%;
+    padding: 1.25% 2.5%;
+    font-size: 2.5vw;
   }
 
   .signup-logo img {
-    width: 50px;
+    width: 10.42vw;
   }
 
   .signup-logo h1 {
-    font-size: 26px;
+    font-size: 5.42vw;
   }
 
   .signup-input {
-    padding: 12px 16px;
-    font-size: 13px;
+    padding: 2.5% 3.33%;
+    font-size: 2.71vw;
   }
 
   .signup-btn {
-    padding: 12px 20px;
-    font-size: 14px;
+    padding: 2.5% 4.17%;
+    font-size: 2.92vw;
   }
 
   .signup-terms span {
-    font-size: 11px;
+    font-size: 2.29vw;
   }
 
   /* Wallet Page - compact and professional */
@@ -7152,48 +7152,48 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 
   .auth-back {
     top: 3%;
-    left: 12px;
-    padding: 6px 12px;
-    font-size: 12px;
+    left: 2.5%;
+    padding: 1.25% 2.5%;
+    font-size: 2.5vw;
   }
 
   .auth-container {
-    padding: 20px 18px;
+    padding: 4.17% 3.75%;
   }
 
   .auth-title {
-    font-size: 20px;
+    font-size: 4.17vw;
   }
 
   .auth-logo img {
-    height: 40px;
+    height: 8.33vw;
   }
 
   /* Category tabs - compact */
   .category-tabs {
-    gap: 6px;
-    padding: 0 12px;
+    gap: 1.25%;
+    padding: 0 2.5%;
   }
 
   .category-tab {
-    padding: 8px 14px;
-    font-size: 12px;
+    padding: 1.67% 2.92%;
+    font-size: 2.5vw;
   }
 
   /* Section titles */
   .section-title,
   .content-section h3 {
-    font-size: 16px;
-    margin-bottom: 12px;
+    font-size: 3.33vw;
+    margin-bottom: 2.5%;
   }
 
   /* General form elements */
   input, select, textarea {
-    font-size: 14px !important;
+    font-size: 2.92vw !important;
   }
 
   button {
-    font-size: 13px;
+    font-size: 2.71vw;
   }
 }
 
@@ -7218,131 +7218,131 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
   }
 
   .modern-card {
-    padding: 18px;
-    border-radius: 16px;
+    padding: 2.34%;
+    border-radius: 3.33vw;
   }
 
   .card-header {
-    margin-bottom: 16px;
+    margin-bottom: 2%;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 1.3%;
   }
 
   .card-title h3 {
-    font-size: 16px;
+    font-size: 3.33vw;
   }
 
   .title-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
+    width: 7.92vw;
+    height: 7.92vw;
+    border-radius: 2.08vw;
   }
 
   .streak-badge {
-    font-size: 11px;
-    padding: 6px 10px;
+    font-size: 2.29vw;
+    padding: 0.78% 1.3%;
   }
 
   /* ===== DAILY REWARDS - MOBILE REWORK ===== */
   .checkin-card.modern-card {
-    padding: 16px;
+    padding: 2%;
   }
 
   .checkin-card .card-header {
-    margin-bottom: 14px;
+    margin-bottom: 1.82%;
   }
 
   /* 7-day grid - horizontal scroll on very small screens */
   .checkin-grid {
     display: flex;
     flex-wrap: nowrap;
-    gap: 6px;
-    margin-bottom: 18px;
+    gap: 0.78%;
+    margin-bottom: 2.34%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 4px;
+    padding-bottom: 0.52%;
   }
 
   .checkin-box {
     flex: 0 0 calc((100% - 36px) / 7);
-    min-width: 38px;
-    padding: 8px 4px;
-    border-radius: 10px;
+    min-width: 7.92vw;
+    padding: 1.04% 0.52%;
+    border-radius: 2.08vw;
   }
 
   .box-content {
-    gap: 4px;
+    gap: 0.52%;
   }
 
   .checkin-box .day-label {
-    font-size: 9px;
+    font-size: 1.88vw;
   }
 
   .reward-amount {
-    font-size: 8px;
-    padding: 2px 4px;
+    font-size: 1.67vw;
+    padding: 0.26% 0.52%;
   }
 
   .gift-icon svg {
-    width: 18px;
-    height: 18px;
+    width: 3.75vw;
+    height: 3.75vw;
   }
 
   .checked-icon {
-    width: 22px;
-    height: 22px;
+    width: 4.58vw;
+    height: 4.58vw;
   }
 
   .checked-icon svg {
-    width: 12px;
-    height: 12px;
+    width: 2.5vw;
+    height: 2.5vw;
   }
 
   /* Claim button - clearly below the grid */
   .claim-btn {
-    padding: 14px 20px;
-    font-size: 14px;
-    border-radius: 12px;
+    padding: 1.82% 2.6%;
+    font-size: 2.92vw;
+    border-radius: 2.5vw;
     width: 100%;
     margin-top: 0;
   }
 
   .checkin-countdown {
-    font-size: 11px;
-    padding: 10px 12px;
-    margin-top: 14px;
+    font-size: 2.29vw;
+    padding: 1.3% 1.56%;
+    margin-top: 1.82%;
   }
 
   /* Transaction list */
   .transactions-modern {
-    gap: 10px;
+    gap: 1.3%;
   }
 
   .tx-row {
-    padding: 12px;
-    gap: 10px;
+    padding: 1.56%;
+    gap: 1.3%;
   }
 
   .tx-icon-modern {
-    width: 36px;
-    height: 36px;
+    width: 7.5vw;
+    height: 7.5vw;
   }
 
   .tx-title {
-    font-size: 13px;
+    font-size: 2.71vw;
   }
 
   .tx-datetime {
-    font-size: 10px;
+    font-size: 2.08vw;
   }
 
   .tx-amount-modern {
-    font-size: 14px;
+    font-size: 2.92vw;
   }
 
   .tx-status-badge {
-    font-size: 9px;
-    padding: 3px 6px;
+    font-size: 1.88vw;
+    padding: 0.39% 0.78%;
   }
 
   /* Action form */
@@ -7356,8 +7356,8 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
   .action-tab {
     flex: 1;
     min-width: 0;
-    padding: 14px 8px;
-    font-size: 12px;
+    padding: 1.82% 1.04%;
+    font-size: 2.5vw;
     white-space: nowrap;
   }
 
@@ -7366,92 +7366,92 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
   }
 
   .action-form {
-    padding: 16px;
-    gap: 16px;
+    padding: 2%;
+    gap: 2%;
   }
 
   .amount-input-modern {
-    border-radius: 12px;
+    border-radius: 2.5vw;
   }
 
   .amount-input-modern .currency-symbol {
-    font-size: 20px;
-    padding: 0 12px;
+    font-size: 4.17vw;
+    padding: 0 1.56%;
   }
 
   .amount-input-modern input {
-    font-size: 24px;
-    padding: 12px 12px 12px 0;
+    font-size: 5vw;
+    padding: 1.56% 1.56% 1.56% 0;
   }
 
   .input-group label {
-    font-size: 12px;
-    margin-bottom: 8px;
+    font-size: 2.5vw;
+    margin-bottom: 1.04%;
   }
 
   .text-input-modern {
-    padding: 12px 14px;
-    border-radius: 10px;
+    padding: 1.56% 1.82%;
+    border-radius: 2.08vw;
   }
 
   .text-input-modern input {
-    font-size: 14px;
+    font-size: 2.92vw;
   }
 
   .submit-btn {
-    padding: 16px 20px;
-    font-size: 15px;
-    border-radius: 12px;
-    min-height: 52px;
+    padding: 2% 2.6%;
+    font-size: 3.13vw;
+    border-radius: 2.5vw;
+    min-height: 10.83vw;
   }
 
   .form-note {
-    font-size: 11px;
+    font-size: 2.29vw;
   }
 
   /* Payment methods */
   .payment-method-toggle {
-    gap: 8px;
+    gap: 1.04%;
   }
 
   .method-btn {
-    padding: 12px;
-    font-size: 12px;
-    border-radius: 10px;
+    padding: 1.56%;
+    font-size: 2.5vw;
+    border-radius: 2.08vw;
   }
 
   .method-btn svg {
-    width: 18px;
-    height: 18px;
+    width: 3.75vw;
+    height: 3.75vw;
   }
 
   .payment-form {
-    padding: 14px;
-    gap: 14px;
+    padding: 1.82%;
+    gap: 1.82%;
   }
 
   /* Payment options grid */
   .payment-grid {
-    gap: 8px;
+    gap: 1.04%;
   }
 
   .payment-option {
-    padding: 14px 10px;
-    border-radius: 12px;
+    padding: 1.82% 1.3%;
+    border-radius: 2.5vw;
   }
 
   .payment-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
+    width: 9.17vw;
+    height: 9.17vw;
+    border-radius: 2.08vw;
   }
 
   .payment-name {
-    font-size: 11px;
+    font-size: 2.29vw;
   }
 
   .see-all-btn {
-    font-size: 12px;
+    font-size: 2.5vw;
   }
 }
 
@@ -8032,127 +8032,127 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 
 @media (max-width: 480px) {
   .exit-confirm-dialog {
-    padding: 30px 20px;
+    padding: 6.25% 4.17%;
   }
 
   .exit-confirm-dialog h3 {
-    font-size: 20px;
+    font-size: 4.17vw;
   }
 
   .exit-confirm-dialog p {
-    font-size: 14px;
+    font-size: 2.92vw;
   }
 
   .exit-btn-yes,
   .exit-btn-no {
-    padding: 12px 20px;
-    font-size: 14px;
+    padding: 2.5% 4.17%;
+    font-size: 2.92vw;
   }
 
   .game-player-exit {
-    padding: 6px 12px;
-    font-size: 12px;
+    padding: 1.25% 2.5%;
+    font-size: 2.5vw;
   }
 }
 
 /* Mobile Optimized Game Player Header */
 @media (max-width: 768px) {
   .game-player-header {
-    padding: 8px 10px;
+    padding: 1.04% 1.3%;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 1.04%;
   }
 
   .game-player-left {
-    gap: 8px;
+    gap: 1.04%;
     flex: 0 0 auto;
   }
 
   .game-player-back {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
+    width: 7.5vw;
+    height: 7.5vw;
+    border-radius: 1.67vw;
   }
 
   .game-player-back svg {
-    width: 18px;
-    height: 18px;
+    width: 3.75vw;
+    height: 3.75vw;
   }
 
   .game-player-title {
-    font-size: 12px;
-    max-width: 80px;
+    font-size: 2.5vw;
+    max-width: 10.42vw;
   }
 
   .game-player-center {
     flex: 1;
     justify-content: center;
-    gap: 8px;
+    gap: 1.04%;
   }
 
   .game-player-balance {
-    padding: 4px 10px;
-    border-radius: 8px;
+    padding: 0.52% 1.3%;
+    border-radius: 1.67vw;
     flex-direction: row;
-    gap: 6px;
+    gap: 0.78%;
   }
 
   .balance-label {
-    font-size: 9px;
+    font-size: 1.88vw;
     display: none;
   }
 
   .balance-amount {
-    font-size: 14px;
+    font-size: 2.92vw;
   }
 
   .game-player-deposit {
-    padding: 6px 10px;
-    font-size: 11px;
-    border-radius: 8px;
-    gap: 4px;
+    padding: 0.78% 1.3%;
+    font-size: 2.29vw;
+    border-radius: 1.67vw;
+    gap: 0.52%;
   }
 
   .game-player-deposit svg {
-    width: 14px;
-    height: 14px;
+    width: 2.92vw;
+    height: 2.92vw;
   }
 
   .game-player-actions {
     flex: 0 0 auto;
-    gap: 6px;
+    gap: 0.78%;
   }
 
   .game-player-exit {
-    padding: 6px 10px;
-    font-size: 11px;
-    border-radius: 6px;
+    padding: 0.78% 1.3%;
+    font-size: 2.29vw;
+    border-radius: 1.25vw;
   }
 
   .game-player-fullscreen {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
+    width: 7.5vw;
+    height: 7.5vw;
+    border-radius: 1.67vw;
   }
 
   .game-player-fullscreen svg {
-    width: 16px;
-    height: 16px;
+    width: 3.33vw;
+    height: 3.33vw;
   }
 }
 
 @media (max-width: 480px) {
   .game-player-header {
-    padding: 6px 8px;
+    padding: 1.25% 1.67%;
   }
 
   .game-player-left {
-    gap: 6px;
+    gap: 1.25%;
   }
 
   .game-player-back {
-    width: 32px;
-    height: 32px;
+    width: 6.67vw;
+    height: 6.67vw;
   }
 
   .game-player-title {
@@ -8160,25 +8160,25 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
   }
 
   .game-player-center {
-    gap: 6px;
+    gap: 1.25%;
   }
 
   .game-player-balance {
-    padding: 6px 12px;
+    padding: 1.25% 2.5%;
     background: linear-gradient(135deg, rgba(0, 255, 136, 0.15) 0%, rgba(0, 200, 100, 0.1) 100%);
     border: 1px solid rgba(0, 255, 136, 0.3);
-    border-radius: 20px;
+    border-radius: 4.17vw;
   }
 
   .balance-amount {
-    font-size: 15px;
+    font-size: 3.13vw;
     font-weight: 700;
   }
 
   .game-player-deposit {
-    padding: 6px 12px;
-    font-size: 12px;
-    border-radius: 20px;
+    padding: 1.25% 2.5%;
+    font-size: 2.5vw;
+    border-radius: 4.17vw;
   }
 
   .game-player-exit {
@@ -8186,8 +8186,8 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
   }
 
   .game-player-fullscreen {
-    width: 32px;
-    height: 32px;
+    width: 6.67vw;
+    height: 6.67vw;
   }
 }
 
@@ -8648,63 +8648,63 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 /* Responsive styles for live transactions */
 @media (max-width: 768px) {
   .live-transactions-section {
-    margin: 16px auto;
-    padding: 0 12px;
+    margin: 2% auto;
+    padding: 0 1.56%;
   }
 
   .live-transaction-item {
-    min-width: 200px;
-    padding: 10px 14px;
-    gap: 10px;
+    min-width: 26.04vw;
+    padding: 1.3% 1.82%;
+    gap: 1.3%;
   }
 
   .txn-game-image {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
+    width: 8.33vw;
+    height: 8.33vw;
+    border-radius: 1.67vw;
   }
 
   .txn-user {
-    font-size: 12px;
+    font-size: 2.5vw;
   }
 
   .txn-game {
-    font-size: 10px;
+    font-size: 2.08vw;
   }
 
   .txn-value {
-    font-size: 14px;
+    font-size: 2.92vw;
   }
 }
 
 @media (max-width: 480px) {
   .live-transactions-section {
-    margin: 12px auto;
+    margin: 2.5% auto;
   }
 
   .live-indicator {
-    font-size: 12px;
+    font-size: 2.5vw;
   }
 
   .live-dot {
-    width: 8px;
-    height: 8px;
+    width: 1.67vw;
+    height: 1.67vw;
   }
 
   .live-transaction-item {
-    min-width: 180px;
-    padding: 8px 12px;
-    gap: 8px;
-    border-radius: 10px;
+    min-width: 37.5vw;
+    padding: 1.67% 2.5%;
+    gap: 1.67%;
+    border-radius: 2.08vw;
   }
 
   .txn-game-image {
-    width: 36px;
-    height: 36px;
+    width: 7.5vw;
+    height: 7.5vw;
   }
 
   .txn-value {
-    font-size: 13px;
+    font-size: 2.71vw;
   }
 }
 
@@ -9464,23 +9464,23 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 /* ========== MOBILE RESPONSIVE ========== */
 @media (max-width: 768px) {
   .jackpot-ticker {
-    padding: 12px 16px;
-    margin: 12px;
+    padding: 1.56% 2%;
+    margin: 1.56%;
   }
 
   .jackpot-amount {
-    font-size: 22px;
+    font-size: 4.58vw;
   }
 
   .jackpot-label {
-    font-size: 12px;
+    font-size: 2.5vw;
   }
 
   .stats-bar {
     flex-direction: column;
-    gap: 12px;
-    padding: 12px;
-    margin: 0 12px 12px;
+    gap: 1.56%;
+    padding: 1.56%;
+    margin: 0 1.56% 1.56%;
   }
 
   .trust-badges {
@@ -9489,17 +9489,17 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
   }
 
   .games-toolbar {
-    padding: 10px 12px;
-    margin: 0 12px 12px;
-    gap: 8px;
+    padding: 1.3% 1.56%;
+    margin: 0 1.56% 1.56%;
+    gap: 1.04%;
   }
 
   .search-input {
-    width: 150px;
+    width: 19.53vw;
   }
 
   .category-tab {
-    padding: 8px 12px;
+    padding: 1.04% 1.56%;
   }
 
   .cat-name {
@@ -9508,34 +9508,34 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 
   .recent-section,
   .favorites-section {
-    padding: 12px;
+    padding: 1.56%;
   }
 
   .recent-game-card,
   .favorite-game-card {
-    width: 100px;
+    width: 13.02vw;
   }
 
   .floating-buttons {
-    bottom: 80px;
-    right: 12px;
+    bottom: 10.42vw;
+    right: 1.56%;
   }
 
   .floating-btn {
-    width: 50px;
-    height: 50px;
-    font-size: 20px;
+    width: 10.42vw;
+    height: 10.42vw;
+    font-size: 4.17vw;
   }
 
   .spin-wheel-modal,
   .leaderboard-modal {
-    padding: 20px;
-    margin: 16px;
+    padding: 2.6%;
+    margin: 2%;
   }
 
   .spin-wheel-container {
-    width: 240px;
-    height: 240px;
+    width: 50vw;
+    height: 50vw;
   }
 }
 
@@ -9543,34 +9543,34 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
   .jackpot-inner {
     flex-direction: column;
     text-align: center;
-    gap: 8px;
+    gap: 1.67%;
   }
 
   .jackpot-amount {
-    font-size: 20px;
+    font-size: 4.17vw;
   }
 
   .search-input {
-    width: 120px;
-    padding: 8px 12px;
-    font-size: 13px;
+    width: 25vw;
+    padding: 1.67% 2.5%;
+    font-size: 2.71vw;
   }
 
   .category-tab {
-    padding: 8px 10px;
+    padding: 1.67% 2.08%;
   }
 
   .cat-icon {
-    font-size: 14px;
+    font-size: 2.92vw;
   }
 
   .spin-wheel-container {
-    width: 200px;
-    height: 200px;
+    width: 41.67vw;
+    height: 41.67vw;
   }
 
   .wheel-segment span {
-    font-size: 12px;
+    font-size: 2.5vw;
   }
 }
 
@@ -10505,27 +10505,27 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 /* Mobile responsive for floating buttons */
 @media (max-width: 768px) {
   .floating-buttons {
-    bottom: 80px;
-    right: 16px;
+    bottom: 10.42vw;
+    right: 2%;
   }
 
   .floating-btn {
-    width: 50px;
-    height: 50px;
-    font-size: 20px;
+    width: 10.42vw;
+    height: 10.42vw;
+    font-size: 4.17vw;
   }
 
   .spin-wheel-modal {
-    padding: 24px 20px;
+    padding: 3.13% 2.6%;
   }
 
   .spin-wheel-container {
-    width: 240px;
-    height: 240px;
+    width: 50vw;
+    height: 50vw;
   }
 
   .leaderboard-modal {
-    padding: 24px 20px;
+    padding: 3.13% 2.6%;
   }
 }
 

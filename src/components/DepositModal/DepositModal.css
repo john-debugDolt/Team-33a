@@ -12,7 +12,7 @@
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  padding: 20px;
+  padding: 1.5%;
   animation: overlayFadeIn 0.3s ease;
 }
 
@@ -24,10 +24,10 @@
 .deposit-modal,
 .withdraw-modal {
   background: linear-gradient(180deg, #141c18 0%, #0a0f0c 100%);
-  border-radius: 24px;
+  border-radius: 1.5vw;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 32px;
-  max-width: 480px;
+  padding: 2.5%;
+  max-width: 33vw;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
@@ -52,16 +52,16 @@
 
 .modal-close-btn {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 40px;
-  height: 40px;
+  top: 1.1vw;
+  right: 1.1vw;
+  width: 2.75vw;
+  height: 2.75vw;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #121916;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
+  border-radius: 0.75vw;
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -75,13 +75,13 @@
 /* Modal Header */
 .modal-header {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 2%;
 }
 
 .modal-icon {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 16px;
+  width: 4.5vw;
+  height: 4.5vw;
+  margin: 0 auto 1.5%;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -100,14 +100,14 @@
 }
 
 .modal-header h2 {
-  font-size: 24px;
+  font-size: 1.65vw;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 0.3%;
 }
 
 .modal-header p {
-  font-size: 14px;
+  font-size: 0.95vw;
   color: var(--text-muted);
 }
 
@@ -116,39 +116,39 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: 1.1% 1.4%;
   background: #0f1410;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  margin-bottom: 24px;
+  border-radius: 1vw;
+  margin-bottom: 2%;
 }
 
 .current-balance span:first-child {
-  font-size: 14px;
+  font-size: 0.95vw;
   color: var(--text-muted);
 }
 
 .current-balance .balance-value {
-  font-size: 20px;
+  font-size: 1.35vw;
   font-weight: 700;
   color: var(--emerald-500);
 }
 
 /* Amount Section */
 .amount-section {
-  margin-bottom: 24px;
+  margin-bottom: 2%;
 }
 
 .amount-section label,
 .payment-section label,
 .bank-section label {
   display: block;
-  font-size: 13px;
+  font-size: 0.9vw;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 12px;
+  margin-bottom: 1%;
 }
 
 .amount-input-wrap {
@@ -156,8 +156,8 @@
   align-items: center;
   background: #0f1410;
   border: 2px solid rgba(255, 255, 255, 0.15);
-  border-radius: 14px;
-  padding: 0 20px;
+  border-radius: 1vw;
+  padding: 0 1.4%;
   transition: all 0.2s ease;
 }
 
@@ -168,20 +168,20 @@
 }
 
 .amount-input-wrap .currency {
-  font-size: 24px;
+  font-size: 1.65vw;
   font-weight: 700;
   color: var(--text-muted);
-  margin-right: 8px;
+  margin-right: 0.6%;
 }
 
 .amount-input-wrap input {
   flex: 1;
   background: transparent;
   border: none;
-  font-size: 32px;
+  font-size: 2.2vw;
   font-weight: 700;
   color: var(--text-primary);
-  padding: 16px 0;
+  padding: 1.1% 0;
   outline: none;
 }
 
@@ -193,18 +193,18 @@
 /* Quick Amounts */
 .quick-amounts {
   display: flex;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 0.6%;
+  margin-top: 1%;
 }
 
 .quick-amount-btn {
   flex: 1;
-  padding: 10px;
+  padding: 0.75%;
   background: #121916;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
+  border-radius: 0.7vw;
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 0.95vw;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -224,24 +224,24 @@
 
 /* Payment Methods */
 .payment-section {
-  margin-bottom: 24px;
+  margin-bottom: 2%;
 }
 
 .payment-methods {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 0.75%;
 }
 
 .payment-method-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 16px 12px;
+  gap: 0.5%;
+  padding: 1.1% 0.85%;
   background: #0f1410;
   border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
+  border-radius: 1vw;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -257,36 +257,36 @@
 }
 
 .method-icon {
-  font-size: 24px;
+  font-size: 1.65vw;
 }
 
 .method-name {
-  font-size: 12px;
+  font-size: 0.85vw;
   font-weight: 600;
   color: var(--text-primary);
   text-align: center;
 }
 
 .method-fee {
-  font-size: 10px;
+  font-size: 0.7vw;
   color: var(--emerald-500);
   font-weight: 500;
 }
 
 /* Bank Section (Withdraw) */
 .bank-section {
-  margin-bottom: 24px;
+  margin-bottom: 2%;
 }
 
 .bank-input {
   width: 100%;
-  padding: 14px 18px;
+  padding: 1% 1.25%;
   background: #0f1410;
   border: 2px solid rgba(255, 255, 255, 0.12);
-  border-radius: 14px;
+  border-radius: 1vw;
   color: var(--text-primary);
-  font-size: 15px;
-  margin-bottom: 12px;
+  font-size: 1.05vw;
+  margin-bottom: 1%;
   transition: all 0.2s ease;
 }
 
@@ -303,19 +303,19 @@
 /* Summary */
 .deposit-summary,
 .withdraw-summary {
-  padding: 16px;
+  padding: 1.1%;
   background: #0f1410;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  margin-bottom: 20px;
+  border-radius: 1vw;
+  margin-bottom: 1.5%;
 }
 
 .summary-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
-  font-size: 14px;
+  padding: 0.6% 0;
+  font-size: 0.95vw;
   color: var(--text-muted);
 }
 
@@ -326,9 +326,9 @@
 
 .summary-row.total {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  margin-top: 8px;
-  padding-top: 16px;
-  font-size: 16px;
+  margin-top: 0.6%;
+  padding-top: 1.1%;
+  font-size: 1.1vw;
   font-weight: 700;
   color: var(--text-primary);
 }
@@ -337,12 +337,12 @@
 .deposit-submit-btn,
 .withdraw-submit-btn {
   width: 100%;
-  padding: 18px;
+  padding: 1.25%;
   background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
   border: none;
-  border-radius: 14px;
+  border-radius: 1vw;
   color: #fff;
-  font-size: 16px;
+  font-size: 1.1vw;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -377,22 +377,22 @@
 .deposit-note,
 .withdraw-note {
   text-align: center;
-  font-size: 12px;
+  font-size: 0.85vw;
   color: var(--text-muted);
-  margin-top: 16px;
+  margin-top: 1.1%;
 }
 
 /* Success State */
 .deposit-success,
 .withdraw-success {
   text-align: center;
-  padding: 20px 0;
+  padding: 1.5% 0;
 }
 
 .success-icon {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 20px;
+  width: 5.5vw;
+  height: 5.5vw;
+  margin: 0 auto 1.5%;
   background: rgba(16, 185, 129, 0.15);
   border-radius: 50%;
   display: flex;
@@ -403,15 +403,15 @@
 }
 
 .success-icon svg {
-  width: 40px;
-  height: 40px;
+  width: 2.75vw;
+  height: 2.75vw;
 }
 
 .success-note {
-  font-size: 13px;
+  font-size: 0.9vw;
   color: var(--text-muted);
-  margin-top: 10px;
-  margin-bottom: 20px;
+  margin-top: 0.75%;
+  margin-bottom: 1.5%;
   line-height: 1.4;
 }
 
@@ -423,17 +423,17 @@
 
 .deposit-success h2,
 .withdraw-success h2 {
-  font-size: 24px;
+  font-size: 1.65vw;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 12px;
+  margin-bottom: 1%;
 }
 
 .success-amount {
-  font-size: 36px;
+  font-size: 2.5vw;
   font-weight: 700;
   color: var(--emerald-500);
-  margin-bottom: 8px;
+  margin-bottom: 0.6%;
 }
 
 .withdraw-success .success-amount {
@@ -441,19 +441,19 @@
 }
 
 .success-balance {
-  font-size: 14px;
+  font-size: 0.95vw;
   color: var(--text-muted);
-  margin-bottom: 24px;
+  margin-bottom: 2%;
 }
 
 .deposit-done-btn,
 .withdraw-done-btn {
-  padding: 16px 48px;
+  padding: 1.1% 3.5%;
   background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
   border: none;
-  border-radius: 14px;
+  border-radius: 1vw;
   color: #fff;
-  font-size: 16px;
+  font-size: 1.1vw;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -468,24 +468,24 @@
 .deposit-processing,
 .withdraw-processing {
   text-align: center;
-  padding: 60px 20px;
+  padding: 4.5% 1.5%;
 }
 
 .processing-spinner {
-  margin-bottom: 24px;
+  margin-bottom: 2%;
 }
 
 .deposit-processing h2,
 .withdraw-processing h2 {
-  font-size: 20px;
+  font-size: 1.35vw;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 8px;
+  margin-bottom: 0.6%;
 }
 
 .deposit-processing p,
 .withdraw-processing p {
-  font-size: 14px;
+  font-size: 0.95vw;
   color: var(--text-muted);
 }
 
@@ -493,14 +493,14 @@
 .balance-warning {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
+  gap: 0.75%;
+  padding: 0.85% 1.1%;
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.2);
-  border-radius: 12px;
-  margin-bottom: 20px;
+  border-radius: 0.85vw;
+  margin-bottom: 1.5%;
   color: #ef4444;
-  font-size: 13px;
+  font-size: 0.9vw;
 }
 
 /* Mobile Responsive */
@@ -831,14 +831,14 @@
 .modal-back-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.45%;
   background: transparent;
   border: none;
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 0.95vw;
   cursor: pointer;
   padding: 0;
-  margin-bottom: 16px;
+  margin-bottom: 1.1%;
   transition: color 0.2s ease;
 }
 
@@ -856,19 +856,19 @@
 .deposit-reference-card {
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.1) 100%);
   border: 2px solid rgba(245, 158, 11, 0.4);
-  border-radius: 16px;
-  padding: 16px 20px;
-  margin-bottom: 16px;
+  border-radius: 1.1vw;
+  padding: 1.1% 1.4%;
+  margin-bottom: 1.1%;
 }
 
 .reference-header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.6%;
   color: #f59e0b;
   font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 12px;
+  font-size: 0.95vw;
+  margin-bottom: 1%;
 }
 
 .reference-header svg {
@@ -880,14 +880,14 @@
   align-items: center;
   justify-content: space-between;
   background: rgba(0, 0, 0, 0.3);
-  border-radius: 10px;
-  padding: 12px 16px;
-  margin-bottom: 12px;
+  border-radius: 0.7vw;
+  padding: 0.85% 1.1%;
+  margin-bottom: 1%;
 }
 
 .reference-id {
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
-  font-size: 14px;
+  font-size: 0.95vw;
   font-weight: 600;
   color: #fbbf24;
   letter-spacing: 0.5px;
@@ -895,7 +895,7 @@
 }
 
 .reference-warning {
-  font-size: 12px;
+  font-size: 0.85vw;
   color: #fcd34d;
   margin: 0;
   line-height: 1.5;
@@ -909,21 +909,21 @@
 .bank-details-card {
   background: #0f1410;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 20px;
+  border-radius: 1.1vw;
+  padding: 1.4%;
+  margin-bottom: 1.4%;
 }
 
 .bank-name-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding-bottom: 16px;
-  margin-bottom: 16px;
+  gap: 0.75%;
+  padding-bottom: 1.1%;
+  margin-bottom: 1.1%;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-primary);
   font-weight: 600;
-  font-size: 16px;
+  font-size: 1.1vw;
 }
 
 .bank-name-header svg {
@@ -933,8 +933,8 @@
 .bank-detail-row {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 12px 0;
+  gap: 0.45%;
+  padding: 0.85% 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -944,18 +944,18 @@
 
 .bank-detail-row.payid {
   background: rgba(16, 185, 129, 0.08);
-  margin: 12px -20px;
-  padding: 16px 20px;
+  margin: 0.85% -1.4%;
+  padding: 1.1% 1.4%;
   border-radius: 0;
 }
 
 .bank-detail-row.payid:last-of-type {
-  margin-bottom: -20px;
-  border-radius: 0 0 16px 16px;
+  margin-bottom: -1.4%;
+  border-radius: 0 0 1.1vw 1.1vw;
 }
 
 .detail-label {
-  font-size: 12px;
+  font-size: 0.85vw;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -964,13 +964,13 @@
 .payid-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 0.3%;
   background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
   color: #fff;
-  font-size: 10px;
+  font-size: 0.7vw;
   font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 0.3% 0.6%;
+  border-radius: 0.3vw;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -979,11 +979,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 1%;
 }
 
 .detail-value {
-  font-size: 16px;
+  font-size: 1.1vw;
   font-weight: 600;
   color: var(--text-primary);
   word-break: break-all;
@@ -993,11 +993,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 2.5vw;
+  height: 2.5vw;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
+  border-radius: 0.55vw;
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1019,18 +1019,18 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 16px;
-  padding-top: 16px;
+  margin-top: 1.1%;
+  padding-top: 1.1%;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .transfer-amount-display span:first-child {
-  font-size: 14px;
+  font-size: 0.95vw;
   color: var(--text-muted);
 }
 
 .transfer-amount-display .amount {
-  font-size: 24px;
+  font-size: 1.65vw;
   font-weight: 700;
   color: var(--emerald-500);
 }
@@ -1039,16 +1039,16 @@
 .transfer-instructions {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 20px;
+  border-radius: 0.85vw;
+  padding: 1.1%;
+  margin-bottom: 1.4%;
 }
 
 .instruction-item {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 10px 0;
+  gap: 1%;
+  padding: 0.75% 0;
 }
 
 .instruction-item:not(:last-child) {
@@ -1059,18 +1059,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 1.65vw;
+  height: 1.65vw;
   background: rgba(16, 185, 129, 0.15);
   color: var(--emerald-500);
-  font-size: 12px;
+  font-size: 0.85vw;
   font-weight: 700;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .instruction-item span:last-child {
-  font-size: 13px;
+  font-size: 0.9vw;
   color: var(--text-muted);
   line-height: 1.5;
 }

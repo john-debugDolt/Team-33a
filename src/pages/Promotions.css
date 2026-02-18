@@ -5,7 +5,7 @@
 
 .promo-hero {
   position: relative;
-  min-height: 700px;
+  min-height: 48.61vw;
   overflow: hidden;
 }
 
@@ -25,7 +25,7 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 400px;
+  height: 27.78vw;
   background:
     radial-gradient(ellipse at center top, rgba(209, 174, 53, 0.3) 0%, transparent 60%),
     linear-gradient(180deg, rgba(209, 174, 53, 0.1) 0%, transparent 100%);
@@ -34,14 +34,14 @@
 .promo-hero-bg::after {
   content: '';
   position: absolute;
-  top: 50px;
+  top: 3.47%;
   left: 50%;
   transform: translateX(-50%);
-  width: 800px;
-  height: 200px;
+  width: 55.56vw;
+  height: 13.89vw;
   background: radial-gradient(ellipse, rgba(209, 174, 53, 0.4) 0%, transparent 70%);
   border-radius: 50%;
-  filter: blur(40px);
+  filter: blur(2.78vw);
 }
 
 .promo-content {
@@ -49,14 +49,14 @@
   z-index: 1;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 40px 30px;
+  padding: 2.78% 2.08%;
 }
 
 /* Category Tabs */
 .promo-categories {
   display: flex;
-  gap: 10px;
-  margin-bottom: 40px;
+  gap: 0.69%;
+  margin-bottom: 2.78%;
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -64,17 +64,17 @@
 .promo-category {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.56%;
   background: rgba(0, 0, 0, 0.3);
   border: 2px solid transparent;
   color: var(--text-gray);
-  padding: 14px 24px;
-  border-radius: 8px;
+  padding: 0.97% 1.67%;
+  border-radius: 0.56vw;
   cursor: pointer;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 0.9vw;
   transition: all 0.3s;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(0.69vw);
 }
 
 .promo-category:hover {
@@ -90,7 +90,7 @@
 }
 
 .cat-icon {
-  font-size: 18px;
+  font-size: 1.25vw;
 }
 
 .cat-name {
@@ -100,20 +100,20 @@
 /* Promotions Grid */
 .promo-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 25px;
+  grid-template-columns: repeat(auto-fill, minmax(24.31vw, 1fr));
+  gap: 1.74%;
 }
 
 .promo-card {
   background: var(--bg-card);
-  border-radius: 16px;
+  border-radius: 1.11vw;
   overflow: hidden;
   transition: all 0.3s;
 }
 
 .promo-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 1.39vw 3.47vw rgba(0, 0, 0, 0.4);
 }
 
 .promo-card-image {
@@ -155,26 +155,26 @@
   background: linear-gradient(135deg, var(--primary-gold), var(--primary-gold-dark));
   color: var(--bg-dark);
   border: none;
-  padding: 14px 32px;
-  border-radius: 8px;
+  padding: 0.97% 2.22%;
+  border-radius: 0.56vw;
   font-weight: 700;
-  font-size: 15px;
+  font-size: 1.04vw;
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .claim-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 8px 25px rgba(209, 174, 53, 0.4);
+  box-shadow: 0 0.56vw 1.74vw rgba(209, 174, 53, 0.4);
 }
 
 .promo-card-info {
-  padding: 20px;
+  padding: 1.39%;
 }
 
 .promo-card-info h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: 1.11vw;
   font-weight: 600;
   color: var(--text-white);
   line-height: 1.4;
@@ -185,33 +185,33 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 300px;
+  min-height: 20.83vw;
 }
 
 .promo-empty {
   text-align: center;
-  padding: 60px 20px;
+  padding: 4.17% 1.39%;
   color: var(--text-gray);
 }
 
 .promo-empty .empty-icon {
-  font-size: 64px;
-  margin-bottom: 16px;
+  font-size: 4.44vw;
+  margin-bottom: 1.11%;
   display: block;
 }
 
 .promo-empty h3 {
-  font-size: 28px;
+  font-size: 1.94vw;
   font-weight: 700;
   background: linear-gradient(135deg, #fff 0%, var(--accent, #4ade80) 50%, var(--primary-light, #22c55e) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 12px;
+  margin-bottom: 0.83%;
 }
 
 .promo-empty p {
-  font-size: 16px;
+  font-size: 1.11vw;
   margin: 0;
   color: var(--text-secondary, #a1a1aa);
 }
@@ -219,21 +219,21 @@
 /* Promo Card Enhancements */
 .promo-badge {
   position: absolute;
-  top: 12px;
-  left: 12px;
+  top: 0.83%;
+  left: 0.83%;
   background: linear-gradient(135deg, var(--primary-gold), var(--primary-gold-dark));
   color: var(--bg-dark);
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 11px;
+  padding: 0.42% 0.83%;
+  border-radius: 0.42vw;
+  font-size: 0.76vw;
   font-weight: 700;
   text-transform: uppercase;
   z-index: 2;
 }
 
 .promo-subtitle {
-  margin: 8px 0 0;
-  font-size: 13px;
+  margin: 0.56% 0 0;
+  font-size: 0.9vw;
   color: var(--text-gray);
   line-height: 1.4;
 }
@@ -241,7 +241,7 @@
 /* Responsive */
 @media (max-width: 768px) {
   .promotions-page {
-    padding-top: 8px;
+    padding-top: 1.04%;
     padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
 
@@ -250,19 +250,19 @@
   }
 
   .promo-content {
-    padding: 20px 16px;
+    padding: 2.6% 2.08%;
   }
 
   .promo-categories {
-    gap: 8px;
+    gap: 1.04%;
     overflow-x: auto;
     flex-wrap: nowrap;
     justify-content: flex-start;
-    padding-bottom: 8px;
+    padding-bottom: 1.04%;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    margin: 0 -16px 24px;
-    padding: 0 16px 8px;
+    margin: 0 -2.08% 3.13%;
+    padding: 0 2.08% 1.04%;
   }
 
   .promo-categories::-webkit-scrollbar {
@@ -270,10 +270,10 @@
   }
 
   .promo-category {
-    padding: 12px 18px;
-    font-size: 12px;
-    border-radius: 12px;
-    min-height: 44px;
+    padding: 1.56% 2.34%;
+    font-size: 1.56vw;
+    border-radius: 1.56vw;
+    min-height: 5.73vw;
     flex-shrink: 0;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
@@ -284,16 +284,16 @@
   }
 
   .cat-icon {
-    font-size: 16px;
+    font-size: 2.08vw;
   }
 
   .promo-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 2.08%;
   }
 
   .promo-card {
-    border-radius: 16px;
+    border-radius: 2.08vw;
   }
 
   .promo-card:hover {
@@ -311,30 +311,30 @@
 
   .claim-btn {
     position: absolute;
-    bottom: 12px;
-    right: 12px;
-    padding: 10px 20px;
-    font-size: 13px;
-    min-height: 44px;
+    bottom: 1.56%;
+    right: 1.56%;
+    padding: 1.3% 2.6%;
+    font-size: 1.69vw;
+    min-height: 5.73vw;
   }
 
   .promo-card-info {
-    padding: 16px;
+    padding: 2.08%;
   }
 
   .promo-card-info h3 {
-    font-size: 15px;
+    font-size: 1.95vw;
   }
 
   .promo-subtitle {
-    font-size: 13px;
+    font-size: 1.69vw;
   }
 
   .promo-badge {
-    top: 10px;
-    left: 10px;
-    padding: 5px 10px;
-    font-size: 10px;
+    top: 1.3%;
+    left: 1.3%;
+    padding: 0.65% 1.3%;
+    font-size: 1.3vw;
   }
 }
 
@@ -344,62 +344,62 @@
   }
 
   .promo-content {
-    padding: 24px 16px;
+    padding: 5% 3.33%;
   }
 
   .promo-categories {
-    margin: 0 -16px 28px;
-    padding: 0 16px 12px;
+    margin: 0 -3.33% 5.83%;
+    padding: 0 3.33% 2.5%;
   }
 
   .promo-category {
-    padding: 18px 22px;
-    font-size: 17px;
+    padding: 3.75% 4.58%;
+    font-size: 3.54vw;
     font-weight: 700;
-    border-radius: 16px;
-    min-height: 56px;
+    border-radius: 3.33vw;
+    min-height: 11.67vw;
   }
 
   .cat-icon {
-    font-size: 24px;
+    font-size: 5vw;
   }
 
   .promo-grid {
-    gap: 20px;
+    gap: 4.17%;
   }
 
   .promo-card {
-    border-radius: 22px;
+    border-radius: 4.58vw;
   }
 
   .promo-card-info {
-    padding: 22px;
+    padding: 4.58%;
   }
 
   .promo-card-info h3 {
-    font-size: 20px;
+    font-size: 4.17vw;
     font-weight: 700;
   }
 
   .promo-subtitle {
-    font-size: 16px;
-    margin-top: 12px;
+    font-size: 3.33vw;
+    margin-top: 2.5%;
   }
 
   .promo-badge {
-    padding: 8px 14px;
-    font-size: 14px;
+    padding: 1.67% 2.92%;
+    font-size: 2.92vw;
     font-weight: 700;
-    border-radius: 10px;
+    border-radius: 2.08vw;
   }
 
   .claim-btn {
-    padding: 16px 24px;
-    font-size: 17px;
+    padding: 3.33% 5%;
+    font-size: 3.54vw;
     font-weight: 700;
-    bottom: 16px;
-    right: 16px;
-    min-height: 56px;
-    border-radius: 14px;
+    bottom: 3.33%;
+    right: 3.33%;
+    min-height: 11.67vw;
+    border-radius: 2.92vw;
   }
 }

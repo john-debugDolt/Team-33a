@@ -1,22 +1,22 @@
 .terms-page {
   min-height: 100vh;
   background: var(--bg-primary);
-  padding: 40px 20px;
+  padding: 2.78% 1.39%;
 }
 
 .terms-container {
-  max-width: 800px;
+  max-width: 55.56vw;
   margin: 0 auto;
 }
 
 .back-link {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.56%;
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: 0.97vw;
   text-decoration: none;
-  margin-bottom: 32px;
+  margin-bottom: 2.22%;
   transition: color 0.2s;
 }
 
@@ -25,27 +25,27 @@
 }
 
 .terms-page h1 {
-  font-size: 36px;
+  font-size: 2.5vw;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 8px;
+  margin-bottom: 0.56%;
 }
 
 .last-updated {
-  font-size: 14px;
+  font-size: 0.97vw;
   color: var(--text-muted);
-  margin-bottom: 40px;
+  margin-bottom: 2.78%;
 }
 
 .terms-content {
   background: var(--bg-card);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-subtle);
-  padding: 40px;
+  padding: 2.78%;
 }
 
 .terms-content section {
-  margin-bottom: 32px;
+  margin-bottom: 2.22%;
 }
 
 .terms-content section:last-child {
@@ -53,31 +53,31 @@
 }
 
 .terms-content h2 {
-  font-size: 20px;
+  font-size: 1.39vw;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 16px;
-  padding-bottom: 8px;
+  margin-bottom: 1.11%;
+  padding-bottom: 0.56%;
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .terms-content p {
-  font-size: 15px;
+  font-size: 1.04vw;
   color: var(--text-secondary);
   line-height: 1.7;
-  margin-bottom: 12px;
+  margin-bottom: 0.83%;
 }
 
 .terms-content ul {
-  margin: 12px 0;
-  padding-left: 24px;
+  margin: 0.83% 0;
+  padding-left: 1.67%;
 }
 
 .terms-content li {
-  font-size: 15px;
+  font-size: 1.04vw;
   color: var(--text-secondary);
   line-height: 1.7;
-  margin-bottom: 8px;
+  margin-bottom: 0.56%;
 }
 
 .terms-content li::marker {
@@ -85,23 +85,23 @@
 }
 
 .terms-footer {
-  margin-top: 32px;
+  margin-top: 2.22%;
   text-align: center;
 }
 
 .terms-footer p {
-  font-size: 14px;
+  font-size: 0.97vw;
   color: var(--text-muted);
-  margin-bottom: 20px;
+  margin-bottom: 1.39%;
 }
 
 .btn-primary {
   display: inline-block;
-  padding: 14px 32px;
+  padding: 0.97% 2.22%;
   background: linear-gradient(135deg, var(--accent-gold), var(--accent-coral));
   border-radius: var(--radius-md);
   color: #0a0d0a;
-  font-size: 15px;
+  font-size: 1.04vw;
   font-weight: 600;
   text-decoration: none;
   transition: all 0.2s;
@@ -109,79 +109,79 @@
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  box-shadow: 0 0.28vw 0.83vw rgba(245, 158, 11, 0.3);
 }
 
 @media (max-width: 768px) {
   .terms-page {
-    padding: 20px 16px;
-    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    padding: 1.39% 1.11%;
+    padding-bottom: calc(5.56% + env(safe-area-inset-bottom, 0px));
   }
 
   .terms-page h1 {
-    font-size: 28px;
+    font-size: 1.94vw;
   }
 
   .terms-content {
-    padding: 24px 20px;
+    padding: 1.67% 1.39%;
   }
 
   .terms-content h2 {
-    font-size: 18px;
+    font-size: 1.25vw;
   }
 
   .terms-content p,
   .terms-content li {
-    font-size: 14px;
+    font-size: 0.97vw;
   }
 }
 
 @media (max-width: 480px) {
   .terms-page {
-    padding: 20px 14px;
-    padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+    padding: 1.39% 0.97%;
+    padding-bottom: calc(6.94% + env(safe-area-inset-bottom, 0px));
   }
 
   .back-link {
-    font-size: 16px;
-    margin-bottom: 28px;
+    font-size: 1.11vw;
+    margin-bottom: 1.94%;
   }
 
   .terms-page h1 {
-    font-size: 32px;
+    font-size: 2.22vw;
     font-weight: 800;
   }
 
   .last-updated {
-    font-size: 16px;
-    margin-bottom: 36px;
+    font-size: 1.11vw;
+    margin-bottom: 2.5%;
   }
 
   .terms-content {
-    padding: 28px 22px;
-    border-radius: 22px;
+    padding: 1.94% 1.53%;
+    border-radius: 1.53vw;
   }
 
   .terms-content h2 {
-    font-size: 22px;
+    font-size: 1.53vw;
     font-weight: 700;
   }
 
   .terms-content p,
   .terms-content li {
-    font-size: 17px;
+    font-size: 1.18vw;
     line-height: 1.8;
   }
 
   .terms-footer p {
-    font-size: 16px;
+    font-size: 1.11vw;
   }
 
   .btn-primary {
-    padding: 18px 36px;
-    font-size: 18px;
+    padding: 1.25% 2.5%;
+    font-size: 1.25vw;
     font-weight: 700;
-    border-radius: 16px;
-    min-height: 60px;
+    border-radius: 1.11vw;
+    min-height: 4.17vw;
   }
 }
