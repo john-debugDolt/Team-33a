@@ -174,24 +174,23 @@ class WalletService {
    */
   async requestWithdrawal({ accountId, amount, method = 'BANK_TRANSFER', bankDetails, paypalEmail, cryptoDetails }) {
     try {
+      // API expects flat structure, not nested bankDetails
       const body = {
         accountId,
         amount: Number(amount),
-        currency: 'AUD',
-        method,
       };
 
-      // Add payment method specific details
+      // Add payment method specific details (flat structure)
       if (method === 'BANK_TRANSFER' && bankDetails) {
-        body.bankDetails = {
-          accountName: bankDetails.accountHolderName || bankDetails.accountName,
-          accountNumber: bankDetails.accountNumber,
-          bsb: bankDetails.bsb?.replace(/-/g, ''),
-          bankName: bankDetails.bankName || 'Bank Transfer',
-        };
-        // Support PayID as alternative
+        body.accountHolderName = bankDetails.accountHolderName || bankDetails.accountName;
+        body.bankName = bankDetails.bankName || 'Bank Transfer';
+
+        // Either BSB + Account Number OR PayID required
         if (bankDetails.payId) {
-          body.bankDetails.payId = bankDetails.payId;
+          body.payId = bankDetails.payId;
+        } else {
+          body.bsb = bankDetails.bsb?.replace(/-/g, '');
+          body.accountNumber = bankDetails.accountNumber;
         }
       } else if (method === 'PAYPAL' && paypalEmail) {
         body.paypalEmail = paypalEmail;
@@ -328,13 +327,15 @@ class WalletService {
       const data = await response.json();
 
       if (response.ok) {
+        // Handle both array response and paginated object response
+        const withdrawals = Array.isArray(data) ? data : (data.withdrawals || data.content || []);
         return {
           success: true,
-          withdrawals: data.withdrawals || [],
+          withdrawals,
           pagination: data.pagination || {
-            currentPage: 1,
-            totalPages: 1,
-            totalItems: 0,
+            currentPage: params.page || 1,
+            totalPages: Math.ceil(withdrawals.length / (params.limit || 20)) || 1,
+            totalItems: withdrawals.length,
           },
         };
       }
