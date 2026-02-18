@@ -606,12 +606,7 @@ class WalletService {
    * Turnover must be fulfilled before user can withdraw bonus funds.
    *
    * @param {string} accountId - Account ID
-   * @returns {Object} Turnover status including:
-   *   - totalTurnoverRequired: Sum of all turnover requirements
-   *   - turnoverCompleted: Total amount wagered toward turnover
-   *   - turnoverRemaining: Amount still needed to wager
-   *   - canWithdraw: true if no pending turnover
-   *   - requirements: Array of individual turnover records
+   * @returns {Object} Turnover status
    */
   async getTurnoverStatus(accountId) {
     try {
@@ -622,10 +617,12 @@ class WalletService {
         return {
           success: true,
           accountId: data.accountId,
-          totalTurnoverRequired: data.totalTurnoverRequired || 0,
+          totalTurnoverRequired: data.turnoverRequired || 0,
           turnoverCompleted: data.turnoverCompleted || 0,
           turnoverRemaining: data.turnoverRemaining || 0,
-          canWithdraw: data.canWithdraw ?? true,
+          completionPercentage: data.completionPercentage || 0,
+          canWithdraw: data.canWithdraw ?? data.satisfied ?? true,
+          statusMessage: data.statusMessage || null,
           requirements: data.requirements || [],
         };
       }
@@ -658,14 +655,9 @@ class WalletService {
    * GET /api/wallets/{accountId}/can-withdraw
    *
    * Quick check if user can withdraw funds.
-   * Returns minimum withdrawal amount and turnover status.
    *
    * @param {string} accountId - Account ID
-   * @returns {Object} Withdrawal eligibility:
-   *   - canWithdraw: true if user can withdraw
-   *   - reason: Explanation if can't withdraw
-   *   - turnoverRemaining: Amount still needed to wager
-   *   - minimumWithdrawal: Minimum withdrawal amount
+   * @returns {Object} Withdrawal eligibility
    */
   async checkWithdrawalEligibility(accountId) {
     try {
@@ -676,8 +668,8 @@ class WalletService {
         return {
           success: true,
           canWithdraw: data.canWithdraw ?? true,
-          reason: data.reason || null,
-          turnoverRemaining: data.turnoverRemaining || 0,
+          reason: data.reason || data.statusMessage || null,
+          turnoverRemaining: data.turnoverRemaining || data.remainingTurnover || 0,
           minimumWithdrawal: data.minimumWithdrawal || 20,
         };
       }
