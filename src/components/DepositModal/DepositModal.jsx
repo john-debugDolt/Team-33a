@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { walletService } from '../../services/walletService'
 import { bankService } from '../../services/bankService'
+import bonusService from '../../services/bonusService'
 import { ButtonSpinner } from '../LoadingSpinner/LoadingSpinner'
 import './DepositModal.css'
 
@@ -20,6 +21,12 @@ export default function DepositModal({ isOpen, onClose }) {
   const [depositId, setDepositId] = useState(null)
   const [copied, setCopied] = useState('')
 
+  // Promo code state
+  const [promoCode, setPromoCode] = useState('')
+  const [promoLoading, setPromoLoading] = useState(false)
+  const [appliedBonus, setAppliedBonus] = useState(null)
+  const [showPromoInput, setShowPromoInput] = useState(false)
+
   // Reset modal state when closed
   useEffect(() => {
     if (!isOpen) {
@@ -28,6 +35,9 @@ export default function DepositModal({ isOpen, onClose }) {
       setBankDetails(null)
       setDepositId(null)
       setCopied('')
+      setPromoCode('')
+      setAppliedBonus(null)
+      setShowPromoInput(false)
     }
   }, [isOpen])
 
@@ -59,9 +69,19 @@ export default function DepositModal({ isOpen, onClose }) {
       return
     }
 
+    // Re-validate promo code minimum deposit if applied
+    if (appliedBonus && appliedBonus.minDeposit && depositAmount < appliedBonus.minDeposit) {
+      showToast(`Minimum deposit of $${appliedBonus.minDeposit} required for this bonus`, 'error')
+      return
+    }
+
     // Initiate deposit to get depositId and assigned bank from API
     setBankLoading(true)
-    const result = await walletService.initiateDeposit(user?.accountId, depositAmount)
+    const result = await walletService.initiateDeposit(
+      user?.accountId,
+      depositAmount,
+      appliedBonus?.bonusCode || null
+    )
     setBankLoading(false)
 
     if (result.success) {
@@ -118,6 +138,71 @@ export default function DepositModal({ isOpen, onClose }) {
   const handleBack = () => {
     setStep('amount')
     setBankDetails(null)
+  }
+
+  // Apply promo code
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) {
+      showToast('Please enter a promo code', 'error')
+      return
+    }
+
+    setPromoLoading(true)
+    try {
+      const bonus = await bonusService.getBonusByCode(promoCode.trim().toUpperCase())
+
+      if (!bonus) {
+        showToast('Invalid promo code', 'error')
+        setPromoLoading(false)
+        return
+      }
+
+      // Check if bonus is available
+      if (!bonusService.isBonusAvailable(bonus)) {
+        showToast('This promo code is no longer available', 'error')
+        setPromoLoading(false)
+        return
+      }
+
+      // Check minimum deposit requirement
+      const depositAmount = parseFloat(amount) || 0
+      if (bonus.minDeposit && depositAmount < bonus.minDeposit) {
+        showToast(`Minimum deposit of $${bonus.minDeposit} required for this bonus`, 'error')
+        setPromoLoading(false)
+        return
+      }
+
+      setAppliedBonus(bonus)
+      showToast('Promo code applied!', 'success')
+    } catch (err) {
+      showToast('Failed to validate promo code', 'error')
+    }
+    setPromoLoading(false)
+  }
+
+  // Remove applied promo
+  const handleRemovePromo = () => {
+    setAppliedBonus(null)
+    setPromoCode('')
+    setShowPromoInput(false)
+  }
+
+  // Calculate bonus amount
+  const calculateBonusAmount = () => {
+    if (!appliedBonus || !amount) return 0
+    const depositAmount = parseFloat(amount)
+
+    if (appliedBonus.bonusType === 'PERCENTAGE') {
+      const bonusAmt = (depositAmount * appliedBonus.bonusValue) / 100
+      // Cap at maxBonusAmount if set
+      if (appliedBonus.maxBonusAmount && bonusAmt > appliedBonus.maxBonusAmount) {
+        return appliedBonus.maxBonusAmount
+      }
+      return bonusAmt
+    } else if (appliedBonus.bonusType === 'FIXED') {
+      return appliedBonus.bonusValue
+    }
+    return 0
   }
 
   return (
@@ -388,19 +473,94 @@ export default function DepositModal({ isOpen, onClose }) {
               </div>
             </div>
 
+            {/* Promo Code Section */}
+            <div className="promo-section">
+              {appliedBonus ? (
+                <div className="promo-applied">
+                  <div className="promo-applied-info">
+                    <div className="promo-badge">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7"/>
+                      </svg>
+                      <span>{appliedBonus.bonusCode}</span>
+                    </div>
+                    <span className="promo-value">
+                      {appliedBonus.bonusType === 'PERCENTAGE'
+                        ? `+${appliedBonus.bonusValue}% Bonus`
+                        : `+$${appliedBonus.bonusValue} Bonus`}
+                    </span>
+                  </div>
+                  <button className="promo-remove-btn" onClick={handleRemovePromo}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+              ) : showPromoInput ? (
+                <div className="promo-input-row">
+                  <input
+                    type="text"
+                    className="promo-input"
+                    placeholder="Enter promo code"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                    onKeyDown={(e) => e.key === 'Enter' && handleApplyPromo()}
+                  />
+                  <button
+                    className="promo-apply-btn"
+                    onClick={handleApplyPromo}
+                    disabled={promoLoading || !promoCode.trim()}
+                  >
+                    {promoLoading ? <ButtonSpinner /> : 'Apply'}
+                  </button>
+                  <button
+                    className="promo-cancel-btn"
+                    onClick={() => { setShowPromoInput(false); setPromoCode(''); }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+              ) : (
+                <button className="promo-add-btn" onClick={() => setShowPromoInput(true)}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7"/>
+                  </svg>
+                  <span>Have a promo code?</span>
+                </button>
+              )}
+            </div>
+
             <div className="deposit-summary">
               <div className="summary-row">
                 <span>Deposit Amount</span>
                 <span>${parseFloat(amount || 0).toFixed(2)}</span>
               </div>
+              {appliedBonus && (
+                <div className="summary-row bonus">
+                  <span>
+                    Bonus ({appliedBonus.bonusType === 'PERCENTAGE'
+                      ? `${appliedBonus.bonusValue}%`
+                      : `$${appliedBonus.bonusValue}`})
+                  </span>
+                  <span className="bonus-value">+${calculateBonusAmount().toFixed(2)}</span>
+                </div>
+              )}
               <div className="summary-row">
                 <span>Processing Fee</span>
                 <span className="free">FREE</span>
               </div>
               <div className="summary-row total">
-                <span>Total</span>
-                <span>${parseFloat(amount || 0).toFixed(2)}</span>
+                <span>Total Credit</span>
+                <span>${(parseFloat(amount || 0) + calculateBonusAmount()).toFixed(2)}</span>
               </div>
+              {appliedBonus && appliedBonus.turnoverMultiplier > 0 && (
+                <div className="summary-row wagering">
+                  <span>Wagering Requirement</span>
+                  <span>{appliedBonus.turnoverMultiplier}x bonus</span>
+                </div>
+              )}
             </div>
 
             <button

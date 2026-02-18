@@ -1215,3 +1215,255 @@
     font-size: 3.6vw;
   }
 }
+
+/* ==================== PROMO CODE SECTION ==================== */
+.promo-section {
+  margin-bottom: 20px;
+}
+
+/* "Have a promo code?" button */
+.promo-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.promo-add-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--emerald-500);
+  color: var(--emerald-500);
+}
+
+.promo-add-btn svg {
+  color: var(--emerald-500);
+}
+
+/* Promo code input row */
+.promo-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.promo-input {
+  flex: 1;
+  padding: 12px 16px;
+  background: #0f1410;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s ease;
+}
+
+.promo-input:focus {
+  outline: none;
+  border-color: var(--emerald-500);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.promo-input::placeholder {
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+}
+
+.promo-apply-btn {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.promo-apply-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--emerald-400), var(--emerald-500));
+}
+
+.promo-apply-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.promo-cancel-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.promo-cancel-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+/* Applied promo display */
+.promo-applied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 12px;
+}
+
+.promo-applied-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.promo-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(16, 185, 129, 0.2);
+  border-radius: 8px;
+  color: var(--emerald-400);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.promo-badge svg {
+  color: var(--emerald-500);
+}
+
+.promo-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--emerald-400);
+}
+
+.promo-remove-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.promo-remove-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+/* Bonus row in summary */
+.summary-row.bonus {
+  color: var(--emerald-400);
+}
+
+.summary-row.bonus .bonus-value {
+  color: var(--emerald-500);
+  font-weight: 600;
+}
+
+/* Wagering row in summary */
+.summary-row.wagering {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding-top: 4px;
+}
+
+.summary-row.wagering span:last-child {
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+/* Mobile responsive for promo section */
+@media (max-width: 480px) {
+  .promo-section {
+    margin-bottom: 3%;
+  }
+
+  .promo-add-btn {
+    padding: 2.5% 3%;
+    font-size: 3vw;
+    border-radius: 2.5vw;
+  }
+
+  .promo-input-row {
+    gap: 2%;
+  }
+
+  .promo-input {
+    padding: 2.5% 3%;
+    font-size: 3.25vw;
+    border-radius: 2.5vw;
+  }
+
+  .promo-apply-btn {
+    padding: 2.5% 4%;
+    font-size: 3vw;
+    border-radius: 2.5vw;
+    min-width: 18%;
+  }
+
+  .promo-cancel-btn {
+    width: 10vw;
+    height: 10vw;
+    border-radius: 2.5vw;
+  }
+
+  .promo-applied {
+    padding: 2.5% 3%;
+    border-radius: 2.5vw;
+  }
+
+  .promo-badge {
+    padding: 1.5% 2.5%;
+    font-size: 2.75vw;
+    border-radius: 1.5vw;
+  }
+
+  .promo-value {
+    font-size: 3vw;
+  }
+
+  .promo-remove-btn {
+    width: 7vw;
+    height: 7vw;
+  }
+
+  .summary-row.bonus,
+  .summary-row.wagering {
+    font-size: 2.75vw;
+  }
+}
