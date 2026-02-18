@@ -105,10 +105,6 @@ export default function Home() {
   const [showSearch, setShowSearch] = useState(false)
   const [favorites, setFavorites] = useState([])
   const [recentlyPlayed, setRecentlyPlayed] = useState([])
-  const [showSpinWheel, setShowSpinWheel] = useState(false)
-  const [canSpin, setCanSpin] = useState(true)
-  const [spinResult, setSpinResult] = useState(null)
-  const [isSpinning, setIsSpinning] = useState(false)
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [leaderboardData, setLeaderboardData] = useState([])
   const [testimonials] = useState([
@@ -312,10 +308,6 @@ export default function Home() {
     if (savedFavorites) setFavorites(JSON.parse(savedFavorites))
     if (savedRecent) setRecentlyPlayed(JSON.parse(savedRecent))
 
-    // Check if user can spin today
-    const lastSpin = localStorage.getItem('lastSpinDate')
-    const today = new Date().toDateString()
-    if (lastSpin === today) setCanSpin(false)
   }, [])
 
 
@@ -396,70 +388,6 @@ export default function Home() {
       localStorage.setItem('recentlyPlayed', JSON.stringify(updated))
       return updated
     })
-  }
-
-  // Spin wheel prizes
-  const spinPrizes = [
-    { label: '$5', value: 5, color: '#10b981' },
-    { label: '$10', value: 10, color: '#f59e0b' },
-    { label: '$2', value: 2, color: '#6366f1' },
-    { label: '$20', value: 20, color: '#ef4444' },
-    { label: '$1', value: 1, color: '#8b5cf6' },
-    { label: '$50', value: 50, color: '#ec4899' },
-    { label: '$3', value: 3, color: '#14b8a6' },
-    { label: '$100', value: 100, color: '#f97316' }
-  ]
-
-  // Handle spin
-  const handleSpin = async () => {
-    if (!isAuthenticated) {
-      showToast('Please login to spin the wheel!', 'warning')
-      return
-    }
-    if (!canSpin || isSpinning) return
-
-    setIsSpinning(true)
-    setSpinResult(null)
-
-    // Random prize (weighted - lower values more common)
-    const weights = [25, 20, 20, 10, 15, 3, 5, 2]
-    const totalWeight = weights.reduce((a, b) => a + b, 0)
-    let random = Math.random() * totalWeight
-    let prizeIndex = 0
-
-    for (let i = 0; i < weights.length; i++) {
-      random -= weights[i]
-      if (random <= 0) {
-        prizeIndex = i
-        break
-      }
-    }
-
-    // Wait for spin animation
-    setTimeout(async () => {
-      const prize = spinPrizes[prizeIndex]
-      setIsSpinning(false)
-      setSpinResult(prize)
-      setCanSpin(false)
-      localStorage.setItem('lastSpinDate', new Date().toDateString())
-
-      // Credit the prize to user's balance
-      try {
-        const result = await walletService.spinWheel(user?.accountId, prize.value)
-        if (result.success) {
-          // Update balance in context
-          if (typeof updateBalance === 'function') {
-            updateBalance(result.newBalance)
-          }
-          showToast(`Congratulations! You won ${prize.label}! Balance updated.`, 'success')
-        } else {
-          showToast(`You won ${prize.label}! ${result.error || ''}`, 'success')
-        }
-      } catch (error) {
-        console.error('Failed to credit spin winnings:', error)
-        showToast(`Congratulations! You won ${prize.label}!`, 'success')
-      }
-    }, 4000)
   }
 
   // Fetch games
@@ -970,72 +898,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Floating Action Buttons */}
-      <div className="floating-buttons">
-        {/* Daily Spin Wheel Button */}
-        <button
-          className={`floating-btn spin-btn ${canSpin ? 'can-spin' : ''}`}
-          onClick={() => setShowSpinWheel(true)}
-          title="Daily Spin Wheel"
-        >
-          🎡
-          {canSpin && <span className="spin-badge">FREE</span>}
-        </button>
-        {/* Chat button moved to FloatingChat component in Layout */}
-      </div>
-
-      {/* Daily Spin Wheel Modal */}
-      {showSpinWheel && (
-        <div className="spin-wheel-overlay" onClick={() => !isSpinning && setShowSpinWheel(false)}>
-          <div className="spin-wheel-modal" onClick={(e) => e.stopPropagation()}>
-            <button
-              className="spin-modal-close"
-              onClick={() => !isSpinning && setShowSpinWheel(false)}
-              disabled={isSpinning}
-            >
-              ✕
-            </button>
-
-            <div className="spin-wheel-header">
-              <h2>🎡 Daily Spin Wheel</h2>
-              <p>Spin once per day for a chance to win!</p>
-            </div>
-
-            <div className="spin-wheel-container">
-              <div className={`spin-wheel ${isSpinning ? 'spinning' : ''}`}>
-                {spinPrizes.map((prize, index) => (
-                  <div
-                    key={index}
-                    className="wheel-segment"
-                    style={{
-                      transform: `rotate(${index * 45}deg)`,
-                      backgroundColor: prize.color
-                    }}
-                  >
-                    <span>{prize.label}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="wheel-pointer">▼</div>
-            </div>
-
-            {spinResult ? (
-              <div className="spin-result">
-                <h3>Congratulations!</h3>
-                <p>You won <strong>{spinResult.label}</strong></p>
-              </div>
-            ) : (
-              <button
-                className={`spin-button ${!canSpin ? 'disabled' : ''}`}
-                onClick={handleSpin}
-                disabled={!canSpin || isSpinning}
-              >
-                {isSpinning ? 'Spinning...' : canSpin ? 'SPIN NOW!' : 'Come back tomorrow!'}
-              </button>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Leaderboard Modal */}
       {showLeaderboard && (
