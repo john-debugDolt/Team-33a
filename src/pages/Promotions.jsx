@@ -49,121 +49,115 @@ export default function Promotions() {
       {/* Hero Section */}
       <div className="promo-hero">
         <div className="promo-hero-bg"></div>
-        <div className="promo-hero-content">
-          <h1 className="promo-hero-title">
-            <span className="promo-icon">🎁</span>
-            {t('promotions') || 'Promotions'}
-          </h1>
-          <p className="promo-hero-subtitle">
-            {t('promoSubtitle') || 'Claim exclusive bonuses and boost your winnings!'}
-          </p>
-        </div>
-      </div>
 
-      {/* Content Section */}
-      <div className="promo-content">
-        {loading ? (
-          <div className="promo-loading">
-            <div className="spinner"></div>
-            <p>{t('loading') || 'Loading promotions...'}</p>
-          </div>
-        ) : error ? (
-          <div className="promo-error">
-            <span className="error-icon">⚠️</span>
-            <p>{error}</p>
-            <button
-              className="retry-btn"
-              onClick={() => window.location.reload()}
-            >
-              {t('tryAgain') || 'Try Again'}
-            </button>
-          </div>
-        ) : bonuses.length === 0 ? (
-          <div className="promo-empty">
-            <span className="empty-icon">🎁</span>
-            <h3>{t('comingSoon') || 'Coming Soon'}</h3>
-            <p>{t('checkBackLater') || 'Check back later for exciting promotions!'}</p>
-          </div>
-        ) : (
-          <div className="promo-grid">
-            {bonuses.map((bonus) => {
-              const formatted = formatBonus(bonus)
-              return (
-                <div
-                  key={bonus.id}
-                  className={`promo-card ${formatted.highlight ? 'highlight' : ''}`}
-                  onClick={() => setSelectedBonus(bonus)}
-                >
-                  {/* Card Gradient Background */}
+        <div className="promo-content">
+          {loading ? (
+            <div className="promo-loading">
+              <div className="spinner"></div>
+            </div>
+          ) : error ? (
+            <div className="promo-error">
+              <span className="error-icon">⚠️</span>
+              <p>{error}</p>
+              <button
+                className="retry-btn"
+                onClick={() => window.location.reload()}
+              >
+                {t('tryAgain') || 'Try Again'}
+              </button>
+            </div>
+          ) : bonuses.length === 0 ? (
+            <div className="promo-empty">
+              <span className="empty-icon">🎁</span>
+              <h3>{t('comingSoon') || 'Coming Soon'}</h3>
+              <p>{t('checkBackLater') || 'Check back later for exciting promotions!'}</p>
+            </div>
+          ) : (
+            <div className="promo-grid">
+              {bonuses.map((bonus) => {
+                const formatted = formatBonus(bonus)
+                return (
                   <div
-                    className="promo-card-bg"
-                    style={{ background: formatted.gradient }}
-                  ></div>
-
-                  {/* Card Content */}
-                  <div className="promo-card-content">
-                    {/* Type Badge */}
-                    <div className="promo-badge">
-                      <span className="badge-icon">{formatted.icon}</span>
-                      <span className="badge-text">{formatted.typeLabel}</span>
+                    key={bonus.id}
+                    className="promo-card"
+                    onClick={() => setSelectedBonus(bonus)}
+                  >
+                    {/* Card Image/Background */}
+                    <div className="promo-card-image">
+                      <div style={{
+                        width: '100%',
+                        height: '100%',
+                        background: formatted.gradient,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <span style={{ fontSize: '64px' }}>{formatted.icon}</span>
+                      </div>
+                      <div className="promo-badge">{formatted.typeLabel}</div>
+                      <div className="promo-card-overlay">
+                        <button className="claim-btn">View Details</button>
+                      </div>
                     </div>
 
-                    {/* Headline */}
-                    <h3 className="promo-card-title">{formatted.title}</h3>
+                    {/* Card Info */}
+                    <div className="promo-card-info">
+                      <h3>{formatted.title}</h3>
 
-                    {/* Value Display */}
-                    <div className="promo-value">
-                      <span className="value-main">{formatted.valueDisplay}</span>
-                      {formatted.maxBonus && (
-                        <span className="value-max">{formatted.maxBonusDisplay}</span>
+                      {/* Value Display */}
+                      <div className="promo-value">
+                        <span className="value-main">{formatted.valueDisplay}</span>
+                        {formatted.maxBonus && (
+                          <span className="value-max">{formatted.maxBonusDisplay}</span>
+                        )}
+                      </div>
+
+                      {/* Requirements */}
+                      <div className="promo-requirements">
+                        <div className="req-item">
+                          <span className="req-icon">💵</span>
+                          <span>{formatted.minDepositDisplay}</span>
+                        </div>
+                        <div className="req-item">
+                          <span className="req-icon">🔄</span>
+                          <span>{formatted.turnoverDisplay}</span>
+                        </div>
+                      </div>
+
+                      {/* Code or Auto-applied */}
+                      {formatted.requiresCode ? (
+                        <div className="promo-code-section">
+                          <code className="promo-code">{bonus.bonusCode}</code>
+                          <button
+                            className={`copy-btn ${copiedCode === bonus.bonusCode ? 'copied' : ''}`}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleCopyCode(bonus.bonusCode)
+                            }}
+                          >
+                            {copiedCode === bonus.bonusCode ? '✓' : 'Copy'}
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="promo-auto-badge">
+                          <span>✨</span> Auto-applied
+                        </div>
+                      )}
+
+                      {/* Limited availability */}
+                      {formatted.isLimited && (
+                        <div className="promo-limited">
+                          <span className="limited-icon">⏰</span>
+                          <span>{formatted.availabilityDisplay}</span>
+                        </div>
                       )}
                     </div>
-
-                    {/* Requirements */}
-                    <div className="promo-requirements">
-                      <div className="req-item">
-                        <span className="req-icon">💵</span>
-                        <span>{formatted.minDepositDisplay}</span>
-                      </div>
-                      <div className="req-item">
-                        <span className="req-icon">🔄</span>
-                        <span>{formatted.turnoverDisplay}</span>
-                      </div>
-                    </div>
-
-                    {/* Code or CTA */}
-                    {formatted.requiresCode ? (
-                      <div className="promo-code-section">
-                        <code className="promo-code">{bonus.bonusCode}</code>
-                        <button
-                          className={`copy-btn ${copiedCode === bonus.bonusCode ? 'copied' : ''}`}
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleCopyCode(bonus.bonusCode)
-                          }}
-                        >
-                          {copiedCode === bonus.bonusCode ? '✓ Copied' : 'Copy'}
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="promo-auto-badge">
-                        <span>✨</span> Auto-applied on deposit
-                      </div>
-                    )}
-
-                    {/* Availability */}
-                    {formatted.isLimited && (
-                      <div className="promo-limited">
-                        <span className="limited-icon">⏰</span>
-                        <span>{formatted.availabilityDisplay}</span>
-                      </div>
-                    )}
                   </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
+                )
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Detail Modal */}
@@ -229,7 +223,7 @@ export default function Promotions() {
                             className={`copy-btn ${copiedCode === selectedBonus.bonusCode ? 'copied' : ''}`}
                             onClick={() => handleCopyCode(selectedBonus.bonusCode)}
                           >
-                            {copiedCode === selectedBonus.bonusCode ? '✓ Copied' : 'Copy Code'}
+                            {copiedCode === selectedBonus.bonusCode ? '✓ Copied' : 'Copy'}
                           </button>
                         </div>
                       </div>

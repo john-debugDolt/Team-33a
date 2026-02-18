@@ -25,7 +25,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2.78%;
+  padding: 40px;
 }
 
 .signup-banner img {
@@ -33,13 +33,13 @@
   max-height: 80vh;
   height: auto;
   object-fit: contain;
-  filter: drop-shadow(0 1.39vw 2.78vw rgba(0, 0, 0, 0.4));
+  filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.4));
 }
 
 /* Form Section */
 .signup-form-section {
-  flex: 0 0 41.67vw;
-  padding: 2.08% 2.78% 2.78%;
+  flex: 0 0 600px;
+  padding: 30px 40px 40px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -58,7 +58,7 @@
   }
 
   .signup-form-section {
-    flex: 0 0 41.67vw;
+    flex: 0 0 600px;
     background: transparent;
   }
 }
@@ -67,23 +67,23 @@
 .signup-form-golden {
   display: flex;
   flex-direction: column;
-  gap: 1.67%;
+  gap: 24px;
 }
 
 .form-row-inline {
   display: flex;
   align-items: center;
-  gap: 1.11%;
+  gap: 16px;
 }
 
 .form-label-inline {
-  flex: 0 0 9.72vw;
-  font-size: 1.11vw;
+  flex: 0 0 140px;
+  font-size: 16px;
   font-weight: 600;
   color: #fff;
   display: flex;
   align-items: center;
-  gap: 0.56%;
+  gap: 8px;
 }
 
 .form-label-inline::after {
@@ -93,17 +93,17 @@
 
 .form-input-inline {
   flex: 1;
-  height: 4.03vw;
-  min-height: 4.03vw;
-  padding: 1.11% 1.39%;
+  height: 58px;
+  min-height: 58px;
+  padding: 16px 20px;
   background: #fff !important;
   border: 2px solid transparent;
-  border-radius: 0.83vw;
-  font-size: 1.11vw;
+  border-radius: 12px;
+  font-size: 16px;
   color: #333;
   outline: none;
   transition: all 0.25s ease;
-  box-shadow: 0 0.14vw 0.56vw rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
 }
 
@@ -113,14 +113,14 @@
 }
 
 .form-input-inline:focus {
-  box-shadow: 0 0 0 0.14vw rgba(212, 160, 18, 0.4), 0 0.28vw 0.83vw rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 0 2px rgba(212, 160, 18, 0.4), 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Hint text below input */
 .form-hint-golden {
-  margin-left: 10.83%;
-  margin-top: -1.11%;
-  font-size: 0.97vw;
+  margin-left: 156px;
+  margin-top: -16px;
+  font-size: 14px;
   color: #d4a012;
   font-weight: 500;
   font-style: italic;
@@ -133,24 +133,24 @@
 }
 
 .password-wrap-inline .form-input-inline {
-  padding-right: 3.47%;
+  padding-right: 50px;
   width: 100%;
 }
 
 .password-toggle-inline {
   position: absolute;
-  right: 0.97%;
+  right: 14px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
   color: #666;
   cursor: pointer;
-  padding: 0.56%;
+  padding: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0.56vw;
+  border-radius: 8px;
   transition: all 0.2s;
 }
 
@@ -163,36 +163,36 @@
 .otp-section-inline {
   background: transparent;
   border-radius: 0;
-  padding: 1.11% 0 0 0;
+  padding: 16px 0 0 0;
   margin-top: 0;
   border: none;
 }
 
 .otp-instruction {
-  font-size: 1.04vw;
+  font-size: 15px;
   color: #fff;
-  margin: 0 0 1.11% 0;
+  margin: 0 0 16px 0;
   font-weight: 500;
 }
 
 .otp-row {
   display: flex;
-  gap: 0.83%;
+  gap: 12px;
   align-items: center;
 }
 
 .otp-input-inline {
   flex: 1;
-  height: 4.03vw;
-  min-height: 4.03vw;
-  padding: 1.11% 1.39%;
+  height: 58px;
+  min-height: 58px;
+  padding: 16px 20px;
   background: #fff !important;
   border: 2px solid transparent;
-  border-radius: 0.83vw;
-  font-size: 1.25vw;
+  border-radius: 12px;
+  font-size: 18px;
   font-weight: 600;
   color: #333;
-  letter-spacing: 0.56vw;
+  letter-spacing: 8px;
   outline: none;
   transition: all 0.25s ease;
   box-sizing: border-box;
@@ -205,28 +205,28 @@
 }
 
 .otp-input-inline:focus {
-  box-shadow: 0 0 0 0.14vw rgba(212, 160, 18, 0.4);
+  box-shadow: 0 0 0 2px rgba(212, 160, 18, 0.4);
 }
 
 .get-code-btn {
   flex: 0 0 auto;
-  height: 4.03vw;
-  padding: 0 2.22%;
+  height: 58px;
+  padding: 0 32px;
   background: linear-gradient(180deg, #1a7a4c 0%, #15603b 50%, #0d4a2d 100%);
   border: none;
-  border-radius: 0.83vw;
-  font-size: 1.11vw;
+  border-radius: 12px;
+  font-size: 16px;
   font-weight: 700;
   color: #fff;
   cursor: pointer;
   transition: all 0.3s ease;
   white-space: nowrap;
-  box-shadow: 0 0.28vw 1.04vw rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
 }
 
 .get-code-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 0.56vw 1.74vw rgba(16, 185, 129, 0.4);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
 }
 
 .get-code-btn:disabled {
@@ -235,8 +235,8 @@
 }
 
 .otp-timer {
-  margin-top: 0.83%;
-  font-size: 0.97vw;
+  margin-top: 12px;
+  font-size: 14px;
   color: rgba(255, 255, 255, 0.7);
 }
 
@@ -249,11 +249,11 @@
   background: none;
   border: none;
   color: var(--emerald-400);
-  font-size: 0.97vw;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  padding: 0.28% 0;
-  margin-top: 0.56%;
+  padding: 4px 0;
+  margin-top: 8px;
 }
 
 .otp-resend-btn:hover:not(:disabled) {
@@ -269,12 +269,12 @@
 /* ========== Register Button ========== */
 .register-btn-golden {
   width: 100%;
-  height: 4.17vw;
-  margin-top: 0.83%;
+  height: 60px;
+  margin-top: 12px;
   background: linear-gradient(180deg, #1a7a4c 0%, #15603b 50%, #0d4a2d 100%);
   border: none;
-  border-radius: 0.83vw;
-  font-size: 1.25vw;
+  border-radius: 12px;
+  font-size: 18px;
   font-weight: 700;
   color: #fff;
   cursor: pointer;
@@ -282,9 +282,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  letter-spacing: 0.14vw;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  box-shadow: 0 0.28vw 1.04vw rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -306,7 +306,7 @@
 
 .register-btn-golden:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 0.56vw 1.74vw rgba(16, 185, 129, 0.4);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
 }
 
 .register-btn-golden:disabled {
@@ -317,18 +317,18 @@
 /* ========== Login Link Section ========== */
 .login-link-section {
   text-align: center;
-  margin-top: 1.67%;
+  margin-top: 24px;
 }
 
 .login-link-section p {
-  font-size: 1.04vw;
+  font-size: 15px;
   color: rgba(255, 255, 255, 0.7);
-  margin: 0 0 0.83% 0;
+  margin: 0 0 12px 0;
 }
 
 .login-link-golden {
   display: inline-block;
-  font-size: 1.11vw;
+  font-size: 16px;
   font-weight: 600;
   background: linear-gradient(180deg, #fef08a 0%, #d4a012 100%);
   -webkit-background-clip: text;
@@ -356,35 +356,35 @@
 .side-action-btn {
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  padding: 1.11% 0.69%;
-  font-size: 0.83vw;
+  padding: 16px 10px;
+  font-size: 12px;
   font-weight: 700;
   color: #fff;
   text-decoration: none;
-  letter-spacing: 0.07vw;
+  letter-spacing: 1px;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 0.56%;
+  gap: 8px;
 }
 
 .side-action-btn.follow {
   background: linear-gradient(180deg, #1877f2, #0d5bbf);
-  border-radius: 0.56vw 0 0 0;
+  border-radius: 8px 0 0 0;
 }
 
 .side-action-btn.complain {
   background: linear-gradient(180deg, #ff6b35, #d4521d);
-  border-radius: 0 0 0 0.56vw;
+  border-radius: 0 0 0 8px;
 }
 
 .side-action-btn:hover {
-  padding-right: 1.11%;
+  padding-right: 16px;
 }
 
 .side-action-btn svg {
-  width: 1.11vw;
-  height: 1.11vw;
+  width: 16px;
+  height: 16px;
 }
 
 
@@ -402,9 +402,9 @@
 .otp-status {
   display: flex;
   align-items: center;
-  gap: 0.56%;
-  margin-top: 0.83%;
-  font-size: 0.97vw;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 14px;
 }
 
 .otp-status.success {
@@ -416,13 +416,13 @@
 }
 
 .otp-status svg {
-  width: 1.11vw;
-  height: 1.11vw;
+  width: 16px;
+  height: 16px;
 }
 
 /* ========== Referral Code Section ========== */
 .referral-row {
-  margin-top: 0.56%;
+  margin-top: 8px;
 }
 
 .referral-input-wrap {
@@ -431,13 +431,13 @@
 }
 
 .referral-input-wrap .form-input-inline {
-  padding-right: 3.47%;
+  padding-right: 50px;
   width: 100%;
 }
 
 .referral-icon {
   position: absolute;
-  right: 1.11%;
+  right: 16px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--emerald-500);
@@ -458,24 +458,24 @@
 }
 
 .password-input-wrap .form-input-inline {
-  padding-right: 3.47%;
+  padding-right: 50px;
   width: 100%;
 }
 
 .password-toggle-golden {
   position: absolute;
-  right: 0.97%;
+  right: 14px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
   color: #666;
   cursor: pointer;
-  padding: 0.56%;
+  padding: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0.56vw;
+  border-radius: 8px;
   transition: all 0.2s;
 }
 
@@ -506,8 +506,8 @@
 
   .signup-form-section {
     flex: 1;
-    padding: 1.67% 1.39% 2.78%;
-    max-width: 41.67vw;
+    padding: 24px 20px 40px;
+    max-width: 600px;
     margin: 0 auto;
     width: 100%;
     background: transparent;
@@ -523,13 +523,13 @@
   }
 
   .signup-form-section {
-    padding: 1.39% 1.11% 2.22%;
+    padding: 20px 16px 32px;
   }
 
   .form-row-inline {
     flex-direction: column;
     align-items: stretch;
-    gap: 0.56%;
+    gap: 8px;
   }
 
   .form-label-inline {
@@ -542,7 +542,7 @@
 
   .form-input-inline {
     width: 100%;
-    height: 3.89vw;
+    height: 56px;
   }
 
   .password-wrap-inline {
@@ -551,12 +551,12 @@
 
   .password-wrap-inline .form-input-inline {
     width: 100%;
-    height: 3.89vw;
+    height: 56px;
   }
 
   .form-hint-golden {
     margin-left: 0;
-    margin-top: -0.83%;
+    margin-top: -12px;
   }
 
   .otp-row {
@@ -565,12 +565,12 @@
 
   .otp-input-inline {
     width: 100%;
-    height: 3.89vw;
+    height: 56px;
   }
 
   .get-code-btn {
     width: 100%;
-    height: 3.89vw;
+    height: 56px;
   }
 }
 
@@ -580,41 +580,41 @@
   }
 
   .signup-form-golden {
-    gap: 1.25%;
+    gap: 18px;
   }
 
   .form-label-inline {
-    font-size: 1.04vw;
+    font-size: 15px;
   }
 
   .form-input-inline {
-    height: 3.75vw;
-    font-size: 1.11vw;
+    height: 54px;
+    font-size: 16px;
   }
 
   .password-wrap-inline .form-input-inline {
-    height: 3.75vw;
+    height: 54px;
   }
 
   .otp-input-inline {
-    height: 3.75vw;
+    height: 54px;
   }
 
   .get-code-btn {
-    height: 3.75vw;
+    height: 54px;
   }
 
   .otp-section-inline {
-    padding: 1.11% 0 0 0;
+    padding: 16px 0 0 0;
   }
 
   .otp-instruction {
-    font-size: 0.97vw;
+    font-size: 14px;
   }
 
   .register-btn-golden {
-    height: 3.89vw;
-    font-size: 1.11vw;
+    height: 56px;
+    font-size: 16px;
   }
 }
 
@@ -624,24 +624,24 @@
   }
 
   .form-input-inline {
-    height: 3.61vw;
+    height: 52px;
   }
 
   .password-wrap-inline .form-input-inline {
-    height: 3.61vw;
+    height: 52px;
   }
 
   .otp-input-inline {
-    height: 3.61vw;
+    height: 52px;
   }
 
   .get-code-btn {
-    height: 3.61vw;
-    padding: 0 1.67%;
-    font-size: 0.97vw;
+    height: 52px;
+    padding: 0 24px;
+    font-size: 14px;
   }
 
   .register-btn-golden {
-    height: 3.75vw;
+    height: 54px;
   }
 }

@@ -1,7 +1,7 @@
 /* Login Page - Golden Casino Design */
 
 .login-page-golden {
-  min-height: calc(100vh - 13.89vw);
+  min-height: calc(100vh - 200px);
   background-color: var(--bg-primary);
   background-image: url('../images/background pc.png');
   background-size: cover;
@@ -14,7 +14,7 @@
 /* ========== Two Column Layout for Desktop ========== */
 .login-layout {
   display: flex;
-  min-height: calc(100vh - 13.89vw);
+  min-height: calc(100vh - 200px);
   position: relative;
   z-index: 2;
 }
@@ -25,7 +25,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2.78%;
+  padding: 40px;
   position: relative;
 }
 
@@ -34,37 +34,37 @@
   max-height: 80vh;
   height: auto;
   object-fit: contain;
-  filter: drop-shadow(0 1.39vw 2.78vw rgba(0, 0, 0, 0.4));
+  filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.4));
 }
 
 /* Form Section - Right Side on Desktop */
 .login-form-section {
-  flex: 0 0 34.72vw;
+  flex: 0 0 500px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 2.78% 3.47%;
+  padding: 40px 50px;
   position: relative;
 }
 
 /* ========== Login Container ========== */
 .login-container-golden {
   width: 100%;
-  max-width: 29.17vw;
+  max-width: 420px;
 }
 
 /* ========== Login Title ========== */
 .login-title-golden {
   font-family: var(--font-primary);
-  font-size: 2.22vw;
+  font-size: 32px;
   font-weight: 700;
   font-style: italic;
   background: linear-gradient(180deg, #fef08a 0%, #fcd34d 30%, #d4a012 60%, #b8860b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin: 0 0 1.94% 0;
-  text-shadow: 0 2px 1.39vw rgba(212, 160, 18, 0.3);
+  margin: 0 0 28px 0;
+  text-shadow: 0 2px 20px rgba(212, 160, 18, 0.3);
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
@@ -72,17 +72,17 @@
 .login-form-golden {
   display: flex;
   flex-direction: column;
-  gap: 1.39%;
+  gap: 20px;
 }
 
 .form-group-golden {
   display: flex;
   flex-direction: column;
-  gap: 0.69%;
+  gap: 10px;
 }
 
 .form-label-golden {
-  font-size: 1.11vw;
+  font-size: 16px;
   font-weight: 600;
   color: #fff;
   letter-spacing: 0.3px;
@@ -90,13 +90,13 @@
 
 .form-input-golden {
   width: 100%;
-  height: 4.03vw;
-  min-height: 4.03vw;
-  padding: 1.11% 1.39%;
+  height: 58px;
+  min-height: 58px;
+  padding: 16px 20px;
   background: #fff !important;
   border: 2px solid transparent;
-  border-radius: 0.83vw;
-  font-size: 1.11vw;
+  border-radius: 12px;
+  font-size: 16px;
   color: #333;
   outline: none;
   transition: all 0.25s ease;
@@ -110,7 +110,7 @@
 }
 
 .form-input-golden:focus {
-  box-shadow: 0 0 0 2px rgba(212, 160, 18, 0.4), 0 0.28vw 0.83vw rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 0 2px rgba(212, 160, 18, 0.4), 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Password Input Wrapper */
@@ -119,23 +119,23 @@
 }
 
 .password-input-wrap .form-input-golden {
-  padding-right: 3.47%;
+  padding-right: 50px;
 }
 
 .password-toggle-golden {
   position: absolute;
-  right: 0.97%;
+  right: 14px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
   color: #666;
   cursor: pointer;
-  padding: 0.56%;
+  padding: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0.56vw;
+  border-radius: 8px;
   transition: all 0.2s;
 }
 
@@ -147,12 +147,12 @@
 /* ========== Login Button ========== */
 .login-btn-golden {
   width: 100%;
-  height: 4.17vw;
-  margin-top: 0.56%;
+  height: 60px;
+  margin-top: 8px;
   background: linear-gradient(180deg, #1a7a4c 0%, #15603b 50%, #0d4a2d 100%);
   border: none;
-  border-radius: 0.83vw;
-  font-size: 1.25vw;
+  border-radius: 12px;
+  font-size: 18px;
   font-weight: 700;
   color: #fff;
   cursor: pointer;
@@ -162,7 +162,7 @@
   justify-content: center;
   letter-spacing: 2px;
   text-transform: uppercase;
-  box-shadow: 0 0.28vw 1.04vw rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -184,7 +184,7 @@
 
 .login-btn-golden:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 0.56vw 1.74vw rgba(16, 185, 129, 0.4);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
 }
 
 .login-btn-golden:active:not(:disabled) {
@@ -199,13 +199,13 @@
 /* ========== Register Section ========== */
 .register-section-golden {
   text-align: center;
-  margin-top: 2.22%;
+  margin-top: 32px;
 }
 
 .register-text-golden {
-  font-size: 1.11vw;
+  font-size: 16px;
   color: #fff;
-  margin: 0 0 1.11% 0;
+  margin: 0 0 16px 0;
   font-weight: 500;
 }
 
@@ -214,12 +214,12 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  max-width: 19.44vw;
-  height: 3.89vw;
+  max-width: 280px;
+  height: 56px;
   background: transparent;
   border: 2px solid #1a7a4c;
-  border-radius: 0.83vw;
-  font-size: 1.11vw;
+  border-radius: 12px;
+  font-size: 16px;
   font-weight: 700;
   color: #fff;
   cursor: pointer;
@@ -239,8 +239,8 @@
 .forgot-link-golden {
   display: block;
   text-align: center;
-  margin-top: 1.67%;
-  font-size: 1.11vw;
+  margin-top: 24px;
+  font-size: 16px;
   font-weight: 600;
   background: linear-gradient(180deg, #fef08a 0%, #d4a012 100%);
   -webkit-background-clip: text;
@@ -252,7 +252,7 @@
 
 .forgot-link-golden:hover {
   filter: brightness(1.2);
-  text-shadow: 0 0 1.39vw rgba(212, 160, 18, 0.5);
+  text-shadow: 0 0 20px rgba(212, 160, 18, 0.5);
 }
 
 /* ========== Side Action Buttons ========== */
@@ -269,8 +269,8 @@
 .side-action-btn {
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  padding: 1.11% 0.69%;
-  font-size: 0.83vw;
+  padding: 16px 10px;
+  font-size: 12px;
   font-weight: 700;
   color: #fff;
   text-decoration: none;
@@ -278,26 +278,26 @@
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 0.56%;
+  gap: 8px;
 }
 
 .side-action-btn.follow {
   background: linear-gradient(180deg, #1877f2, #0d5bbf);
-  border-radius: 0.56vw 0 0 0;
+  border-radius: 8px 0 0 0;
 }
 
 .side-action-btn.complain {
   background: linear-gradient(180deg, #ff6b35, #d4521d);
-  border-radius: 0 0 0 0.56vw;
+  border-radius: 0 0 0 8px;
 }
 
 .side-action-btn:hover {
-  padding-right: 1.11%;
+  padding-right: 16px;
 }
 
 .side-action-btn svg {
-  width: 1.11vw;
-  height: 1.11vw;
+  width: 16px;
+  height: 16px;
 }
 
 
@@ -319,12 +319,12 @@
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(0.83vw);
+  backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  padding: 1.39%;
+  padding: 20px;
   animation: overlayFadeIn 0.3s ease;
 }
 
@@ -335,16 +335,16 @@
 
 .otp-modal {
   background: linear-gradient(180deg, rgba(20, 30, 25, 0.98) 0%, rgba(15, 23, 20, 0.99) 100%);
-  border-radius: 1.67vw;
+  border-radius: 24px;
   border: 1px solid rgba(16, 185, 129, 0.2);
-  padding: 2.78% 2.22%;
-  max-width: 27.78vw;
+  padding: 40px 32px;
+  max-width: 400px;
   width: 100%;
   text-align: center;
   position: relative;
   box-shadow:
-    0 0.69vw 1.74vw rgba(0, 0, 0, 0.3),
-    0 1.74vw 3.47vw rgba(0, 0, 0, 0.4),
+    0 10px 25px rgba(0, 0, 0, 0.3),
+    0 25px 50px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   animation: modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -352,7 +352,7 @@
 @keyframes modalSlideUp {
   from {
     opacity: 0;
-    transform: translateY(2.08vw) scale(0.95);
+    transform: translateY(30px) scale(0.95);
   }
   to {
     opacity: 1;
@@ -362,16 +362,16 @@
 
 .otp-modal-close {
   position: absolute;
-  top: 1.11%;
-  right: 1.11%;
-  width: 2.78vw;
-  height: 2.78vw;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.83vw;
+  border-radius: 12px;
   color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -388,31 +388,31 @@
 }
 
 .otp-modal-header {
-  margin-bottom: 1.94%;
+  margin-bottom: 28px;
 }
 
 .otp-icon {
-  width: 5vw;
-  height: 5vw;
-  margin: 0 auto 1.39%;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 20px;
   background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  box-shadow: 0 0.56vw 1.67vw rgba(16, 185, 129, 0.35);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
 }
 
 .otp-modal-header h2 {
-  font-size: 1.53vw;
+  font-size: 22px;
   font-weight: 700;
   color: #fff;
-  margin-bottom: 0.56%;
+  margin-bottom: 8px;
 }
 
 .otp-modal-header p {
-  font-size: 0.97vw;
+  font-size: 14px;
   color: rgba(255, 255, 255, 0.6);
   line-height: 1.5;
 }
@@ -425,20 +425,20 @@
 /* OTP Input Boxes */
 .otp-inputs {
   display: flex;
-  gap: 0.69%;
+  gap: 10px;
   justify-content: center;
-  margin-bottom: 1.11%;
+  margin-bottom: 16px;
 }
 
 .otp-inputs input {
-  width: 3.33vw;
-  height: 4.03vw;
+  width: 48px;
+  height: 58px;
   text-align: center;
-  font-size: 1.67vw;
+  font-size: 24px;
   font-weight: 700;
   background: rgba(255, 255, 255, 0.05);
   border: 2px solid rgba(255, 255, 255, 0.15);
-  border-radius: 0.83vw;
+  border-radius: 12px;
   color: #fff;
   transition: all 0.2s ease;
   caret-color: var(--emerald-500);
@@ -448,7 +448,7 @@
   outline: none;
   border-color: var(--emerald-500);
   background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 0 0.28vw rgba(16, 185, 129, 0.15);
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
 }
 
 .otp-inputs input.otp-error {
@@ -463,17 +463,17 @@
 
 .otp-error-message {
   color: #ef4444;
-  font-size: 0.97vw;
-  margin-bottom: 1.11%;
+  font-size: 14px;
+  margin-bottom: 16px;
 }
 
 .otp-verify-btn {
   width: 100%;
-  height: 3.61vw;
+  height: 52px;
   background: linear-gradient(135deg, var(--emerald-500) 0%, var(--emerald-600) 100%);
   border: none;
-  border-radius: 0.83vw;
-  font-size: 1.11vw;
+  border-radius: 12px;
+  font-size: 16px;
   font-weight: 700;
   color: #fff;
   cursor: pointer;
@@ -481,13 +481,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1.39%;
-  box-shadow: 0 0.28vw 1.04vw rgba(16, 185, 129, 0.4);
+  margin-bottom: 20px;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
 }
 
 .otp-verify-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 0.56vw 1.74vw rgba(16, 185, 129, 0.5);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5);
 }
 
 .otp-verify-btn:disabled {
@@ -496,7 +496,7 @@
 }
 
 .otp-resend {
-  font-size: 0.97vw;
+  font-size: 14px;
   color: rgba(255, 255, 255, 0.6);
 }
 
@@ -512,11 +512,11 @@
   background: none;
   border: none;
   color: var(--emerald-400);
-  font-size: 0.97vw;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  padding: 0.56% 1.11%;
-  border-radius: 0.56vw;
+  padding: 8px 16px;
+  border-radius: 8px;
   transition: all 0.2s ease;
 }
 
@@ -538,11 +538,11 @@
 
   .login-banner {
     flex: 1;
-    min-height: calc(100vh - 13.89vw);
+    min-height: calc(100vh - 200px);
   }
 
   .login-form-section {
-    flex: 0 0 36.11vw;
+    flex: 0 0 520px;
     background: #0a0c0a;
   }
 
@@ -573,8 +573,8 @@
 
   .login-form-section {
     flex: 1;
-    padding: 3.13% 2.6% 5.21%;
-    max-width: 65.1vw;
+    padding: 24px 20px 40px;
+    max-width: 500px;
     margin: 0 auto;
     width: 100%;
     background: #0a0c0a;
@@ -583,7 +583,7 @@
   }
 
   .login-container-golden {
-    max-width: 62.5vw;
+    max-width: 480px;
     margin: 0 auto;
   }
 
@@ -599,12 +599,12 @@
   }
 
   .login-form-section {
-    padding: 2.6% 2.08% 4.17%;
+    padding: 20px 16px 32px;
   }
 
   .login-title-golden {
-    font-size: 3.65vw;
-    margin-bottom: 3.13%;
+    font-size: 28px;
+    margin-bottom: 24px;
   }
 }
 
@@ -614,83 +614,83 @@
   }
 
   .login-form-section {
-    padding: 4.17% 3.33% 5.83%;
+    padding: 20px 16px 28px;
   }
 
   .login-title-golden {
-    font-size: 5.42vw;
-    margin-bottom: 4.17%;
+    font-size: 26px;
+    margin-bottom: 20px;
   }
 
   .form-label-golden {
-    font-size: 3.13vw;
+    font-size: 15px;
   }
 
   .form-input-golden {
-    height: 11.25vw;
-    font-size: 3.33vw;
+    height: 54px;
+    font-size: 16px;
   }
 
   .password-input-wrap .form-input-golden {
-    height: 11.25vw;
+    height: 54px;
   }
 
   .login-btn-golden {
-    height: 11.67vw;
-    font-size: 3.33vw;
+    height: 56px;
+    font-size: 16px;
   }
 
   .register-text-golden {
-    font-size: 3.13vw;
+    font-size: 15px;
   }
 
   .register-btn-golden {
-    height: 10.42vw;
-    font-size: 3.13vw;
+    height: 50px;
+    font-size: 15px;
   }
 
   .forgot-link-golden {
-    font-size: 3.13vw;
-    margin-top: 4.17%;
+    font-size: 15px;
+    margin-top: 20px;
   }
 
   /* OTP Modal Mobile */
   .otp-modal {
-    padding: 6.67% 5%;
-    margin: 3.33%;
-    border-radius: 4.17vw;
+    padding: 32px 24px;
+    margin: 16px;
+    border-radius: 20px;
   }
 
   .otp-modal-close {
-    top: 2.5%;
-    right: 2.5%;
-    width: 7.5vw;
-    height: 7.5vw;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
   }
 
   .otp-icon {
-    width: 13.33vw;
-    height: 13.33vw;
+    width: 64px;
+    height: 64px;
   }
 
   .otp-icon svg {
-    width: 7.5vw;
-    height: 7.5vw;
+    width: 36px;
+    height: 36px;
   }
 
   .otp-modal-header h2 {
-    font-size: 4.17vw;
+    font-size: 20px;
   }
 
   .otp-inputs {
-    gap: 1.67%;
+    gap: 8px;
   }
 
   .otp-inputs input {
-    width: 9.17vw;
-    height: 11.25vw;
-    font-size: 4.58vw;
-    border-radius: 2.08vw;
+    width: 44px;
+    height: 54px;
+    font-size: 22px;
+    border-radius: 10px;
   }
 }
 
@@ -700,23 +700,23 @@
   }
 
   .login-title-golden {
-    font-size: 6.67vw;
+    font-size: 24px;
   }
 
   .form-input-golden {
-    height: 14.44vw;
+    height: 52px;
   }
 
   .login-btn-golden {
-    height: 14.44vw;
+    height: 52px;
   }
 
   .gold-coin {
-    width: 6.67vw;
-    height: 6.67vw;
+    width: 24px;
+    height: 24px;
   }
 
   .gold-coin::before {
-    font-size: 3.33vw;
+    font-size: 12px;
   }
 }
