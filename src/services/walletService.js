@@ -24,16 +24,26 @@ class WalletService {
   /**
    * Initiate a deposit
    * POST /api/deposits/initiate
+   * @param {string} accountId - Account ID
+   * @param {number} amount - Deposit amount
+   * @param {string|null} bonusCode - Optional promo/bonus code
    */
-  async initiateDeposit(accountId, amount) {
+  async initiateDeposit(accountId, amount, bonusCode = null) {
     try {
+      const body = {
+        accountId,
+        amount: Number(amount),
+      };
+
+      // Add bonus code if provided
+      if (bonusCode) {
+        body.bonusCode = bonusCode;
+      }
+
       const response = await fetch(`${API_BASE}/api/deposits/initiate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accountId,
-          amount: Number(amount),
-        }),
+        body: JSON.stringify(body),
       });
 
       const data = await response.json();
