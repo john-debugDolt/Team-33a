@@ -159,27 +159,47 @@ class WalletService {
 
   /**
    * Request a withdrawal
-   * POST /api/withdrawals
+   * POST /api/withdrawals/request
+   *
+   * Submits a withdrawal request for admin approval.
+   * Checks turnover requirements before allowing withdrawal.
+   *
+   * @param {Object} params - Withdrawal parameters
+   * @param {string} params.accountId - Account ID
+   * @param {number} params.amount - Withdrawal amount
+   * @param {string} params.method - Payment method: BANK_TRANSFER, PAYPAL, CRYPTO
+   * @param {Object} params.bankDetails - Bank details for BANK_TRANSFER
+   * @param {string} params.paypalEmail - PayPal email for PAYPAL
+   * @param {Object} params.cryptoDetails - Crypto details for CRYPTO
    */
-  async requestWithdrawal({ accountId, amount, bankName, accountHolderName, bsb, accountNumber, payId }) {
+  async requestWithdrawal({ accountId, amount, method = 'BANK_TRANSFER', bankDetails, paypalEmail, cryptoDetails }) {
     try {
       const body = {
         accountId,
         amount: Number(amount),
-        bankName,
-        accountHolderName,
+        currency: 'AUD',
+        method,
       };
 
-      // Add bank details (either BSB+AccountNumber or PayID)
-      if (bsb && accountNumber) {
-        body.bsb = bsb;
-        body.accountNumber = accountNumber;
-      }
-      if (payId) {
-        body.payId = payId;
+      // Add payment method specific details
+      if (method === 'BANK_TRANSFER' && bankDetails) {
+        body.bankDetails = {
+          accountName: bankDetails.accountHolderName || bankDetails.accountName,
+          accountNumber: bankDetails.accountNumber,
+          bsb: bankDetails.bsb?.replace(/-/g, ''),
+          bankName: bankDetails.bankName || 'Bank Transfer',
+        };
+        // Support PayID as alternative
+        if (bankDetails.payId) {
+          body.bankDetails.payId = bankDetails.payId;
+        }
+      } else if (method === 'PAYPAL' && paypalEmail) {
+        body.paypalEmail = paypalEmail;
+      } else if (method === 'CRYPTO' && cryptoDetails) {
+        body.cryptoDetails = cryptoDetails;
       }
 
-      const response = await fetch(`${API_BASE}/api/withdrawals`, {
+      const response = await fetch(`${API_BASE}/api/withdrawals/request`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -190,23 +210,195 @@ class WalletService {
       if (response.status === 201 || response.ok) {
         return {
           success: true,
-          withdrawId: data.withdrawId,
+          withdrawalId: data.withdrawalId || data.withdrawId,
           amount: data.amount,
           status: data.status,
-          balanceBefore: data.balanceBefore,
-          balanceAfter: data.balanceAfter,
+          method: data.method,
+          estimatedProcessingTime: data.estimatedProcessingTime,
+          message: data.message || 'Withdrawal request submitted successfully',
+        };
+      }
+
+      // Handle specific error codes
+      const errorCode = data.error || data.errorCode;
+      let errorMessage = data.message || 'Failed to submit withdrawal';
+
+      switch (errorCode) {
+        case 'TURNOVER_NOT_MET':
+          errorMessage = `You must wager $${data.turnoverRemaining?.toFixed(2) || '0.00'} more before withdrawing`;
+          break;
+        case 'INSUFFICIENT_BALANCE':
+          errorMessage = 'Insufficient withdrawable balance';
+          break;
+        case 'BELOW_MINIMUM':
+          errorMessage = `Minimum withdrawal is $${data.minimumWithdrawal?.toFixed(2) || '20.00'}`;
+          break;
+        case 'ABOVE_MAXIMUM':
+          errorMessage = `Maximum withdrawal is $${data.maximumWithdrawal?.toFixed(2) || '10,000.00'}`;
+          break;
+        case 'INVALID_BANK_DETAILS':
+          errorMessage = 'Invalid bank details provided';
+          break;
+        case 'TOO_MANY_REQUESTS':
+          errorMessage = 'Only 3 withdrawal requests per day allowed';
+          break;
+      }
+
+      return {
+        success: false,
+        error: errorMessage,
+        errorCode,
+        turnoverRemaining: data.turnoverRemaining,
+        minimumWithdrawal: data.minimumWithdrawal,
+      };
+    } catch (error) {
+      console.error('[WalletService] Withdrawal request error:', error);
+      return {
+        success: false,
+        error: 'Network error. Please try again.',
+      };
+    }
+  }
+
+  /**
+   * Cancel a pending withdrawal
+   * POST /api/withdrawals/{withdrawalId}/cancel
+   *
+   * @param {string} withdrawalId - Withdrawal ID to cancel
+   * @param {string} accountId - Account ID (for verification)
+   * @param {string} reason - Reason for cancellation
+   */
+  async cancelWithdrawal(withdrawalId, accountId, reason = '') {
+    try {
+      const response = await fetch(`${API_BASE}/api/withdrawals/${withdrawalId}/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          accountId,
+          reason: reason || 'Cancelled by user',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        return {
+          success: true,
+          withdrawalId: data.withdrawalId,
+          status: data.status,
+          refundedAmount: data.refundedAmount,
+          message: data.message || 'Withdrawal cancelled. Funds returned to your balance.',
         };
       }
 
       return {
         success: false,
-        error: data.message || 'Failed to submit withdrawal',
+        error: data.message || 'Failed to cancel withdrawal',
       };
     } catch (error) {
-      console.error('[WalletService] Withdrawal error:', error);
+      console.error('[WalletService] Cancel withdrawal error:', error);
       return {
         success: false,
         error: 'Network error. Please try again.',
+      };
+    }
+  }
+
+  /**
+   * Get withdrawal history for an account with pagination
+   * GET /api/withdrawals/history/{accountId}
+   *
+   * @param {string} accountId - Account ID
+   * @param {Object} params - Query parameters
+   * @param {number} params.page - Page number (default: 1)
+   * @param {number} params.limit - Items per page (default: 20)
+   * @param {string} params.status - Filter by status: PENDING, APPROVED, REJECTED, COMPLETED
+   */
+  async getWithdrawalHistory(accountId, params = {}) {
+    try {
+      const queryParams = new URLSearchParams({
+        page: params.page || 1,
+        limit: params.limit || 20,
+        ...(params.status && { status: params.status }),
+      }).toString();
+
+      const response = await fetch(
+        `${API_BASE}/api/withdrawals/history/${accountId}?${queryParams}`
+      );
+      const data = await response.json();
+
+      if (response.ok) {
+        return {
+          success: true,
+          withdrawals: data.withdrawals || [],
+          pagination: data.pagination || {
+            currentPage: 1,
+            totalPages: 1,
+            totalItems: 0,
+          },
+        };
+      }
+
+      return {
+        success: false,
+        error: 'Failed to fetch withdrawal history',
+        withdrawals: [],
+      };
+    } catch (error) {
+      console.error('[WalletService] Get withdrawal history error:', error);
+      return {
+        success: false,
+        error: 'Network error',
+        withdrawals: [],
+      };
+    }
+  }
+
+  /**
+   * Get detailed balance information
+   * GET /api/wallets/{accountId}/balance
+   *
+   * @param {string} accountId - Account ID
+   * @returns {Object} Balance details including:
+   *   - cashBalance: Real money (deposits + winnings)
+   *   - bonusBalance: Bonus funds (subject to turnover)
+   *   - totalBalance: Total balance
+   *   - withdrawableBalance: Amount user can actually withdraw
+   */
+  async getDetailedBalance(accountId) {
+    try {
+      const response = await fetch(`${API_BASE}/api/wallets/${accountId}/balance`);
+      const data = await response.json();
+
+      if (response.ok) {
+        return {
+          success: true,
+          accountId: data.accountId,
+          cashBalance: data.cashBalance || 0,
+          bonusBalance: data.bonusBalance || 0,
+          totalBalance: data.totalBalance || data.balance || 0,
+          withdrawableBalance: data.withdrawableBalance || data.cashBalance || 0,
+          currency: data.currency || 'AUD',
+        };
+      }
+
+      return {
+        success: false,
+        error: 'Failed to fetch balance details',
+        cashBalance: 0,
+        bonusBalance: 0,
+        totalBalance: 0,
+        withdrawableBalance: 0,
+      };
+    } catch (error) {
+      console.error('[WalletService] Get detailed balance error:', error);
+      return {
+        success: false,
+        error: 'Network error',
+        cashBalance: 0,
+        bonusBalance: 0,
+        totalBalance: 0,
+        withdrawableBalance: 0,
       };
     }
   }
