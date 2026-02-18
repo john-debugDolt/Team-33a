@@ -405,6 +405,123 @@ class WalletService {
       return { success: false, error: 'Failed to fetch pending total', pendingTotal: 0 };
     }
   }
+
+  /**
+   * Get turnover status for an account
+   * GET /api/wallets/{accountId}/turnover
+   *
+   * Returns current turnover (wagering) requirements for an account.
+   * Turnover must be fulfilled before user can withdraw bonus funds.
+   *
+   * @param {string} accountId - Account ID
+   * @returns {Object} Turnover status including:
+   *   - totalTurnoverRequired: Sum of all turnover requirements
+   *   - turnoverCompleted: Total amount wagered toward turnover
+   *   - turnoverRemaining: Amount still needed to wager
+   *   - canWithdraw: true if no pending turnover
+   *   - requirements: Array of individual turnover records
+   */
+  async getTurnoverStatus(accountId) {
+    try {
+      const response = await fetch(`${API_BASE}/api/wallets/${accountId}/turnover`);
+      const data = await response.json();
+
+      if (response.ok) {
+        return {
+          success: true,
+          accountId: data.accountId,
+          totalTurnoverRequired: data.totalTurnoverRequired || 0,
+          turnoverCompleted: data.turnoverCompleted || 0,
+          turnoverRemaining: data.turnoverRemaining || 0,
+          canWithdraw: data.canWithdraw ?? true,
+          requirements: data.requirements || [],
+        };
+      }
+
+      return {
+        success: false,
+        error: data.message || 'Failed to fetch turnover status',
+        totalTurnoverRequired: 0,
+        turnoverCompleted: 0,
+        turnoverRemaining: 0,
+        canWithdraw: true,
+        requirements: [],
+      };
+    } catch (error) {
+      console.error('[WalletService] Get turnover status error:', error);
+      return {
+        success: false,
+        error: 'Network error. Please try again.',
+        totalTurnoverRequired: 0,
+        turnoverCompleted: 0,
+        turnoverRemaining: 0,
+        canWithdraw: true,
+        requirements: [],
+      };
+    }
+  }
+
+  /**
+   * Check withdrawal eligibility for an account
+   * GET /api/wallets/{accountId}/can-withdraw
+   *
+   * Quick check if user can withdraw funds.
+   * Returns minimum withdrawal amount and turnover status.
+   *
+   * @param {string} accountId - Account ID
+   * @returns {Object} Withdrawal eligibility:
+   *   - canWithdraw: true if user can withdraw
+   *   - reason: Explanation if can't withdraw
+   *   - turnoverRemaining: Amount still needed to wager
+   *   - minimumWithdrawal: Minimum withdrawal amount
+   */
+  async checkWithdrawalEligibility(accountId) {
+    try {
+      const response = await fetch(`${API_BASE}/api/wallets/${accountId}/can-withdraw`);
+      const data = await response.json();
+
+      if (response.ok) {
+        return {
+          success: true,
+          canWithdraw: data.canWithdraw ?? true,
+          reason: data.reason || null,
+          turnoverRemaining: data.turnoverRemaining || 0,
+          minimumWithdrawal: data.minimumWithdrawal || 20,
+        };
+      }
+
+      return {
+        success: false,
+        error: data.message || 'Failed to check withdrawal eligibility',
+        canWithdraw: true,
+        reason: null,
+        turnoverRemaining: 0,
+        minimumWithdrawal: 20,
+      };
+    } catch (error) {
+      console.error('[WalletService] Check withdrawal eligibility error:', error);
+      return {
+        success: false,
+        error: 'Network error. Please try again.',
+        canWithdraw: true,
+        reason: null,
+        turnoverRemaining: 0,
+        minimumWithdrawal: 20,
+      };
+    }
+  }
+
+  /**
+   * Calculate turnover progress percentage
+   * @param {number} completed - Amount completed
+   * @param {number} required - Total required
+   * @returns {number} Progress percentage (0-100)
+   */
+  calculateTurnoverProgress(completed, required) {
+    if (!required || required <= 0) return 100;
+    const progress = (completed / required) * 100;
+    return Math.min(Math.max(progress, 0), 100);
+  }
 }
 
 export const walletService = new WalletService();

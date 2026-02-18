@@ -21,6 +21,22 @@ export default function Wallet() {
   const [pendingCommissionTotal, setPendingCommissionTotal] = useState(0)
   const [commissionLoading, setCommissionLoading] = useState(false)
 
+  // Turnover and withdrawal eligibility state
+  const [turnoverStatus, setTurnoverStatus] = useState({
+    totalTurnoverRequired: 0,
+    turnoverCompleted: 0,
+    turnoverRemaining: 0,
+    canWithdraw: true,
+    requirements: [],
+  })
+  const [withdrawalEligibility, setWithdrawalEligibility] = useState({
+    canWithdraw: true,
+    reason: null,
+    turnoverRemaining: 0,
+    minimumWithdrawal: 20,
+  })
+  const [turnoverLoading, setTurnoverLoading] = useState(false)
+
   // Load wallet data
   const loadWalletData = useCallback(async () => {
     if (!isAuthenticated) return
@@ -33,27 +49,50 @@ export default function Wallet() {
       }
     }
 
-    // Load commission earnings
+    // Load commission earnings and turnover status
     if (user?.accountId) {
       setCommissionLoading(true)
+      setTurnoverLoading(true)
       try {
-        const [commResult, pendingResult] = await Promise.all([
+        const [commResult, pendingResult, turnoverResult, eligibilityResult] = await Promise.all([
           walletService.getCommissionEarnings(user.accountId),
-          walletService.getPendingCommissionTotal(user.accountId)
+          walletService.getPendingCommissionTotal(user.accountId),
+          walletService.getTurnoverStatus(user.accountId),
+          walletService.checkWithdrawalEligibility(user.accountId)
         ])
         console.log('[Wallet] Account:', user.accountId, 'Commission result:', commResult, 'Pending:', pendingResult)
+        console.log('[Wallet] Turnover:', turnoverResult, 'Eligibility:', eligibilityResult)
+
         if (commResult.success && commResult.earnings) {
           setCommissionEarnings(commResult.earnings)
         }
         if (pendingResult.success) {
           setPendingCommissionTotal(pendingResult.pendingTotal || 0)
         }
+        if (turnoverResult.success) {
+          setTurnoverStatus({
+            totalTurnoverRequired: turnoverResult.totalTurnoverRequired,
+            turnoverCompleted: turnoverResult.turnoverCompleted,
+            turnoverRemaining: turnoverResult.turnoverRemaining,
+            canWithdraw: turnoverResult.canWithdraw,
+            requirements: turnoverResult.requirements,
+          })
+        }
+        if (eligibilityResult.success) {
+          setWithdrawalEligibility({
+            canWithdraw: eligibilityResult.canWithdraw,
+            reason: eligibilityResult.reason,
+            turnoverRemaining: eligibilityResult.turnoverRemaining,
+            minimumWithdrawal: eligibilityResult.minimumWithdrawal,
+          })
+        }
       } catch (err) {
-        console.error('[Wallet] Commission fetch error:', err)
+        console.error('[Wallet] Data fetch error:', err)
       }
       setCommissionLoading(false)
+      setTurnoverLoading(false)
     } else {
-      console.log('[Wallet] No accountId, skipping commission fetch')
+      console.log('[Wallet] No accountId, skipping data fetch')
     }
   }, [isAuthenticated, user?.accountId, updateBalance])
 
@@ -77,6 +116,13 @@ export default function Wallet() {
   const balance = user?.balance || 0
   const availableBalance = user?.availableBalance || balance
   const pendingBalance = user?.pendingBalance || 0
+
+  // Calculate turnover progress percentage
+  const turnoverProgress = walletService.calculateTurnoverProgress(
+    turnoverStatus.turnoverCompleted,
+    turnoverStatus.totalTurnoverRequired
+  )
+  const hasTurnoverRequirement = turnoverStatus.totalTurnoverRequired > 0
 
   return (
     <div className="wallet-page-modern">
@@ -137,13 +183,29 @@ export default function Wallet() {
             </div>
             <span>{t('deposit')}</span>
           </button>
-          <button className="quick-action-btn" onClick={() => setShowWithdrawModal(true)}>
+          <button
+            className={`quick-action-btn ${!withdrawalEligibility.canWithdraw ? 'disabled' : ''}`}
+            onClick={() => {
+              if (!withdrawalEligibility.canWithdraw) {
+                showToast(withdrawalEligibility.reason || 'Withdrawal not available', 'warning')
+                return
+              }
+              setShowWithdrawModal(true)
+            }}
+          >
             <div className="action-icon withdraw">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 5v14M5 12l7-7 7 7"/>
               </svg>
             </div>
             <span>{t('withdraw')}</span>
+            {!withdrawalEligibility.canWithdraw && (
+              <div className="action-lock-badge">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 1C8.676 1 6 3.676 6 7v2H4v14h16V9h-2V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v2H8V7c0-2.276 1.724-4 4-4z"/>
+                </svg>
+              </div>
+            )}
           </button>
           <button className="quick-action-btn" onClick={() => showToast('Transfer feature coming soon!', 'info')}>
             <div className="action-icon transfer">
@@ -163,6 +225,101 @@ export default function Wallet() {
             <span>{t('history')}</span>
           </Link>
         </div>
+
+        {/* Withdrawal Info Cards */}
+        <div className="wallet-info-cards">
+          {/* Minimum Withdrawal Card */}
+          <div className="wallet-info-card minimum-card">
+            <div className="info-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
+            <div className="info-card-content">
+              <span className="info-card-label">{t('minimumWithdrawal') || 'Min. Withdrawal'}</span>
+              <span className="info-card-value">${withdrawalEligibility.minimumWithdrawal?.toFixed(2) || '20.00'}</span>
+            </div>
+          </div>
+
+          {/* Turnover Status Card */}
+          {turnoverLoading ? (
+            <div className="wallet-info-card turnover-card loading">
+              <ButtonSpinner />
+              <span className="info-card-label">{t('loadingTurnover') || 'Loading...'}</span>
+            </div>
+          ) : hasTurnoverRequirement ? (
+            <div className={`wallet-info-card turnover-card ${turnoverStatus.canWithdraw ? 'complete' : 'pending'}`}>
+              <div className="info-card-icon">
+                {turnoverStatus.canWithdraw ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                )}
+              </div>
+              <div className="info-card-content">
+                <span className="info-card-label">{t('turnoverRequirement') || 'Wagering Requirement'}</span>
+                {turnoverStatus.canWithdraw ? (
+                  <span className="info-card-value complete">{t('turnoverComplete') || 'Complete!'}</span>
+                ) : (
+                  <div className="turnover-progress-container">
+                    <div className="turnover-progress-bar">
+                      <div
+                        className="turnover-progress-fill"
+                        style={{ width: `${turnoverProgress}%` }}
+                      />
+                    </div>
+                    <div className="turnover-progress-text">
+                      <span className="progress-amount">${turnoverStatus.turnoverCompleted?.toFixed(2)}</span>
+                      <span className="progress-separator">/</span>
+                      <span className="progress-total">${turnoverStatus.totalTurnoverRequired?.toFixed(2)}</span>
+                      <span className="progress-percent">({turnoverProgress.toFixed(0)}%)</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="wallet-info-card turnover-card none">
+              <div className="info-card-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+              </div>
+              <div className="info-card-content">
+                <span className="info-card-label">{t('turnoverRequirement') || 'Wagering Requirement'}</span>
+                <span className="info-card-value complete">{t('noRequirements') || 'No requirements'}</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Turnover Warning Banner (if withdrawal locked) */}
+        {!withdrawalEligibility.canWithdraw && withdrawalEligibility.turnoverRemaining > 0 && (
+          <div className="turnover-warning-banner">
+            <div className="warning-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 1C8.676 1 6 3.676 6 7v2H4v14h16V9h-2V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v2H8V7c0-2.276 1.724-4 4-4z"/>
+              </svg>
+            </div>
+            <div className="warning-content">
+              <span className="warning-title">{t('withdrawalLocked') || 'Withdrawal Locked'}</span>
+              <span className="warning-text">
+                {t('wagerMoreToUnlock', { amount: `$${withdrawalEligibility.turnoverRemaining?.toFixed(2)}` }) ||
+                  `Wager $${withdrawalEligibility.turnoverRemaining?.toFixed(2)} more to unlock withdrawals`}
+              </span>
+            </div>
+            <Link to="/slots" className="warning-action-btn">
+              {t('playNow') || 'Play Now'}
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Main Content Grid */}
