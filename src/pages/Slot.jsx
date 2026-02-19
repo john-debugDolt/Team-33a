@@ -16,11 +16,14 @@ const tabs = [
   { id: 'new', label: 'New Games', icon: null, badge: 'NEW' },
 ]
 
-// Lazy loading image component
+// Lazy loading image component with error handling and retry
 function LazyImage({ src, alt, className }) {
   const [isLoaded, setIsLoaded] = useState(false)
+  const [hasError, setHasError] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
   const [isInView, setIsInView] = useState(false)
   const imgRef = useRef(null)
+  const maxRetries = 3
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -40,20 +43,60 @@ function LazyImage({ src, alt, className }) {
     return () => observer.disconnect()
   }, [])
 
+  // Reset error state when src changes
+  useEffect(() => {
+    setIsLoaded(false)
+    setHasError(false)
+    setRetryCount(0)
+  }, [src])
+
+  const handleError = () => {
+    if (retryCount < maxRetries) {
+      // Retry after a short delay
+      setTimeout(() => {
+        setRetryCount(prev => prev + 1)
+        setHasError(false)
+      }, 1000 * (retryCount + 1)) // Exponential backoff: 1s, 2s, 3s
+    } else {
+      setHasError(true)
+    }
+  }
+
+  const handleRetry = () => {
+    setRetryCount(0)
+    setHasError(false)
+    setIsLoaded(false)
+  }
+
+  // Add cache-busting query param on retry
+  const imageSrc = retryCount > 0 ? `${src}${src.includes('?') ? '&' : '?'}retry=${retryCount}` : src
+
   return (
-    <div ref={imgRef} className={`lazy-image-container ${isLoaded ? 'loaded' : ''}`}>
+    <div ref={imgRef} className={`lazy-image-container ${isLoaded ? 'loaded' : ''} ${hasError ? 'error' : ''}`}>
       {isInView ? (
-        <img
-          src={src}
-          alt={alt}
-          className={className}
-          onLoad={() => setIsLoaded(true)}
-          style={{ opacity: isLoaded ? 1 : 0 }}
-        />
+        hasError ? (
+          <div className="image-error" onClick={handleRetry}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+            <span>Tap to retry</span>
+          </div>
+        ) : (
+          <img
+            src={imageSrc}
+            alt={alt}
+            className={className}
+            onLoad={() => setIsLoaded(true)}
+            onError={handleError}
+            style={{ opacity: isLoaded ? 1 : 0 }}
+          />
+        )
       ) : (
         <div className="image-placeholder" />
       )}
-      {!isLoaded && isInView && <div className="image-loader" />}
+      {!isLoaded && isInView && !hasError && <div className="image-loader" />}
     </div>
   )
 }
