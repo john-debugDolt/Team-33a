@@ -122,6 +122,18 @@ export default function WithdrawModal({ isOpen, onClose }) {
     setLoading(true)
     setStep('processing')
 
+    console.log('[WithdrawModal] Submitting withdrawal:', {
+      accountId: user.accountId,
+      amount: withdrawAmount,
+      bankDetails: {
+        bankName: bankDetails.bankName || 'Bank Transfer',
+        accountHolderName: bankDetails.accountHolderName,
+        bsb: bankDetails.bsb,
+        accountNumber: bankDetails.accountNumber,
+        payId: bankDetails.payId,
+      },
+    })
+
     // Submit withdrawal request
     const result = await walletService.requestWithdrawal({
       accountId: user.accountId,
@@ -135,6 +147,8 @@ export default function WithdrawModal({ isOpen, onClose }) {
         payId: bankDetails.payId || undefined,
       },
     })
+
+    console.log('[WithdrawModal] Withdrawal result:', result)
 
     if (result.success) {
       setWithdrawalResult(result)
