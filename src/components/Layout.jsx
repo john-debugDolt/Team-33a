@@ -51,16 +51,16 @@ export default function Layout({ children }) {
     window.scrollTo(0, 0)
   }, [location.pathname])
 
-  // Show welcome popup on first visit
-  useEffect(() => {
-    const hasSeenWelcome = localStorage.getItem('team33_welcome_seen')
-    if (!hasSeenWelcome) {
-      const timer = setTimeout(() => {
-        setShowWelcomePopup(true)
-      }, 1500)
-      return () => clearTimeout(timer)
-    }
-  }, [])
+  // Welcome popup disabled - removed $500 bonus modal on startup
+  // useEffect(() => {
+  //   const hasSeenWelcome = localStorage.getItem('team33_welcome_seen')
+  //   if (!hasSeenWelcome) {
+  //     const timer = setTimeout(() => {
+  //       setShowWelcomePopup(true)
+  //     }, 1500)
+  //     return () => clearTimeout(timer)
+  //   }
+  // }, [])
 
   const closeWelcomePopup = () => {
     setShowWelcomePopup(false)
