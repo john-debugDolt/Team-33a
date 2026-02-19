@@ -5087,6 +5087,42 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
   font-size: 14px;
 }
 
+/* Reload button for turnover/wagering */
+.info-card-reload {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.info-card-reload:hover {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+.info-card-reload:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.info-card-reload svg.spinning {
+  animation: spin 0.8s linear infinite;
+}
+
+.wallet-info-card {
+  position: relative;
+}
+
 .info-card-content {
   display: flex;
   flex-direction: column;
@@ -8107,6 +8143,56 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
   width: 56px;
   height: 56px;
   border-width: 5px;
+}
+
+/* Page Error State */
+.page-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.page-error .error-icon {
+  width: 80px;
+  height: 80px;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  color: #ef4444;
+}
+
+.page-error h2 {
+  color: #fff;
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.page-error p {
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 24px;
+}
+
+.page-error button {
+  background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
+  color: #fff;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.page-error button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
 }
 
 /* ================================
