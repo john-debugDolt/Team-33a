@@ -198,6 +198,8 @@ class WalletService {
         body.cryptoDetails = cryptoDetails;
       }
 
+      console.log('[WalletService] Withdrawal request body:', body);
+
       const response = await fetch(`${API_BASE}/api/withdrawals/request`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -205,11 +207,21 @@ class WalletService {
       });
 
       const data = await response.json();
+      console.log('[WalletService] Withdrawal response:', response.status, data);
 
-      if (response.status === 201 || response.ok) {
+      // Check for successful withdrawal - must have withdrawId/withdrawalId and valid status
+      const withdrawalId = data.withdrawalId || data.withdrawId;
+      const isSuccess = (response.status === 201 || response.ok) &&
+                        withdrawalId &&
+                        data.status &&
+                        !data.message?.toLowerCase().includes('not found') &&
+                        !data.message?.toLowerCase().includes('error') &&
+                        !data.message?.toLowerCase().includes('failed');
+
+      if (isSuccess) {
         return {
           success: true,
-          withdrawalId: data.withdrawalId || data.withdrawId,
+          withdrawalId,
           amount: data.amount,
           status: data.status,
           method: data.method,
