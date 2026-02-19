@@ -230,6 +230,45 @@ export default function Wallet() {
                 <span className="info-card-value locked">${turnoverStatus.turnoverRemaining?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) || '0.00'}</span>
               )}
             </div>
+            {/* Reload button for turnover */}
+            <button
+              className="info-card-reload"
+              onClick={async () => {
+                setTurnoverLoading(true)
+                try {
+                  const turnoverResult = await walletService.getTurnoverStatus(user.accountId)
+                  if (turnoverResult.success) {
+                    setTurnoverStatus({
+                      totalTurnoverRequired: turnoverResult.totalTurnoverRequired,
+                      turnoverCompleted: turnoverResult.turnoverCompleted,
+                      turnoverRemaining: turnoverResult.turnoverRemaining,
+                      canWithdraw: turnoverResult.canWithdraw,
+                      statusMessage: turnoverResult.statusMessage,
+                    })
+                    showToast('Wagering status updated', 'success')
+                  }
+                } catch (err) {
+                  console.error('Turnover refresh error:', err)
+                }
+                setTurnoverLoading(false)
+              }}
+              disabled={turnoverLoading}
+              title="Refresh wagering status"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className={turnoverLoading ? 'spinning' : ''}
+              >
+                <path d="M23 4v6h-6"/>
+                <path d="M1 20v-6h6"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+            </button>
           </div>
         </div>
 
@@ -247,7 +286,7 @@ export default function Wallet() {
                 {turnoverStatus.statusMessage || `Wager $${turnoverStatus.turnoverRemaining?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} more to unlock withdrawals`}
               </span>
             </div>
-            <Link to="/slots" className="warning-action-btn">
+            <Link to="/" className="warning-action-btn">
               {t('playNow') || 'Play Now'}
             </Link>
           </div>
