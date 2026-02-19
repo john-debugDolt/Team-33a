@@ -16,14 +16,13 @@ const tabs = [
   { id: 'new', label: 'New Games', icon: null, badge: 'NEW' },
 ]
 
-// Lazy loading image component with error handling and retry
+// Lazy loading image component - keeps retrying until image loads
 function LazyImage({ src, alt, className }) {
   const [isLoaded, setIsLoaded] = useState(false)
-  const [hasError, setHasError] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
   const [isInView, setIsInView] = useState(false)
   const imgRef = useRef(null)
-  const maxRetries = 3
+  const retryTimeoutRef = useRef(null)
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -33,70 +32,63 @@ function LazyImage({ src, alt, className }) {
           observer.disconnect()
         }
       },
-      { rootMargin: '100px', threshold: 0.1 }
+      { rootMargin: '200px', threshold: 0.1 }
     )
 
     if (imgRef.current) {
       observer.observe(imgRef.current)
     }
 
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current)
+      }
+    }
   }, [])
 
-  // Reset error state when src changes
+  // Reset state when src changes
   useEffect(() => {
     setIsLoaded(false)
-    setHasError(false)
     setRetryCount(0)
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current)
+    }
   }, [src])
 
   const handleError = () => {
-    if (retryCount < maxRetries) {
-      // Retry after a short delay
-      setTimeout(() => {
-        setRetryCount(prev => prev + 1)
-        setHasError(false)
-      }, 1000 * (retryCount + 1)) // Exponential backoff: 1s, 2s, 3s
-    } else {
-      setHasError(true)
+    // Keep retrying with increasing delays: 2s, 3s, 4s, 5s, then cap at 5s
+    const delay = Math.min(2000 + (retryCount * 1000), 5000)
+    retryTimeoutRef.current = setTimeout(() => {
+      setRetryCount(prev => prev + 1)
+    }, delay)
+  }
+
+  // Generate image URL with cache-busting on retry
+  const getImageSrc = () => {
+    if (!src || src === 'undefined' || src === 'null') return '/placeholder-game.png'
+    if (retryCount > 0) {
+      return `${src}${src.includes('?') ? '&' : '?'}t=${Date.now()}`
     }
+    return src
   }
-
-  const handleRetry = () => {
-    setRetryCount(0)
-    setHasError(false)
-    setIsLoaded(false)
-  }
-
-  // Add cache-busting query param on retry
-  const imageSrc = retryCount > 0 ? `${src}${src.includes('?') ? '&' : '?'}retry=${retryCount}` : src
 
   return (
-    <div ref={imgRef} className={`lazy-image-container ${isLoaded ? 'loaded' : ''} ${hasError ? 'error' : ''}`}>
+    <div ref={imgRef} className={`lazy-image-container ${isLoaded ? 'loaded' : ''}`}>
       {isInView ? (
-        hasError ? (
-          <div className="image-error" onClick={handleRetry}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-              <circle cx="8.5" cy="8.5" r="1.5"/>
-              <polyline points="21 15 16 10 5 21"/>
-            </svg>
-            <span>Tap to retry</span>
-          </div>
-        ) : (
-          <img
-            src={imageSrc}
-            alt={alt}
-            className={className}
-            onLoad={() => setIsLoaded(true)}
-            onError={handleError}
-            style={{ opacity: isLoaded ? 1 : 0 }}
-          />
-        )
+        <img
+          key={retryCount} // Force remount on retry
+          src={getImageSrc()}
+          alt={alt}
+          className={className}
+          onLoad={() => setIsLoaded(true)}
+          onError={handleError}
+          style={{ opacity: isLoaded ? 1 : 0 }}
+        />
       ) : (
         <div className="image-placeholder" />
       )}
-      {!isLoaded && isInView && !hasError && <div className="image-loader" />}
+      {!isLoaded && isInView && <div className="image-loader" />}
     </div>
   )
 }
