@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { gameService } from '../services/gameService'
 import { apiClient } from '../services/api'
@@ -9,6 +9,7 @@ import { useTranslation } from '../context/TranslationContext'
 import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner'
 import Pagination from '../components/Pagination/Pagination'
 import GameDetailModal from '../components/GameDetailModal/GameDetailModal'
+import CachedImage, { preloadImages } from '../components/CachedImage'
 import defaultBanner1 from '../images/New banner.png'
 import defaultBanner2 from '../images/New banner 2.png'
 import defaultBanner3 from '../images/New banner 3.png'
@@ -20,83 +21,6 @@ const defaultBanners = [
   { id: 'default3', image: defaultBanner3, name: 'Banner 3', link: '' }
 ]
 const BANNER_DURATION = 5000 // 5 seconds per banner
-
-// Lazy loading image component - keeps retrying until image loads
-function LazyImage({ src, alt, className }) {
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [retryCount, setRetryCount] = useState(0)
-  const [isInView, setIsInView] = useState(false)
-  const imgRef = useRef(null)
-  const retryTimeoutRef = useRef(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true)
-          observer.disconnect()
-        }
-      },
-      { rootMargin: '200px', threshold: 0.1 }
-    )
-
-    if (imgRef.current) {
-      observer.observe(imgRef.current)
-    }
-
-    return () => {
-      observer.disconnect()
-      if (retryTimeoutRef.current) {
-        clearTimeout(retryTimeoutRef.current)
-      }
-    }
-  }, [])
-
-  // Reset state when src changes
-  useEffect(() => {
-    setIsLoaded(false)
-    setRetryCount(0)
-    if (retryTimeoutRef.current) {
-      clearTimeout(retryTimeoutRef.current)
-    }
-  }, [src])
-
-  const handleError = () => {
-    // Keep retrying with increasing delays: 2s, 3s, 4s, 5s, then cap at 5s
-    const delay = Math.min(2000 + (retryCount * 1000), 5000)
-    retryTimeoutRef.current = setTimeout(() => {
-      setRetryCount(prev => prev + 1)
-    }, delay)
-  }
-
-  // Generate image URL with cache-busting on retry
-  const getImageSrc = () => {
-    if (!src || src === 'undefined' || src === 'null') return '/placeholder-game.png'
-    if (retryCount > 0) {
-      return `${src}${src.includes('?') ? '&' : '?'}t=${Date.now()}`
-    }
-    return src
-  }
-
-  return (
-    <div ref={imgRef} className={`lazy-image-container ${isLoaded ? 'loaded' : ''}`}>
-      {isInView ? (
-        <img
-          key={retryCount} // Force remount on retry
-          src={getImageSrc()}
-          alt={alt}
-          className={className}
-          onLoad={() => setIsLoaded(true)}
-          onError={handleError}
-          style={{ opacity: isLoaded ? 1 : 0 }}
-        />
-      ) : (
-        <div className="image-placeholder" />
-      )}
-      {!isLoaded && isInView && <div className="image-loader" />}
-    </div>
-  )
-}
 
 // Game categories
 const GAME_CATEGORIES = [
@@ -442,6 +366,10 @@ export default function Home() {
         totalPages: result.data.pagination.totalPages,
         total: result.data.pagination.total
       }))
+
+      // Preload game images in background for faster subsequent loads
+      const imageUrls = result.data.games.map(game => game.image).filter(Boolean)
+      preloadImages(imageUrls)
     }
     setLoading(false)
   }
@@ -735,7 +663,7 @@ export default function Home() {
           {games.map((game) => (
             <div key={game.id} className="game-card" onClick={() => setSelectedGame(game)}>
               <div className="game-image-wrapper">
-                <LazyImage src={game.image} alt={game.name} className="game-image" />
+                <CachedImage src={game.image} alt={game.name} className="game-image" />
                 {game.isHot && <span className="game-badge hot">{t('hot')}</span>}
                 {game.isNew && <span className="game-badge new">{t('new')}</span>}
                 <button
