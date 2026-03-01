@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { gameService } from '../services/gameService'
 import { walletService } from '../services/walletService'
@@ -8,6 +8,7 @@ import { CATEGORIES } from '../data/gameData'
 import GameDetailModal from '../components/GameDetailModal/GameDetailModal'
 import Pagination from '../components/Pagination/Pagination'
 import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner'
+import GameImage, { preloadGameImages } from '../components/GameImage'
 import './Slot.css'
 
 const tabs = [
@@ -15,83 +16,6 @@ const tabs = [
   { id: 'hot', label: 'Hot Games', icon: '🔥' },
   { id: 'new', label: 'New Games', icon: null, badge: 'NEW' },
 ]
-
-// Lazy loading image component - keeps retrying until image loads
-function LazyImage({ src, alt, className }) {
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [retryCount, setRetryCount] = useState(0)
-  const [isInView, setIsInView] = useState(false)
-  const imgRef = useRef(null)
-  const retryTimeoutRef = useRef(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true)
-          observer.disconnect()
-        }
-      },
-      { rootMargin: '200px', threshold: 0.1 }
-    )
-
-    if (imgRef.current) {
-      observer.observe(imgRef.current)
-    }
-
-    return () => {
-      observer.disconnect()
-      if (retryTimeoutRef.current) {
-        clearTimeout(retryTimeoutRef.current)
-      }
-    }
-  }, [])
-
-  // Reset state when src changes
-  useEffect(() => {
-    setIsLoaded(false)
-    setRetryCount(0)
-    if (retryTimeoutRef.current) {
-      clearTimeout(retryTimeoutRef.current)
-    }
-  }, [src])
-
-  const handleError = () => {
-    // Keep retrying with increasing delays: 2s, 3s, 4s, 5s, then cap at 5s
-    const delay = Math.min(2000 + (retryCount * 1000), 5000)
-    retryTimeoutRef.current = setTimeout(() => {
-      setRetryCount(prev => prev + 1)
-    }, delay)
-  }
-
-  // Generate image URL with cache-busting on retry
-  const getImageSrc = () => {
-    if (!src || src === 'undefined' || src === 'null') return '/placeholder-game.png'
-    if (retryCount > 0) {
-      return `${src}${src.includes('?') ? '&' : '?'}t=${Date.now()}`
-    }
-    return src
-  }
-
-  return (
-    <div ref={imgRef} className={`lazy-image-container ${isLoaded ? 'loaded' : ''}`}>
-      {isInView ? (
-        <img
-          key={retryCount} // Force remount on retry
-          src={getImageSrc()}
-          alt={alt}
-          className={className}
-          onLoad={() => setIsLoaded(true)}
-          onError={handleError}
-          style={{ opacity: isLoaded ? 1 : 0 }}
-        />
-      ) : (
-        <div className="image-placeholder" />
-      )}
-      {!isLoaded && isInView && <div className="image-loader" />}
-    </div>
-  )
-}
 
 export default function Slot() {
   const navigate = useNavigate()
@@ -248,6 +172,10 @@ export default function Slot() {
         totalPages: result.data.totalPages,
         total: result.data.total,
       }))
+
+      // Preload game images in background for smoother experience
+      const imageUrls = allGames.map(game => game.image).filter(Boolean)
+      preloadGameImages(imageUrls)
     }
 
     setLoading(false)
@@ -395,7 +323,7 @@ export default function Slot() {
                               onClick={() => handleGameClick(game)}
                             >
                               <div className="game-image-wrapper">
-                                <LazyImage src={game.image} alt={game.name} className="game-image" />
+                                <GameImage src={game.image} alt={game.name} className="game-image" />
                                 <div className="game-overlay">
                                   <button
                                     className={`play-btn ${launchingGame === game.id ? 'loading' : ''}`}
@@ -441,7 +369,7 @@ export default function Slot() {
                               onClick={() => handleGameClick(game)}
                             >
                               <div className="game-image-wrapper">
-                                <LazyImage src={game.image} alt={game.name} className="game-image" />
+                                <GameImage src={game.image} alt={game.name} className="game-image" />
                                 <div className="game-overlay">
                                   <button
                                     className={`play-btn ${launchingGame === game.id ? 'loading' : ''}`}
