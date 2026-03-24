@@ -6,8 +6,8 @@
  * LoadBalancer URL: http://k8s-team33-walletse-ebcec4c2ff-cf4fe459a5f621a8.elb.ap-southeast-2.amazonaws.com
  */
 
-// AdvantPlay LoadBalancer URL
-const ADVANTPLAY_BASE_URL = 'http://k8s-team33-walletse-ebcec4c2ff-cf4fe459a5f621a8.elb.ap-southeast-2.amazonaws.com';
+// AdvantPlay API URL (subdomain configured)
+const ADVANTPLAY_BASE_URL = 'https://advantplay.seamless.team33.mx';
 
 // Cache for AdvantPlay games
 let cachedAdvantPlayGames = null;
