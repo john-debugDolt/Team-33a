@@ -11140,3 +11140,95 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
     display: none;
   }
 }
+
+/* ========== AdvantPlay Provider Styling ========== */
+
+/* AdvantPlay Purple Theme Colors */
+.game-card.advantplay-card,
+.slot-game-card.advantplay-card {
+  border-color: rgba(139, 92, 246, 0.25);
+}
+
+.game-card.advantplay-card:hover,
+.slot-game-card.advantplay-card:hover {
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 30px rgba(139, 92, 246, 0.2);
+}
+
+.game-card.advantplay-card::before,
+.slot-game-card.advantplay-card::before {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+}
+
+/* AdvantPlay Provider Badge on Game Cards */
+.provider-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  border-radius: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  z-index: 3;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.provider-badge.advantplay {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
+}
+
+/* AdvantPlay Category Tab Styling */
+.category-tab.advantplay-active,
+.slot-tab.advantplay-active {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4) !important;
+}
+
+/* AdvantPlay Featured Badge */
+.advantplay-featured {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
+  z-index: 3;
+}
+
+/* AdvantPlay Play Button Hover */
+.game-card.advantplay-card .play-btn:hover,
+.slot-game-card.advantplay-card .play-btn:hover {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  box-shadow: 0 12px 32px rgba(139, 92, 246, 0.5);
+}
+
+/* AdvantPlay Section in Home Page */
+.advantplay-games-section {
+  margin: 24px 0;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(124, 58, 237, 0.04) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: 16px;
+}
+
+.advantplay-games-section .section-title-home {
+  color: #a78bfa;
+}
+
+.advantplay-games-section .title-icon {
+  filter: hue-rotate(250deg);
+}

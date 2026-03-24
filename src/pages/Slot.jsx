@@ -17,6 +17,13 @@ const tabs = [
   { id: 'new', label: 'New Games', icon: null, badge: 'NEW' },
 ]
 
+// Provider filter options
+const providerFilters = [
+  { id: 'ALL', label: 'All Providers', icon: '🎮' },
+  { id: 'AdvantPlay', label: 'AdvantPlay', icon: '🎯' },
+  { id: 'ClotPlay', label: 'ClotPlay', icon: '🎲' },
+]
+
 export default function Slot() {
   const navigate = useNavigate()
   const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
@@ -27,6 +34,7 @@ export default function Slot() {
   const [loading, setLoading] = useState(true)
   const [launchingGame, setLaunchingGame] = useState(null)
   const [activeTab, setActiveTab] = useState('all')
+  const [activeProvider, setActiveProvider] = useState('ALL') // Provider filter
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [selectedGame, setSelectedGame] = useState(null)
@@ -134,7 +142,7 @@ export default function Slot() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setPagination(prev => ({ ...prev, page: 1 }))
-  }, [activeTab, debouncedSearch])
+  }, [activeTab, debouncedSearch, activeProvider])
 
   const fetchGames = useCallback(async () => {
     setLoading(true)
@@ -143,6 +151,7 @@ export default function Slot() {
       page: pagination.page,
       limit: 20,
       gameType: 'all',
+      provider: activeProvider, // Add provider filter
     }
 
     if (activeTab === 'hot') {
@@ -179,7 +188,7 @@ export default function Slot() {
     }
 
     setLoading(false)
-  }, [pagination.page, activeTab, debouncedSearch])
+  }, [pagination.page, activeTab, debouncedSearch, activeProvider])
 
   useEffect(() => {
     fetchGames()
@@ -282,6 +291,20 @@ export default function Slot() {
           </div>
         </div>
 
+        {/* Provider Filter Chips */}
+        <div className="slot-providers">
+          {providerFilters.map((provider) => (
+            <button
+              key={provider.id}
+              className={`slot-provider-chip ${activeProvider === provider.id ? 'active' : ''}`}
+              onClick={() => setActiveProvider(provider.id)}
+            >
+              <span className="chip-icon">{provider.icon}</span>
+              <span className="chip-label">{provider.label}</span>
+            </button>
+          ))}
+        </div>
+
         {/* Games Count */}
         <div className="games-count">
           {pagination.total} games found
@@ -298,16 +321,76 @@ export default function Slot() {
           </div>
         ) : (
           <>
-            {/* Games by Category */}
+            {/* Games by Category and Provider */}
             <div className="slot-games-layout">
-              {/* Crash Games Section */}
               {(() => {
                 const allGames = featuredGame ? [featuredGame, ...games] : games;
-                const crashGames = allGames.filter(g => g.category === CATEGORIES.CRASH);
-                const slotGames = allGames.filter(g => g.category === CATEGORIES.SLOTS || g.category !== CATEGORIES.CRASH);
+
+                // Group games by provider and category
+                const advantPlayGames = allGames.filter(g => g.provider === 'AdvantPlay' || g.isAdvantPlay);
+                const crashGames = allGames.filter(g => g.category === CATEGORIES.CRASH && !g.isAdvantPlay);
+                const slotGames = allGames.filter(g =>
+                  (g.category === CATEGORIES.SLOTS || (!g.isAdvantPlay && g.category !== CATEGORIES.CRASH)) &&
+                  !g.isAdvantPlay
+                );
+
+                // Helper function to render a game card
+                const renderGameCard = (game) => (
+                  <div
+                    key={game.id}
+                    className={`slot-game-card ${game.isAdvantPlay ? 'advantplay-card' : ''}`}
+                    onClick={() => handleGameClick(game)}
+                  >
+                    <div className="game-image-wrapper">
+                      <GameImage src={game.image} alt={game.name} className="game-image" />
+                      <div className="game-overlay">
+                        <button
+                          className={`play-btn ${launchingGame === game.id ? 'loading' : ''}`}
+                          onClick={(e) => handlePlayNow(game, e)}
+                          disabled={launchingGame === game.id}
+                        >
+                          {launchingGame === game.id ? (
+                            <div className="play-spinner" />
+                          ) : (
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M8 5v14l11-7z"/>
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                      {(game.isHot || game.isNew) && (
+                        <div className="game-badges">
+                          {game.isHot && <span className="game-badge hot">HOT</span>}
+                          {game.isNew && <span className="game-badge new">NEW</span>}
+                        </div>
+                      )}
+                      {/* Provider badge for AdvantPlay games */}
+                      {game.isAdvantPlay && (
+                        <span className="provider-badge advantplay">AdvantPlay</span>
+                      )}
+                    </div>
+                    <div className="game-name">{game.name}</div>
+                  </div>
+                );
 
                 return (
                   <>
+                    {/* AdvantPlay Games Section */}
+                    {advantPlayGames.length > 0 && (
+                      <div className="game-category-section advantplay-section">
+                        <h2 className="category-title">
+                          <span className="category-icon">🎯</span>
+                          AdvantPlay Games
+                          <span className="category-count">({advantPlayGames.length})</span>
+                          <span className="provider-tag">Premium Provider</span>
+                        </h2>
+                        <div className="slot-games-grid">
+                          {advantPlayGames.map(renderGameCard)}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Crash Games Section */}
                     {crashGames.length > 0 && (
                       <div className="game-category-section">
                         <h2 className="category-title">
@@ -316,39 +399,7 @@ export default function Slot() {
                           <span className="category-count">({crashGames.length})</span>
                         </h2>
                         <div className="slot-games-grid">
-                          {crashGames.map((game) => (
-                            <div
-                              key={game.id}
-                              className="slot-game-card"
-                              onClick={() => handleGameClick(game)}
-                            >
-                              <div className="game-image-wrapper">
-                                <GameImage src={game.image} alt={game.name} className="game-image" />
-                                <div className="game-overlay">
-                                  <button
-                                    className={`play-btn ${launchingGame === game.id ? 'loading' : ''}`}
-                                    onClick={(e) => handlePlayNow(game, e)}
-                                    disabled={launchingGame === game.id}
-                                  >
-                                    {launchingGame === game.id ? (
-                                      <div className="play-spinner" />
-                                    ) : (
-                                      <svg viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M8 5v14l11-7z"/>
-                                      </svg>
-                                    )}
-                                  </button>
-                                </div>
-                                {(game.isHot || game.isNew) && (
-                                  <div className="game-badges">
-                                    {game.isHot && <span className="game-badge hot">HOT</span>}
-                                    {game.isNew && <span className="game-badge new">NEW</span>}
-                                  </div>
-                                )}
-                              </div>
-                              <div className="game-name">{game.name}</div>
-                            </div>
-                          ))}
+                          {crashGames.map(renderGameCard)}
                         </div>
                       </div>
                     )}
@@ -362,39 +413,7 @@ export default function Slot() {
                           <span className="category-count">({slotGames.length})</span>
                         </h2>
                         <div className="slot-games-grid">
-                          {slotGames.map((game) => (
-                            <div
-                              key={game.id}
-                              className="slot-game-card"
-                              onClick={() => handleGameClick(game)}
-                            >
-                              <div className="game-image-wrapper">
-                                <GameImage src={game.image} alt={game.name} className="game-image" />
-                                <div className="game-overlay">
-                                  <button
-                                    className={`play-btn ${launchingGame === game.id ? 'loading' : ''}`}
-                                    onClick={(e) => handlePlayNow(game, e)}
-                                    disabled={launchingGame === game.id}
-                                  >
-                                    {launchingGame === game.id ? (
-                                      <div className="play-spinner" />
-                                    ) : (
-                                      <svg viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M8 5v14l11-7z"/>
-                                      </svg>
-                                    )}
-                                  </button>
-                                </div>
-                                {(game.isHot || game.isNew) && (
-                                  <div className="game-badges">
-                                    {game.isHot && <span className="game-badge hot">HOT</span>}
-                                    {game.isNew && <span className="game-badge new">NEW</span>}
-                                  </div>
-                                )}
-                              </div>
-                              <div className="game-name">{game.name}</div>
-                            </div>
-                          ))}
+                          {slotGames.map(renderGameCard)}
                         </div>
                       </div>
                     )}
