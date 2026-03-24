@@ -223,6 +223,66 @@
   color: var(--text-muted);
 }
 
+.chip-icon {
+  font-size: 14px;
+  margin-right: 4px;
+}
+
+/* Provider tag on section title */
+.provider-tag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: #fff;
+  border-radius: 20px;
+  margin-left: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* AdvantPlay Section Styling */
+.advantplay-section {
+  position: relative;
+  padding: 20px;
+  margin: -8px -8px 36px -8px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(124, 58, 237, 0.04) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: 20px;
+}
+
+.advantplay-section .category-title {
+  color: #a78bfa;
+}
+
+.advantplay-section .category-count {
+  color: #8b5cf6;
+}
+
+/* AdvantPlay Game Card Styling */
+.slot-game-card.advantplay-card {
+  border-color: rgba(139, 92, 246, 0.2);
+}
+
+.slot-game-card.advantplay-card:hover {
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 30px rgba(139, 92, 246, 0.2);
+}
+
+.slot-game-card.advantplay-card::before {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+}
+
+/* AdvantPlay Provider Badge */
+.provider-badge.advantplay {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
+}
+
 /* ========== GAME CARDS - Modern Design ========== */
 .slot-games-grid {
   display: grid;

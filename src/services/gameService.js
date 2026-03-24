@@ -1,5 +1,6 @@
 import { apiClient } from './api';
 import { games as localGames, getGamesByCategory, getHotGames as getLocalHotGames, getNewGames as getLocalNewGames, getGameById as getLocalGameById, getGameBySlug, searchGames as localSearchGames, CATEGORIES } from '../data/gameData';
+import { getAllAdvantPlayGames, launchAdvantPlayGame } from './advantPlayService';
 
 // Get headers for API calls (no auth token needed for user frontend)
 const getHeaders = () => {
@@ -12,6 +13,10 @@ const getHeaders = () => {
 let cachedApiGames = null;
 let cacheTimestamp = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
+
+// Cache for combined games (ClotPlay + AdvantPlay)
+let cachedCombinedGames = null;
+let combinedCacheTimestamp = null;
 
 // ClotPlay API endpoint - use direct URL since Vercel can't proxy HTTP
 const CLOTPLAY_API = 'https://accounts.team33.mx/api/games/clotplay';
@@ -84,6 +89,34 @@ export const getAllApiGames = async () => {
   cacheTimestamp = Date.now();
 
   return allGames;
+};
+
+// Get all games from all providers (ClotPlay + AdvantPlay) with caching
+export const getAllCombinedGames = async () => {
+  // Return cached data if valid
+  if (cachedCombinedGames && combinedCacheTimestamp &&
+      (Date.now() - combinedCacheTimestamp < CACHE_DURATION)) {
+    console.log('[GameService] Returning cached combined games');
+    return cachedCombinedGames;
+  }
+
+  // Fetch from both providers in parallel
+  const [clotPlayGames, advantPlayGames] = await Promise.all([
+    getAllApiGames(),
+    getAllAdvantPlayGames()
+  ]);
+
+  console.log('[GameService] ClotPlay games:', clotPlayGames.length);
+  console.log('[GameService] AdvantPlay games:', advantPlayGames.length);
+
+  // Combine games, AdvantPlay games are already transformed
+  const combined = [...clotPlayGames, ...advantPlayGames];
+
+  // Cache the results
+  cachedCombinedGames = combined;
+  combinedCacheTimestamp = Date.now();
+
+  return combined;
 };
 
 // Get current language for thumbnails
@@ -190,11 +223,19 @@ export const searchLocalGamesWithImages = (query) => {
 export const gameService = {
   async getGames({ page = 1, limit = 36, provider = 'ALL', search = '', gameType = 'slot', isHot, isNew, useLocal = false } = {}) {
     try {
-      // Fetch games from ClotPlay API
-      const apiGames = await getAllApiGames();
+      // Fetch games from all providers (ClotPlay + AdvantPlay)
+      const apiGames = await getAllCombinedGames();
 
       if (apiGames && apiGames.length > 0) {
         let filteredGames = [...apiGames];
+
+        // Filter by provider
+        if (provider && provider !== 'ALL') {
+          filteredGames = filteredGames.filter(g => {
+            const gameProvider = (g.provider || '').toLowerCase();
+            return gameProvider === provider.toLowerCase();
+          });
+        }
 
         // Filter by search
         if (search && search.trim()) {
@@ -369,18 +410,23 @@ export const gameService = {
 
   async getProviders() {
     try {
-      const apiGames = await getAllApiGames();
-      if (apiGames && apiGames.length > 0) {
-        // Extract unique categories as providers
-        const categories = [...new Set(apiGames.map(g => g.category || 'Other'))];
+      const allGames = await getAllCombinedGames();
+      if (allGames && allGames.length > 0) {
+        // Extract unique providers
+        const providerSet = new Set();
+        allGames.forEach(g => {
+          if (g.provider) providerSet.add(g.provider);
+        });
+
         const providers = [
-          { id: 'ALL', name: 'ALL' },
-          ...categories.map(cat => ({
-            id: cat,
-            name: cat.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-            count: apiGames.filter(g => g.category === cat).length
+          { id: 'ALL', name: 'All Providers', count: allGames.length },
+          ...Array.from(providerSet).map(provider => ({
+            id: provider,
+            name: provider,
+            count: allGames.filter(g => g.provider === provider).length
           }))
         ];
+
         return { success: true, data: { providers } };
       }
       // Fallback
@@ -429,12 +475,19 @@ export const gameService = {
    * Request game launch URL from backend
    * Uses Team33 Game Launch API (proxied through vercel.json/vite.config.js to avoid CORS)
    * Includes automatic retry logic for transient failures
+   * Supports both ClotPlay and AdvantPlay games
    */
   async requestGameUrl(gameId, userId) {
-    // Try to find game in API cache first, then local
+    // Try to find game in combined cache first, then local
     let game = null;
-    const apiGames = cachedApiGames || [];
-    game = apiGames.find(g => g.slug === gameId || g.id === gameId);
+    const combinedGames = cachedCombinedGames || [];
+    game = combinedGames.find(g => g.slug === gameId || g.id === gameId || g.gameId === gameId);
+
+    // Also check individual caches
+    if (!game) {
+      const apiGames = cachedApiGames || [];
+      game = apiGames.find(g => g.slug === gameId || g.id === gameId);
+    }
 
     if (!game) {
       game = getLocalGameById(gameId);
@@ -442,6 +495,12 @@ export const gameService = {
 
     if (!game) {
       return { success: false, error: 'Game not found' };
+    }
+
+    // Handle AdvantPlay games separately
+    if (game.isAdvantPlay || game.provider === 'AdvantPlay') {
+      console.log('[GameService] Launching AdvantPlay game:', game.gameId);
+      return await launchAdvantPlayGame(game.gameId, userId);
     }
 
     // Direct API call to games backend
