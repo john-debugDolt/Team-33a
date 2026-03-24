@@ -326,19 +326,19 @@ export default function Slot() {
               {(() => {
                 const allGames = featuredGame ? [featuredGame, ...games] : games;
 
-                // Group games by provider and category
+                // Group games by provider
                 const advantPlayGames = allGames.filter(g => g.provider === 'AdvantPlay' || g.isAdvantPlay);
-                const crashGames = allGames.filter(g => g.category === CATEGORIES.CRASH && !g.isAdvantPlay);
-                const slotGames = allGames.filter(g =>
-                  (g.category === CATEGORIES.SLOTS || (!g.isAdvantPlay && g.category !== CATEGORIES.CRASH)) &&
-                  !g.isAdvantPlay
-                );
+                const clotPlayGames = allGames.filter(g => !g.isAdvantPlay && g.provider !== 'AdvantPlay');
+
+                // Further categorize ClotPlay games
+                const crashGames = clotPlayGames.filter(g => g.category === CATEGORIES.CRASH);
+                const slotGames = clotPlayGames.filter(g => g.category !== CATEGORIES.CRASH);
 
                 // Helper function to render a game card
                 const renderGameCard = (game) => (
                   <div
                     key={game.id}
-                    className={`slot-game-card ${game.isAdvantPlay ? 'advantplay-card' : ''}`}
+                    className={`slot-game-card ${game.isAdvantPlay ? 'advantplay-card' : 'clotplay-card'}`}
                     onClick={() => handleGameClick(game)}
                   >
                     <div className="game-image-wrapper">
@@ -364,9 +364,11 @@ export default function Slot() {
                           {game.isNew && <span className="game-badge new">NEW</span>}
                         </div>
                       )}
-                      {/* Provider badge for AdvantPlay games */}
-                      {game.isAdvantPlay && (
+                      {/* Provider badge */}
+                      {game.isAdvantPlay ? (
                         <span className="provider-badge advantplay">AdvantPlay</span>
+                      ) : (
+                        <span className="provider-badge clotplay">ClotPlay</span>
                       )}
                     </div>
                     <div className="game-name">{game.name}</div>
@@ -382,7 +384,7 @@ export default function Slot() {
                           <span className="category-icon">🎯</span>
                           AdvantPlay Games
                           <span className="category-count">({advantPlayGames.length})</span>
-                          <span className="provider-tag">Premium Provider</span>
+                          <span className="provider-tag purple">Premium Provider</span>
                         </h2>
                         <div className="slot-games-grid">
                           {advantPlayGames.map(renderGameCard)}
@@ -390,31 +392,43 @@ export default function Slot() {
                       </div>
                     )}
 
-                    {/* Crash Games Section */}
-                    {crashGames.length > 0 && (
-                      <div className="game-category-section">
+                    {/* ClotPlay Games Section */}
+                    {clotPlayGames.length > 0 && (
+                      <div className="game-category-section clotplay-section">
                         <h2 className="category-title">
-                          <span className="category-icon">🚀</span>
-                          Crash Games
-                          <span className="category-count">({crashGames.length})</span>
+                          <span className="category-icon">🎲</span>
+                          ClotPlay Games
+                          <span className="category-count">({clotPlayGames.length})</span>
+                          <span className="provider-tag emerald">Top Provider</span>
                         </h2>
-                        <div className="slot-games-grid">
-                          {crashGames.map(renderGameCard)}
-                        </div>
-                      </div>
-                    )}
 
-                    {/* Slot Games Section */}
-                    {slotGames.length > 0 && (
-                      <div className="game-category-section">
-                        <h2 className="category-title">
-                          <span className="category-icon">🎰</span>
-                          Slot Games
-                          <span className="category-count">({slotGames.length})</span>
-                        </h2>
-                        <div className="slot-games-grid">
-                          {slotGames.map(renderGameCard)}
-                        </div>
+                        {/* Crash Games Sub-section */}
+                        {crashGames.length > 0 && (
+                          <div className="game-sub-section">
+                            <h3 className="sub-category-title">
+                              <span className="category-icon">🚀</span>
+                              Crash Games
+                              <span className="category-count">({crashGames.length})</span>
+                            </h3>
+                            <div className="slot-games-grid">
+                              {crashGames.map(renderGameCard)}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Slot Games Sub-section */}
+                        {slotGames.length > 0 && (
+                          <div className="game-sub-section">
+                            <h3 className="sub-category-title">
+                              <span className="category-icon">🎰</span>
+                              Slot Games
+                              <span className="category-count">({slotGames.length})</span>
+                            </h3>
+                            <div className="slot-games-grid">
+                              {slotGames.map(renderGameCard)}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </>

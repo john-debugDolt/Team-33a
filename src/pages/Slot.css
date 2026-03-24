@@ -283,6 +283,87 @@
   box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
 }
 
+.provider-badge.clotplay {
+  background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+}
+
+/* Provider Tags */
+.provider-tag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 10px;
+  color: #fff;
+  border-radius: 20px;
+  margin-left: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.provider-tag.purple {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.provider-tag.emerald {
+  background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));
+}
+
+/* ClotPlay Section Styling */
+.clotplay-section {
+  position: relative;
+  padding: 20px;
+  margin: -8px -8px 36px -8px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.04) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  border-radius: 20px;
+}
+
+.clotplay-section .category-title {
+  color: var(--emerald-400);
+}
+
+.clotplay-section .category-count {
+  color: var(--emerald-500);
+}
+
+/* Game Sub-sections */
+.game-sub-section {
+  margin-top: 24px;
+}
+
+.game-sub-section:first-child {
+  margin-top: 16px;
+}
+
+.sub-category-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0 0 14px 0;
+  padding-left: 8px;
+  border-left: 3px solid var(--emerald-500);
+}
+
+.sub-category-title .category-icon {
+  font-size: 18px;
+}
+
+.sub-category-title .category-count {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* ClotPlay Card Styling */
+.slot-game-card.clotplay-card:hover {
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
 /* ========== GAME CARDS - Modern Design ========== */
 .slot-games-grid {
   display: grid;
