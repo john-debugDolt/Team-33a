@@ -156,11 +156,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
       },
-      // Proxy AdvantPlay Games API (LoadBalancer)
+      // Proxy AdvantPlay Games API
       '/api/advantplay': {
-        target: 'http://k8s-team33-walletse-ebcec4c2ff-cf4fe459a5f621a8.elb.ap-southeast-2.amazonaws.com',
+        target: 'https://advantplay.seamless.team33.mx',
         changeOrigin: true,
-        secure: false, // HTTP endpoint
+        secure: true,
       },
       // Fallback for other /api/games requests
       '/api/games': {
