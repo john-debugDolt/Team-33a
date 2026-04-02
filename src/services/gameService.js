@@ -176,17 +176,17 @@ const getCurrentLanguage = () => {
 export const getPortraitUrl = (game) => {
   if (!game) return '/placeholder-game.png';
   const lang = getCurrentLanguage();
-  // If game has thumbnails from API
+  // If game has thumbnails from API (ClotPlay format)
   if (game.thumbnails) {
     const langThumbs = game.thumbnails[lang] || game.thumbnails['en'] || Object.values(game.thumbnails)[0];
     if (langThumbs?.portrait) {
-      console.log('[GameService] Using thumbnail for', game.name, ':', langThumbs.portrait);
       return langThumbs.portrait;
     }
   }
+  // If game already has an image URL (AdvantPlay, UUSlot, EVO888H5)
+  if (game.image && game.image.startsWith('http')) return game.image;
   // Fallback to portrait image if set
   if (game.portraitImage) return game.portraitImage;
-  console.log('[GameService] No thumbnail found for', game.name, '- using placeholder');
   return '/placeholder-game.png';
 };
 
