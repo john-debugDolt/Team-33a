@@ -21,6 +21,7 @@ const tabs = [
 const providerFilters = [
   { id: 'ALL', label: 'All Providers', icon: '🎮' },
   { id: 'AdvantPlay', label: 'AdvantPlay', icon: '🎯' },
+  { id: 'UUSlot', label: 'UUSlot', icon: '🎰' },
   { id: 'ClotPlay', label: 'ClotPlay', icon: '🎲' },
 ]
 
@@ -328,17 +329,39 @@ export default function Slot() {
 
                 // Group games by provider
                 const advantPlayGames = allGames.filter(g => g.provider === 'AdvantPlay' || g.isAdvantPlay);
-                const clotPlayGames = allGames.filter(g => !g.isAdvantPlay && g.provider !== 'AdvantPlay');
+                const uuSlotGames = allGames.filter(g => g.provider === 'UUSlot' || g.isUUSlot);
+                const clotPlayGames = allGames.filter(g =>
+                  !g.isAdvantPlay && !g.isUUSlot &&
+                  g.provider !== 'AdvantPlay' && g.provider !== 'UUSlot'
+                );
 
                 // Further categorize ClotPlay games
                 const crashGames = clotPlayGames.filter(g => g.category === CATEGORIES.CRASH);
                 const slotGames = clotPlayGames.filter(g => g.category !== CATEGORIES.CRASH);
 
+                // Get provider class name
+                const getProviderClass = (game) => {
+                  if (game.isAdvantPlay || game.provider === 'AdvantPlay') return 'advantplay-card';
+                  if (game.isUUSlot || game.provider === 'UUSlot') return 'uuslot-card';
+                  return 'clotplay-card';
+                };
+
+                // Get provider badge
+                const getProviderBadge = (game) => {
+                  if (game.isAdvantPlay || game.provider === 'AdvantPlay') {
+                    return <span className="provider-badge advantplay">AdvantPlay</span>;
+                  }
+                  if (game.isUUSlot || game.provider === 'UUSlot') {
+                    return <span className="provider-badge uuslot">UUSlot</span>;
+                  }
+                  return <span className="provider-badge clotplay">ClotPlay</span>;
+                };
+
                 // Helper function to render a game card
                 const renderGameCard = (game) => (
                   <div
                     key={game.id}
-                    className={`slot-game-card ${game.isAdvantPlay ? 'advantplay-card' : 'clotplay-card'}`}
+                    className={`slot-game-card ${getProviderClass(game)}`}
                     onClick={() => handleGameClick(game)}
                   >
                     <div className="game-image-wrapper">
@@ -365,11 +388,7 @@ export default function Slot() {
                         </div>
                       )}
                       {/* Provider badge */}
-                      {game.isAdvantPlay ? (
-                        <span className="provider-badge advantplay">AdvantPlay</span>
-                      ) : (
-                        <span className="provider-badge clotplay">ClotPlay</span>
-                      )}
+                      {getProviderBadge(game)}
                     </div>
                     <div className="game-name">{game.name}</div>
                   </div>
@@ -388,6 +407,21 @@ export default function Slot() {
                         </h2>
                         <div className="slot-games-grid">
                           {advantPlayGames.map(renderGameCard)}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* UUSlot Games Section */}
+                    {uuSlotGames.length > 0 && (
+                      <div className="game-category-section uuslot-section">
+                        <h2 className="category-title">
+                          <span className="category-icon">🎰</span>
+                          UUSlot Games
+                          <span className="category-count">({uuSlotGames.length})</span>
+                          <span className="provider-tag orange">Hot Provider</span>
+                        </h2>
+                        <div className="slot-games-grid">
+                          {uuSlotGames.map(renderGameCard)}
                         </div>
                       </div>
                     )}
