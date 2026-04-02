@@ -364,6 +364,54 @@
   border-color: rgba(16, 185, 129, 0.5);
 }
 
+/* ========== UUSlot Provider Styling ========== */
+
+/* UUSlot Orange Theme */
+.provider-tag.orange {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.provider-badge.uuslot {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+}
+
+/* UUSlot Section Styling */
+.uuslot-section {
+  position: relative;
+  padding: 20px;
+  margin: -8px -8px 36px -8px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(217, 119, 6, 0.04) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.15);
+  border-radius: 20px;
+}
+
+.uuslot-section .category-title {
+  color: #fbbf24;
+}
+
+.uuslot-section .category-count {
+  color: #f59e0b;
+}
+
+/* UUSlot Game Card Styling */
+.slot-game-card.uuslot-card {
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.slot-game-card.uuslot-card:hover {
+  border-color: rgba(245, 158, 11, 0.5);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 30px rgba(245, 158, 11, 0.2);
+}
+
+.slot-game-card.uuslot-card::before {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, transparent 50%);
+}
+
 /* ========== GAME CARDS - Modern Design ========== */
 .slot-games-grid {
   display: grid;

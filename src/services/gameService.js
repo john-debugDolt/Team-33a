@@ -1,6 +1,7 @@
 import { apiClient } from './api';
 import { games as localGames, getGamesByCategory, getHotGames as getLocalHotGames, getNewGames as getLocalNewGames, getGameById as getLocalGameById, getGameBySlug, searchGames as localSearchGames, CATEGORIES } from '../data/gameData';
 import { getAllAdvantPlayGames, launchAdvantPlayGame } from './advantPlayService';
+import { getAllUUSlotGames, launchUUSlotGame } from './uuSlotService';
 
 // Get headers for API calls (no auth token needed for user frontend)
 const getHeaders = () => {
@@ -115,20 +116,23 @@ export const getAllCombinedGames = async () => {
     return cachedCombinedGames;
   }
 
-  // Fetch from both providers in parallel with error handling
-  // Use Promise.allSettled to ensure both requests complete even if one fails
+  // Fetch from all providers in parallel with error handling
+  // Use Promise.allSettled to ensure all requests complete even if some fail
   const results = await Promise.allSettled([
     getAllApiGames(),
-    getAllAdvantPlayGames()
+    getAllAdvantPlayGames(),
+    getAllUUSlotGames()
   ]);
 
   // Extract games from successful requests
   const clotPlayGames = results[0].status === 'fulfilled' ? results[0].value : [];
   const advantPlayGames = results[1].status === 'fulfilled' ? results[1].value : [];
+  const uuSlotGames = results[2].status === 'fulfilled' ? results[2].value : [];
 
   // Log results for debugging
   console.log('[GameService] ClotPlay games:', clotPlayGames.length, results[0].status);
   console.log('[GameService] AdvantPlay games:', advantPlayGames.length, results[1].status);
+  console.log('[GameService] UUSlot games:', uuSlotGames.length, results[2].status);
 
   // Log any errors
   if (results[0].status === 'rejected') {
@@ -137,9 +141,12 @@ export const getAllCombinedGames = async () => {
   if (results[1].status === 'rejected') {
     console.error('[GameService] AdvantPlay fetch failed:', results[1].reason);
   }
+  if (results[2].status === 'rejected') {
+    console.error('[GameService] UUSlot fetch failed:', results[2].reason);
+  }
 
-  // Combine games, AdvantPlay games are already transformed
-  const combined = [...clotPlayGames, ...advantPlayGames];
+  // Combine games from all providers
+  const combined = [...clotPlayGames, ...advantPlayGames, ...uuSlotGames];
 
   // Cache the results
   cachedCombinedGames = combined;
@@ -530,6 +537,12 @@ export const gameService = {
     if (game.isAdvantPlay || game.provider === 'AdvantPlay') {
       console.log('[GameService] Launching AdvantPlay game:', game.gameId);
       return await launchAdvantPlayGame(game.gameId, userId);
+    }
+
+    // Handle UUSlot games separately
+    if (game.isUUSlot || game.provider === 'UUSlot') {
+      console.log('[GameService] Launching UUSlot game:', game.gameId);
+      return await launchUUSlotGame(game.gameId, userId);
     }
 
     // Direct API call to games backend

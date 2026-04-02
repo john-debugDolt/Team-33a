@@ -162,6 +162,12 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
       },
+      // Proxy UUSlot Games API
+      '/api/uuslot': {
+        target: 'https://uuslot.seamless.team33.mx',
+        changeOrigin: true,
+        secure: true,
+      },
       // Fallback for other /api/games requests
       '/api/games': {
         target: 'https://api.team33.mx',

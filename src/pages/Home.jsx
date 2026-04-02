@@ -26,9 +26,10 @@ const BANNER_DURATION = 5000 // 5 seconds per banner
 const GAME_CATEGORIES = [
   { id: 'all', name: 'All Games', icon: '🎮' },
   { id: 'advantplay', name: 'AdvantPlay', icon: '🎯' },
-  { id: 'slots', name: 'Slots', icon: '🎰' },
+  { id: 'uuslot', name: 'UUSlot', icon: '🎰' },
+  { id: 'slots', name: 'Slots', icon: '🎲' },
   { id: 'table', name: 'Table Games', icon: '🃏' },
-  { id: 'live', name: 'Live Casino', icon: '🎲' },
+  { id: 'live', name: 'Live Casino', icon: '🎱' },
   { id: 'fishing', name: 'Fishing', icon: '🐟' },
   { id: 'crash', name: 'Crash', icon: '📈' }
 ]
@@ -302,6 +303,8 @@ export default function Home() {
         switch (activeCategory) {
           case 'advantplay':
             return provider === 'advantplay' || game.isAdvantPlay
+          case 'uuslot':
+            return provider === 'uuslot' || game.isUUSlot
           case 'slots':
             return gameType.includes('slot') || gameName.includes('slot')
           case 'table':

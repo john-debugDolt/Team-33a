@@ -74,6 +74,10 @@
       "destination": "https://advantplay.seamless.team33.mx/api/advantplay/:path*"
     },
     {
+      "source": "/api/uuslot/:path*",
+      "destination": "https://uuslot.seamless.team33.mx/api/uuslot/:path*"
+    },
+    {
       "source": "/api/games",
       "destination": "https://api.team33.mx/api/games"
     },
