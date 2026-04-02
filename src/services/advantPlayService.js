@@ -339,8 +339,8 @@ export const launchAdvantPlayGame = async (gameCode, accountId) => {
         const data = await response.json();
         console.log('[AdvantPlayService] Launch response:', data);
 
-        // Check for game URL in response
-        const gameUrl = data.gameUrl || data.url || data.launchUrl || data.data?.gameUrl;
+        // Check for game URL in response and trim whitespace
+        const gameUrl = (data.gameUrl || data.url || data.launchUrl || data.data?.gameUrl)?.trim();
 
         if (gameUrl) {
           return {

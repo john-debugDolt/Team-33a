@@ -301,8 +301,8 @@ export const launchUUSlotGame = async (gameCode, accountId, launchDemo = false) 
         const data = await response.json();
         console.log('[UUSlotService] Launch response:', data.success);
 
-        // Check for game URL in response
-        const gameUrl = data.gameUrl || data.url || data.launchUrl;
+        // Check for game URL in response and trim whitespace
+        const gameUrl = (data.gameUrl || data.url || data.launchUrl)?.trim();
 
         if (gameUrl) {
           return {
