@@ -991,13 +991,14 @@
   }
 
   .slot-content {
-    padding: 16px;
+    padding: 12px 8px;
   }
 
   .slot-filters-header {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
+    padding: 0 4px;
   }
 
   .slot-tabs {
@@ -1027,28 +1028,43 @@
     flex-shrink: 0;
   }
 
+  /* 3 columns on mobile for heavier look */
   .slot-games-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
   }
 
   .slot-game-card {
-    border-radius: 14px;
+    border-radius: 10px;
   }
 
   .slot-game-card .game-name {
-    padding: 10px 12px;
-    font-size: 12px;
+    padding: 6px 8px;
+    font-size: 10px;
   }
 
   .slot-game-card .play-btn {
-    width: 48px;
-    height: 48px;
+    width: 36px;
+    height: 36px;
   }
 
   .slot-game-card .play-btn svg {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
+  }
+
+  .slot-game-card .game-badge {
+    top: 4px;
+    left: 4px;
+    padding: 2px 5px;
+    font-size: 7px;
+  }
+
+  .slot-game-card .provider-badge {
+    top: 4px;
+    right: 4px;
+    padding: 2px 4px;
+    font-size: 7px;
   }
 
   /* Exit Dialog Mobile */
@@ -1065,7 +1081,7 @@
   }
 
   .slot-content {
-    padding: 12px;
+    padding: 8px 6px;
   }
 
   .slot-tabs {
@@ -1074,65 +1090,91 @@
   }
 
   .slot-tab {
-    padding: 10px 14px;
-    font-size: 12px;
+    padding: 8px 12px;
+    font-size: 11px;
     border-radius: 11px;
   }
 
   .slot-search input {
-    padding: 12px 40px 12px 16px;
-    font-size: 15px;
-    border-radius: 12px;
+    padding: 10px 40px 10px 14px;
+    font-size: 14px;
+    border-radius: 10px;
   }
 
+  /* Keep 3 columns on small mobile */
   .slot-games-grid {
-    gap: 10px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
   }
 
   .slot-game-card {
-    border-radius: 12px;
+    border-radius: 8px;
   }
 
   .slot-game-card .game-name {
-    padding: 8px 10px;
-    font-size: 11px;
+    padding: 5px 6px;
+    font-size: 9px;
   }
 
   .slot-game-card .game-badge {
-    top: 6px;
-    left: 6px;
-    padding: 3px 7px;
-    font-size: 8px;
+    top: 3px;
+    left: 3px;
+    padding: 2px 4px;
+    font-size: 6px;
   }
 
   .slot-game-card .provider-badge {
-    top: 6px;
-    right: 6px;
-    padding: 3px 6px;
-    font-size: 8px;
+    top: 3px;
+    right: 3px;
+    padding: 2px 4px;
+    font-size: 6px;
   }
 
   .slot-game-card .play-btn {
-    width: 44px;
-    height: 44px;
+    width: 32px;
+    height: 32px;
   }
 
   .slot-game-card .play-btn svg {
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
   }
-
 }
 
 /* ========== RESPONSIVE - Very Small ========== */
 @media (max-width: 360px) {
+  .slot-content {
+    padding: 6px 4px;
+  }
+
   .slot-games-grid {
-    gap: 8px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
+
+  .slot-game-card {
+    border-radius: 6px;
   }
 
   .slot-game-card .game-name {
-    padding: 6px 8px;
-    font-size: 10px;
+    padding: 4px 5px;
+    font-size: 8px;
+  }
+
+  .slot-game-card .play-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .slot-game-card .play-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .slot-game-card .game-badge,
+  .slot-game-card .provider-badge {
+    padding: 1px 3px;
+    font-size: 5px;
   }
 }
 
