@@ -168,6 +168,12 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
       },
+      // Proxy EVO888H5 Games API
+      '/api/evo888h5': {
+        target: 'https://evo888h5.seamless.team33.mx',
+        changeOrigin: true,
+        secure: true,
+      },
       // Fallback for other /api/games requests
       '/api/games': {
         target: 'https://api.team33.mx',

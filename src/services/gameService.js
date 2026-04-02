@@ -2,6 +2,7 @@ import { apiClient } from './api';
 import { games as localGames, getGamesByCategory, getHotGames as getLocalHotGames, getNewGames as getLocalNewGames, getGameById as getLocalGameById, getGameBySlug, searchGames as localSearchGames, CATEGORIES } from '../data/gameData';
 import { getAllAdvantPlayGames, launchAdvantPlayGame } from './advantPlayService';
 import { getAllUUSlotGames, launchUUSlotGame } from './uuSlotService';
+import { getAllEvo888h5Games, launchEvo888h5Game } from './evo888h5Service';
 
 // Get headers for API calls (no auth token needed for user frontend)
 const getHeaders = () => {
@@ -121,18 +122,21 @@ export const getAllCombinedGames = async () => {
   const results = await Promise.allSettled([
     getAllApiGames(),
     getAllAdvantPlayGames(),
-    getAllUUSlotGames()
+    getAllUUSlotGames(),
+    getAllEvo888h5Games()
   ]);
 
   // Extract games from successful requests
   const clotPlayGames = results[0].status === 'fulfilled' ? results[0].value : [];
   const advantPlayGames = results[1].status === 'fulfilled' ? results[1].value : [];
   const uuSlotGames = results[2].status === 'fulfilled' ? results[2].value : [];
+  const evo888h5Games = results[3].status === 'fulfilled' ? results[3].value : [];
 
   // Log results for debugging
   console.log('[GameService] ClotPlay games:', clotPlayGames.length, results[0].status);
   console.log('[GameService] AdvantPlay games:', advantPlayGames.length, results[1].status);
   console.log('[GameService] UUSlot games:', uuSlotGames.length, results[2].status);
+  console.log('[GameService] EVO888H5 games:', evo888h5Games.length, results[3].status);
 
   // Log any errors
   if (results[0].status === 'rejected') {
@@ -144,9 +148,12 @@ export const getAllCombinedGames = async () => {
   if (results[2].status === 'rejected') {
     console.error('[GameService] UUSlot fetch failed:', results[2].reason);
   }
+  if (results[3].status === 'rejected') {
+    console.error('[GameService] EVO888H5 fetch failed:', results[3].reason);
+  }
 
   // Combine games from all providers
-  const combined = [...clotPlayGames, ...advantPlayGames, ...uuSlotGames];
+  const combined = [...clotPlayGames, ...advantPlayGames, ...uuSlotGames, ...evo888h5Games];
 
   // Cache the results
   cachedCombinedGames = combined;
@@ -543,6 +550,17 @@ export const gameService = {
     if (game.isUUSlot || game.provider === 'UUSlot') {
       console.log('[GameService] Launching UUSlot game:', game.gameId);
       return await launchUUSlotGame(game.gameId, userId);
+    }
+
+    // Handle EVO888H5 games separately
+    if (game.isEvo888h5 || game.provider === 'EVO888H5') {
+      console.log('[GameService] Launching EVO888H5 game:', game.gameId);
+      try {
+        const gameUrl = await launchEvo888h5Game(userId, game.gameId);
+        return { success: true, gameUrl };
+      } catch (error) {
+        return { success: false, error: error.message };
+      }
     }
 
     // Direct API call to games backend
