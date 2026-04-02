@@ -24,7 +24,7 @@ let combinedCacheTimestamp = null;
 const CLOTPLAY_API = 'https://accounts.team33.mx/api/games/clotplay';
 
 // Helper function to fetch with timeout (Safari compatibility)
-const fetchWithTimeout = async (url, timeout = 15000) => {
+const fetchWithTimeout = async (url, timeout = 20000) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
@@ -50,7 +50,7 @@ export const fetchClotPlayGames = async (page = 1, perPage = 100) => {
     for (const url of urls) {
       try {
         console.log('[GameService] Trying to fetch games from:', url);
-        const response = await fetchWithTimeout(url, 15000);
+        const response = await fetchWithTimeout(url, 20000);
         if (!response.ok) {
           console.log('[GameService] Response not OK:', response.status);
           continue;
@@ -155,9 +155,22 @@ export const getAllCombinedGames = async () => {
   // Combine games from all providers
   const combined = [...clotPlayGames, ...advantPlayGames, ...uuSlotGames, ...evo888h5Games];
 
-  // Cache the results
-  cachedCombinedGames = combined;
-  combinedCacheTimestamp = Date.now();
+  // Count how many providers returned games
+  const providersWithGames = [
+    clotPlayGames.length > 0,
+    advantPlayGames.length > 0,
+    uuSlotGames.length > 0,
+    evo888h5Games.length > 0
+  ].filter(Boolean).length;
+
+  // Only cache if at least 3 providers returned games (to avoid caching partial results)
+  if (providersWithGames >= 3) {
+    cachedCombinedGames = combined;
+    combinedCacheTimestamp = Date.now();
+    console.log('[GameService] Cached combined games:', combined.length, 'from', providersWithGames, 'providers');
+  } else {
+    console.log('[GameService] Not caching - only', providersWithGames, 'providers returned games');
+  }
 
   return combined;
 };

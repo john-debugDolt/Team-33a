@@ -30,7 +30,7 @@ const GAME_TYPE_MAP = {
 /**
  * Helper function to fetch with timeout
  */
-const fetchWithTimeout = async (url, timeout = 15000) => {
+const fetchWithTimeout = async (url, timeout = 20000) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
@@ -172,7 +172,7 @@ export const fetchUUSlotGames = async () => {
     for (const url of urls) {
       try {
         console.log('[UUSlotService] Fetching games from:', url);
-        const response = await fetchWithTimeout(url, 15000);
+        const response = await fetchWithTimeout(url, 20000);
 
         if (!response.ok) {
           console.log('[UUSlotService] Response not OK:', response.status);
@@ -291,7 +291,7 @@ export const launchUUSlotGame = async (gameCode, accountId, launchDemo = false) 
     for (const url of urls) {
       try {
         console.log('[UUSlotService] Launching game from:', url);
-        const response = await fetchWithTimeout(url, 15000);
+        const response = await fetchWithTimeout(url, 20000);
 
         if (!response.ok) {
           console.log('[UUSlotService] Launch response not OK:', response.status);
