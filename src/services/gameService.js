@@ -593,20 +593,20 @@ export const gameService = {
 
       const data = await response.json();
 
-      // If API returns a game URL
+      // If API returns a game URL - trim whitespace
       if (data.gameUrl || data.url || data.launchUrl) {
         return {
           success: true,
-          gameUrl: data.gameUrl || data.url || data.launchUrl,
+          gameUrl: (data.gameUrl || data.url || data.launchUrl)?.trim(),
           ...data
         };
       }
 
-      // If API returns success with different structure
+      // If API returns success with different structure - trim whitespace
       if (data.success && data.data?.gameUrl) {
         return {
           success: true,
-          gameUrl: data.data.gameUrl,
+          gameUrl: data.data.gameUrl?.trim(),
           ...data.data
         };
       }

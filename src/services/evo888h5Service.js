@@ -158,7 +158,8 @@ export const launchEvo888h5Game = async (accountId, gameId, lang = 'en') => {
           continue;
         }
 
-        return data.gameUrl;
+        // Trim whitespace from game URL
+        return data.gameUrl?.trim();
       } catch (err) {
         console.log('[EVO888H5] Error launching from', launchUrl, ':', err.message);
       }
