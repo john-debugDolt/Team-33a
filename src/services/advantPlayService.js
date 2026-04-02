@@ -192,6 +192,21 @@ const transformAdvantPlayGame = (game, iconSize = DEFAULT_ICON_SIZE) => {
  * Fetch games from AdvantPlay API
  * @param {string} iconSize - Icon size to fetch (default: 200x200)
  */
+// Helper function to fetch with timeout (Safari compatibility)
+const fetchWithTimeout = async (url, timeout = 15000) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+};
+
 export const fetchAdvantPlayGames = async (iconSize = DEFAULT_ICON_SIZE) => {
   try {
     // Try both proxy (local dev) and direct URL (production)
@@ -203,7 +218,7 @@ export const fetchAdvantPlayGames = async (iconSize = DEFAULT_ICON_SIZE) => {
     for (const url of urls) {
       try {
         console.log('[AdvantPlayService] Fetching games from:', url);
-        const response = await fetch(url);
+        const response = await fetchWithTimeout(url, 15000);
 
         if (!response.ok) {
           console.log('[AdvantPlayService] Response not OK:', response.status);
@@ -211,9 +226,9 @@ export const fetchAdvantPlayGames = async (iconSize = DEFAULT_ICON_SIZE) => {
         }
 
         const data = await response.json();
-        console.log('[AdvantPlayService] API response:', data);
+        console.log('[AdvantPlayService] API response success:', data.success);
 
-        // AdvantPlay returns games array directly or in data.games
+        // AdvantPlay returns { success: true, games: [...] }
         let games = [];
         if (Array.isArray(data)) {
           games = data;
