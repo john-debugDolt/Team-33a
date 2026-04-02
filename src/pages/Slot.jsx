@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { gameService } from '../services/gameService'
+import { gameService, onGamesUpdated } from '../services/gameService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -194,6 +194,15 @@ export default function Slot() {
 
   useEffect(() => {
     fetchGames()
+  }, [fetchGames])
+
+  // Listen for background game updates (when failed providers retry successfully)
+  useEffect(() => {
+    const unsubscribe = onGamesUpdated(() => {
+      console.log('[Slot] Games updated in background, refreshing...')
+      fetchGames()
+    })
+    return unsubscribe
   }, [fetchGames])
 
   const handleGameClick = (game) => {
