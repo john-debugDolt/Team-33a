@@ -21,6 +21,21 @@ let combinedCacheTimestamp = null;
 // ClotPlay API endpoint - use direct URL since Vercel can't proxy HTTP
 const CLOTPLAY_API = 'https://accounts.team33.mx/api/games/clotplay';
 
+// Helper function to fetch with timeout (Safari compatibility)
+const fetchWithTimeout = async (url, timeout = 15000) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+};
+
 // Fetch games from ClotPlay API
 export const fetchClotPlayGames = async (page = 1, perPage = 100) => {
   try {
@@ -33,7 +48,7 @@ export const fetchClotPlayGames = async (page = 1, perPage = 100) => {
     for (const url of urls) {
       try {
         console.log('[GameService] Trying to fetch games from:', url);
-        const response = await fetch(url);
+        const response = await fetchWithTimeout(url, 15000);
         if (!response.ok) {
           console.log('[GameService] Response not OK:', response.status);
           continue;
@@ -100,14 +115,28 @@ export const getAllCombinedGames = async () => {
     return cachedCombinedGames;
   }
 
-  // Fetch from both providers in parallel
-  const [clotPlayGames, advantPlayGames] = await Promise.all([
+  // Fetch from both providers in parallel with error handling
+  // Use Promise.allSettled to ensure both requests complete even if one fails
+  const results = await Promise.allSettled([
     getAllApiGames(),
     getAllAdvantPlayGames()
   ]);
 
-  console.log('[GameService] ClotPlay games:', clotPlayGames.length);
-  console.log('[GameService] AdvantPlay games:', advantPlayGames.length);
+  // Extract games from successful requests
+  const clotPlayGames = results[0].status === 'fulfilled' ? results[0].value : [];
+  const advantPlayGames = results[1].status === 'fulfilled' ? results[1].value : [];
+
+  // Log results for debugging
+  console.log('[GameService] ClotPlay games:', clotPlayGames.length, results[0].status);
+  console.log('[GameService] AdvantPlay games:', advantPlayGames.length, results[1].status);
+
+  // Log any errors
+  if (results[0].status === 'rejected') {
+    console.error('[GameService] ClotPlay fetch failed:', results[0].reason);
+  }
+  if (results[1].status === 'rejected') {
+    console.error('[GameService] AdvantPlay fetch failed:', results[1].reason);
+  }
 
   // Combine games, AdvantPlay games are already transformed
   const combined = [...clotPlayGames, ...advantPlayGames];
