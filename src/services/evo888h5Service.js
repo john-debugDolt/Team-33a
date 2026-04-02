@@ -10,7 +10,7 @@ const EVO888H5_DIRECT_URL = 'https://evo888h5.seamless.team33.mx/api/evo888h5';
 /**
  * Fetch with timeout helper for browser compatibility
  */
-const fetchWithTimeout = async (url, options = {}, timeout = 15000) => {
+const fetchWithTimeout = async (url, options = {}, timeout = 20000) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
@@ -71,7 +71,7 @@ export const fetchEvo888h5Games = async () => {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
           }
-        }, 15000);
+        }, 20000);
 
         if (!response.ok) {
           console.log('[EVO888H5] Response not OK:', response.status);
@@ -142,7 +142,7 @@ export const launchEvo888h5Game = async (accountId, gameId, lang = 'en') => {
           headers: {
             'Content-Type': 'application/json'
           }
-        }, 15000);
+        }, 20000);
 
         if (!response.ok) {
           console.log('[EVO888H5] Launch response not OK:', response.status);

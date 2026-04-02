@@ -193,7 +193,7 @@ const transformAdvantPlayGame = (game, iconSize = DEFAULT_ICON_SIZE) => {
  * @param {string} iconSize - Icon size to fetch (default: 200x200)
  */
 // Helper function to fetch with timeout (Safari compatibility)
-const fetchWithTimeout = async (url, timeout = 15000) => {
+const fetchWithTimeout = async (url, timeout = 20000) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
@@ -221,7 +221,7 @@ export const fetchAdvantPlayGames = async (iconSize = DEFAULT_ICON_SIZE) => {
         console.log('[AdvantPlayService] Fetching games from:', url);
 
         // Add mode and credentials for better cross-browser support
-        const response = await fetchWithTimeout(url, 15000);
+        const response = await fetchWithTimeout(url, 20000);
 
         if (!response.ok) {
           console.log('[AdvantPlayService] Response not OK:', response.status);
