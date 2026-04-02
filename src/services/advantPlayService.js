@@ -209,15 +209,18 @@ const fetchWithTimeout = async (url, timeout = 15000) => {
 
 export const fetchAdvantPlayGames = async (iconSize = DEFAULT_ICON_SIZE) => {
   try {
-    // Try both proxy (local dev) and direct URL (production)
+    // Try direct URL first (has proper CORS), then proxy as fallback
+    // Direct URL works better with privacy browsers like Brave
     const urls = [
-      `/api/advantplay/game/list?iconSize=${iconSize}`,
-      `${ADVANTPLAY_BASE_URL}/api/advantplay/game/list?iconSize=${iconSize}`
+      `${ADVANTPLAY_BASE_URL}/api/advantplay/game/list?iconSize=${iconSize}`,
+      `/api/advantplay/game/list?iconSize=${iconSize}`
     ];
 
     for (const url of urls) {
       try {
         console.log('[AdvantPlayService] Fetching games from:', url);
+
+        // Add mode and credentials for better cross-browser support
         const response = await fetchWithTimeout(url, 15000);
 
         if (!response.ok) {
@@ -225,7 +228,15 @@ export const fetchAdvantPlayGames = async (iconSize = DEFAULT_ICON_SIZE) => {
           continue;
         }
 
-        const data = await response.json();
+        const text = await response.text();
+
+        // Check if response is empty or HTML (blocked by browser)
+        if (!text || text.startsWith('<!') || text.startsWith('<html')) {
+          console.log('[AdvantPlayService] Invalid response (empty or HTML)');
+          continue;
+        }
+
+        const data = JSON.parse(text);
         console.log('[AdvantPlayService] API response success:', data.success);
 
         // AdvantPlay returns { success: true, games: [...] }
