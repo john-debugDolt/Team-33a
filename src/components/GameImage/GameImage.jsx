@@ -26,8 +26,9 @@ export default function GameImage({ src, alt, className }) {
   const retryTimeoutRef = useRef(null)
   const isMountedRef = useRef(true)
 
-  const MAX_RETRIES = 5
   const PLACEHOLDER = '/placeholder-game.png'
+  // Keep retrying indefinitely - never give up on loading the real image
+  const RETRY_FOREVER = true
 
   // Check if src is valid
   const isValidSrc = src && src !== 'undefined' && src !== 'null' && src !== PLACEHOLDER
@@ -99,9 +100,10 @@ export default function GameImage({ src, alt, className }) {
   const handleError = () => {
     if (!isMountedRef.current) return
 
-    if (retryCount < MAX_RETRIES && isValidSrc) {
-      // Retry with faster initial delays: 500ms, 1s, 1.5s, 2s, 3s
-      const delay = Math.min(500 + (retryCount * 500), 3000)
+    if (isValidSrc) {
+      // Keep retrying with exponential backoff, max 10 seconds between retries
+      // Retries: 1s, 2s, 3s, 4s, 5s, 6s, 7s, 8s, 9s, 10s, 10s, 10s...
+      const delay = Math.min(1000 + (retryCount * 1000), 10000)
 
       retryTimeoutRef.current = setTimeout(() => {
         if (isMountedRef.current) {
@@ -116,7 +118,7 @@ export default function GameImage({ src, alt, className }) {
         }
       }, delay)
     } else {
-      // Max retries reached - show placeholder
+      // Invalid src - show placeholder
       setHasError(true)
       setCurrentSrc(PLACEHOLDER)
       setIsLoaded(true)
@@ -126,8 +128,11 @@ export default function GameImage({ src, alt, className }) {
   // Determine what to display
   const displaySrc = isValidSrc ? currentSrc : PLACEHOLDER
 
+  // Show loading state if we're retrying
+  const isRetrying = retryCount > 0 && !isLoaded && isValidSrc
+
   return (
-    <div ref={imgRef} className={`game-image-container ${isLoaded ? 'loaded' : ''}`}>
+    <div ref={imgRef} className={`game-image-container ${isLoaded ? 'loaded' : ''} ${isRetrying ? 'retrying' : ''}`}>
       {isInView && displaySrc ? (
         <img
           src={displaySrc}
@@ -142,7 +147,12 @@ export default function GameImage({ src, alt, className }) {
       ) : (
         <div className="game-image-placeholder" />
       )}
-      {!isLoaded && isInView && <div className="game-image-loader" />}
+      {/* Show loader when loading or retrying */}
+      {!isLoaded && isInView && (
+        <div className="game-image-loader">
+          {isRetrying && <span className="retry-count">Retry {retryCount}</span>}
+        </div>
+      )}
     </div>
   )
 }
