@@ -108,17 +108,119 @@ export const getAllApiGames = async () => {
   return allGames;
 };
 
-// Get all games from all providers (ClotPlay + AdvantPlay) with caching
+// Track which providers failed so we can retry them
+let failedProviders = { clotPlay: false, advantPlay: false, uuSlot: false, evo888h5: false };
+let isRetrying = false;
+
+// Listeners for game updates (so UI can refresh when more games load)
+const gameUpdateListeners = [];
+export const onGamesUpdated = (callback) => {
+  gameUpdateListeners.push(callback);
+  return () => {
+    const index = gameUpdateListeners.indexOf(callback);
+    if (index > -1) gameUpdateListeners.splice(index, 1);
+  };
+};
+const notifyGamesUpdated = () => {
+  gameUpdateListeners.forEach(cb => cb());
+};
+
+// Retry failed providers in background
+const retryFailedProviders = async () => {
+  if (isRetrying) return;
+
+  const hasFailedProviders = Object.values(failedProviders).some(Boolean);
+  if (!hasFailedProviders) return;
+
+  isRetrying = true;
+  console.log('[GameService] Retrying failed providers in background...');
+
+  const retryPromises = [];
+
+  if (failedProviders.clotPlay) {
+    retryPromises.push(
+      getAllApiGames().then(games => {
+        if (games.length > 0) {
+          failedProviders.clotPlay = false;
+          return { provider: 'clotPlay', games };
+        }
+        return null;
+      }).catch(() => null)
+    );
+  }
+
+  if (failedProviders.advantPlay) {
+    retryPromises.push(
+      getAllAdvantPlayGames().then(games => {
+        if (games.length > 0) {
+          failedProviders.advantPlay = false;
+          return { provider: 'advantPlay', games };
+        }
+        return null;
+      }).catch(() => null)
+    );
+  }
+
+  if (failedProviders.uuSlot) {
+    retryPromises.push(
+      getAllUUSlotGames().then(games => {
+        if (games.length > 0) {
+          failedProviders.uuSlot = false;
+          return { provider: 'uuSlot', games };
+        }
+        return null;
+      }).catch(() => null)
+    );
+  }
+
+  if (failedProviders.evo888h5) {
+    retryPromises.push(
+      getAllEvo888h5Games().then(games => {
+        if (games.length > 0) {
+          failedProviders.evo888h5 = false;
+          return { provider: 'evo888h5', games };
+        }
+        return null;
+      }).catch(() => null)
+    );
+  }
+
+  const results = await Promise.all(retryPromises);
+  const successfulRetries = results.filter(Boolean);
+
+  if (successfulRetries.length > 0) {
+    // Add newly loaded games to cache
+    successfulRetries.forEach(({ provider, games }) => {
+      console.log(`[GameService] Retry success: ${provider} loaded ${games.length} games`);
+      if (cachedCombinedGames) {
+        cachedCombinedGames = [...cachedCombinedGames, ...games];
+      }
+    });
+
+    // Notify UI to refresh
+    notifyGamesUpdated();
+    console.log('[GameService] Total games after retry:', cachedCombinedGames?.length);
+  }
+
+  isRetrying = false;
+
+  // If still have failed providers, retry again after 3 seconds
+  const stillHasFailedProviders = Object.values(failedProviders).some(Boolean);
+  if (stillHasFailedProviders) {
+    setTimeout(retryFailedProviders, 3000);
+  }
+};
+
+// Get all games from all providers (ClotPlay + AdvantPlay + UUSlot + EVO888H5) with caching
 export const getAllCombinedGames = async () => {
   // Return cached data if valid
   if (cachedCombinedGames && combinedCacheTimestamp &&
       (Date.now() - combinedCacheTimestamp < CACHE_DURATION)) {
-    console.log('[GameService] Returning cached combined games');
+    console.log('[GameService] Returning cached combined games:', cachedCombinedGames.length);
     return cachedCombinedGames;
   }
 
   // Fetch from all providers in parallel with error handling
-  // Use Promise.allSettled to ensure all requests complete even if some fail
   const results = await Promise.allSettled([
     getAllApiGames(),
     getAllAdvantPlayGames(),
@@ -126,50 +228,36 @@ export const getAllCombinedGames = async () => {
     getAllEvo888h5Games()
   ]);
 
-  // Extract games from successful requests
+  // Extract games from successful requests and track failures
   const clotPlayGames = results[0].status === 'fulfilled' ? results[0].value : [];
   const advantPlayGames = results[1].status === 'fulfilled' ? results[1].value : [];
   const uuSlotGames = results[2].status === 'fulfilled' ? results[2].value : [];
   const evo888h5Games = results[3].status === 'fulfilled' ? results[3].value : [];
 
-  // Log results for debugging
-  console.log('[GameService] ClotPlay games:', clotPlayGames.length, results[0].status);
-  console.log('[GameService] AdvantPlay games:', advantPlayGames.length, results[1].status);
-  console.log('[GameService] UUSlot games:', uuSlotGames.length, results[2].status);
-  console.log('[GameService] EVO888H5 games:', evo888h5Games.length, results[3].status);
+  // Track which providers failed
+  failedProviders.clotPlay = clotPlayGames.length === 0;
+  failedProviders.advantPlay = advantPlayGames.length === 0;
+  failedProviders.uuSlot = uuSlotGames.length === 0;
+  failedProviders.evo888h5 = evo888h5Games.length === 0;
 
-  // Log any errors
-  if (results[0].status === 'rejected') {
-    console.error('[GameService] ClotPlay fetch failed:', results[0].reason);
-  }
-  if (results[1].status === 'rejected') {
-    console.error('[GameService] AdvantPlay fetch failed:', results[1].reason);
-  }
-  if (results[2].status === 'rejected') {
-    console.error('[GameService] UUSlot fetch failed:', results[2].reason);
-  }
-  if (results[3].status === 'rejected') {
-    console.error('[GameService] EVO888H5 fetch failed:', results[3].reason);
-  }
+  // Log results
+  console.log('[GameService] ClotPlay:', clotPlayGames.length, failedProviders.clotPlay ? '(FAILED)' : '');
+  console.log('[GameService] AdvantPlay:', advantPlayGames.length, failedProviders.advantPlay ? '(FAILED)' : '');
+  console.log('[GameService] UUSlot:', uuSlotGames.length, failedProviders.uuSlot ? '(FAILED)' : '');
+  console.log('[GameService] EVO888H5:', evo888h5Games.length, failedProviders.evo888h5 ? '(FAILED)' : '');
 
   // Combine games from all providers
   const combined = [...clotPlayGames, ...advantPlayGames, ...uuSlotGames, ...evo888h5Games];
 
-  // Count how many providers returned games
-  const providersWithGames = [
-    clotPlayGames.length > 0,
-    advantPlayGames.length > 0,
-    uuSlotGames.length > 0,
-    evo888h5Games.length > 0
-  ].filter(Boolean).length;
+  // Always cache whatever we have (so UI shows something)
+  cachedCombinedGames = combined;
+  combinedCacheTimestamp = Date.now();
+  console.log('[GameService] Cached', combined.length, 'games');
 
-  // Only cache if at least 3 providers returned games (to avoid caching partial results)
-  if (providersWithGames >= 3) {
-    cachedCombinedGames = combined;
-    combinedCacheTimestamp = Date.now();
-    console.log('[GameService] Cached combined games:', combined.length, 'from', providersWithGames, 'providers');
-  } else {
-    console.log('[GameService] Not caching - only', providersWithGames, 'providers returned games');
+  // If some providers failed, retry in background
+  const hasFailedProviders = Object.values(failedProviders).some(Boolean);
+  if (hasFailedProviders) {
+    setTimeout(retryFailedProviders, 2000);
   }
 
   return combined;
