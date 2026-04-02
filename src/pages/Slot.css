@@ -412,6 +412,54 @@
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, transparent 50%);
 }
 
+/* ========== EVO888H5 Provider Styling ========== */
+
+/* EVO888H5 Pink Theme */
+.provider-tag.pink {
+  background: linear-gradient(135deg, #ec4899, #db2777);
+}
+
+.provider-badge.evo888h5 {
+  background: linear-gradient(135deg, #ec4899, #db2777);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
+}
+
+/* EVO888H5 Section Styling */
+.evo888h5-section {
+  position: relative;
+  padding: 20px;
+  margin: -8px -8px 36px -8px;
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.08) 0%, rgba(219, 39, 119, 0.04) 100%);
+  border: 1px solid rgba(236, 72, 153, 0.15);
+  border-radius: 20px;
+}
+
+.evo888h5-section .category-title {
+  color: #f472b6;
+}
+
+.evo888h5-section .category-count {
+  color: #ec4899;
+}
+
+/* EVO888H5 Game Card Styling */
+.slot-game-card.evo888h5-card {
+  border-color: rgba(236, 72, 153, 0.2);
+}
+
+.slot-game-card.evo888h5-card:hover {
+  border-color: rgba(236, 72, 153, 0.5);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 30px rgba(236, 72, 153, 0.2);
+}
+
+.slot-game-card.evo888h5-card::before {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, transparent 50%);
+}
+
 /* ========== GAME CARDS - Modern Design ========== */
 .slot-games-grid {
   display: grid;

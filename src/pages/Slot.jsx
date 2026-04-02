@@ -22,6 +22,7 @@ const providerFilters = [
   { id: 'ALL', label: 'All Providers', icon: '🎮' },
   { id: 'AdvantPlay', label: 'AdvantPlay', icon: '🎯' },
   { id: 'UUSlot', label: 'UUSlot', icon: '🎰' },
+  { id: 'EVO888H5', label: 'EVO888H5', icon: '🌟' },
   { id: 'ClotPlay', label: 'ClotPlay', icon: '🎲' },
 ]
 
@@ -330,9 +331,10 @@ export default function Slot() {
                 // Group games by provider
                 const advantPlayGames = allGames.filter(g => g.provider === 'AdvantPlay' || g.isAdvantPlay);
                 const uuSlotGames = allGames.filter(g => g.provider === 'UUSlot' || g.isUUSlot);
+                const evo888h5Games = allGames.filter(g => g.provider === 'EVO888H5' || g.isEvo888h5);
                 const clotPlayGames = allGames.filter(g =>
-                  !g.isAdvantPlay && !g.isUUSlot &&
-                  g.provider !== 'AdvantPlay' && g.provider !== 'UUSlot'
+                  !g.isAdvantPlay && !g.isUUSlot && !g.isEvo888h5 &&
+                  g.provider !== 'AdvantPlay' && g.provider !== 'UUSlot' && g.provider !== 'EVO888H5'
                 );
 
                 // Further categorize ClotPlay games
@@ -343,6 +345,7 @@ export default function Slot() {
                 const getProviderClass = (game) => {
                   if (game.isAdvantPlay || game.provider === 'AdvantPlay') return 'advantplay-card';
                   if (game.isUUSlot || game.provider === 'UUSlot') return 'uuslot-card';
+                  if (game.isEvo888h5 || game.provider === 'EVO888H5') return 'evo888h5-card';
                   return 'clotplay-card';
                 };
 
@@ -353,6 +356,9 @@ export default function Slot() {
                   }
                   if (game.isUUSlot || game.provider === 'UUSlot') {
                     return <span className="provider-badge uuslot">UUSlot</span>;
+                  }
+                  if (game.isEvo888h5 || game.provider === 'EVO888H5') {
+                    return <span className="provider-badge evo888h5">EVO888H5</span>;
                   }
                   return <span className="provider-badge clotplay">ClotPlay</span>;
                 };
@@ -422,6 +428,21 @@ export default function Slot() {
                         </h2>
                         <div className="slot-games-grid">
                           {uuSlotGames.map(renderGameCard)}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* EVO888H5 Games Section */}
+                    {evo888h5Games.length > 0 && (
+                      <div className="game-category-section evo888h5-section">
+                        <h2 className="category-title">
+                          <span className="category-icon">🌟</span>
+                          EVO888H5 Games
+                          <span className="category-count">({evo888h5Games.length})</span>
+                          <span className="provider-tag pink">Star Provider</span>
+                        </h2>
+                        <div className="slot-games-grid">
+                          {evo888h5Games.map(renderGameCard)}
                         </div>
                       </div>
                     )}

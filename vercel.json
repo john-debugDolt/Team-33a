@@ -78,6 +78,10 @@
       "destination": "https://uuslot.seamless.team33.mx/api/uuslot/:path*"
     },
     {
+      "source": "/api/evo888h5/:path*",
+      "destination": "https://evo888h5.seamless.team33.mx/api/evo888h5/:path*"
+    },
+    {
       "source": "/api/games",
       "destination": "https://api.team33.mx/api/games"
     },
