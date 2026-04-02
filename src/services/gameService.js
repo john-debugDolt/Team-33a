@@ -540,38 +540,38 @@ export const gameService = {
       return { success: false, error: 'Game not found' };
     }
 
+    // Get user's actual accountId from localStorage for all providers
+    const user = JSON.parse(localStorage.getItem('team33_user') || localStorage.getItem('user') || '{}');
+    const accountId = user.accountId || userId;
+
     // Handle AdvantPlay games separately
     if (game.isAdvantPlay || game.provider === 'AdvantPlay') {
-      console.log('[GameService] Launching AdvantPlay game:', game.gameId);
-      return await launchAdvantPlayGame(game.gameId, userId);
+      console.log('[GameService] Launching AdvantPlay game:', game.gameId, 'accountId:', accountId);
+      return await launchAdvantPlayGame(game.gameId, accountId);
     }
 
     // Handle UUSlot games separately
     if (game.isUUSlot || game.provider === 'UUSlot') {
-      console.log('[GameService] Launching UUSlot game:', game.gameId);
-      return await launchUUSlotGame(game.gameId, userId);
+      console.log('[GameService] Launching UUSlot game:', game.gameId, 'accountId:', accountId);
+      return await launchUUSlotGame(game.gameId, accountId);
     }
 
     // Handle EVO888H5 games separately
     if (game.isEvo888h5 || game.provider === 'EVO888H5') {
-      console.log('[GameService] Launching EVO888H5 game:', game.gameId);
+      console.log('[GameService] Launching EVO888H5 game:', game.gameId, 'accountId:', accountId);
       try {
-        const gameUrl = await launchEvo888h5Game(userId, game.gameId);
+        const gameUrl = await launchEvo888h5Game(accountId, game.gameId);
         return { success: true, gameUrl };
       } catch (error) {
         return { success: false, error: error.message };
       }
     }
 
-    // Direct API call to games backend
+    // Direct API call to games backend (ClotPlay)
     const GAME_LAUNCH_API = 'https://accounts.team33.mx/api/games/launch';
 
-    // Get user's actual accountId from localStorage
-    const user = JSON.parse(localStorage.getItem('team33_user') || localStorage.getItem('user') || '{}');
-    const userAccountId = user.accountId || userId;
-
     // Fallback to demo account if no user logged in
-    const ACCOUNT_ID = userAccountId || 'ACC284290827402874880';
+    const ACCOUNT_ID = accountId || 'ACC284290827402874880';
 
     // Retry configuration
     const MAX_RETRIES = 3;
