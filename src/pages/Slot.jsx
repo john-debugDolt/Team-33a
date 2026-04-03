@@ -4,22 +4,15 @@ import { gameService, onGamesUpdated } from '../services/gameService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
-import { CATEGORIES } from '../data/gameData'
 import GameDetailModal from '../components/GameDetailModal/GameDetailModal'
 import Pagination from '../components/Pagination/Pagination'
 import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner'
 import GameImage, { preloadGameImages } from '../components/GameImage'
 import './Slot.css'
 
-const tabs = [
-  { id: 'all', label: 'All Games', icon: '🎰' },
-  { id: 'hot', label: 'Hot Games', icon: '🔥' },
-  { id: 'new', label: 'New Games', icon: null, badge: 'NEW' },
-]
-
-// Provider filter options
-const providerFilters = [
-  { id: 'ALL', label: 'All Providers', icon: '🎮' },
+// Provider tabs - All Games + each provider
+const providerTabs = [
+  { id: 'ALL', label: 'All Games', icon: '🎮' },
   { id: 'AdvantPlay', label: 'AdvantPlay', icon: '🎯' },
   { id: 'UUSlot', label: 'UUSlot', icon: '🎰' },
   { id: 'EVO888H5', label: 'EVO888H5', icon: '🌟' },
@@ -32,11 +25,9 @@ export default function Slot() {
   const { showToast } = useToast()
 
   const [games, setGames] = useState([])
-  const [featuredGame, setFeaturedGame] = useState(null)
   const [loading, setLoading] = useState(true)
   const [launchingGame, setLaunchingGame] = useState(null)
-  const [activeTab, setActiveTab] = useState('all')
-  const [activeProvider, setActiveProvider] = useState('ALL') // Provider filter
+  const [activeProvider, setActiveProvider] = useState('ALL') // Provider tab
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [selectedGame, setSelectedGame] = useState(null)
@@ -144,22 +135,16 @@ export default function Slot() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setPagination(prev => ({ ...prev, page: 1 }))
-  }, [activeTab, debouncedSearch, activeProvider])
+  }, [debouncedSearch, activeProvider])
 
   const fetchGames = useCallback(async () => {
     setLoading(true)
 
     const params = {
       page: pagination.page,
-      limit: 20,
+      limit: 100, // Load more games per page
       gameType: 'all',
-      provider: activeProvider, // Add provider filter
-    }
-
-    if (activeTab === 'hot') {
-      params.isHot = true
-    } else if (activeTab === 'new') {
-      params.isNew = true
+      provider: activeProvider,
     }
 
     if (debouncedSearch) {
@@ -170,14 +155,7 @@ export default function Slot() {
 
     if (result.success) {
       const allGames = result.data.games
-      // Set first game as featured if on page 1 and no search
-      if (pagination.page === 1 && !debouncedSearch && allGames.length > 0) {
-        setFeaturedGame(allGames[0])
-        setGames(allGames.slice(1))
-      } else {
-        setFeaturedGame(null)
-        setGames(allGames)
-      }
+      setGames(allGames)
       setPagination(prev => ({
         ...prev,
         totalPages: result.data.totalPages,
@@ -190,7 +168,7 @@ export default function Slot() {
     }
 
     setLoading(false)
-  }, [pagination.page, activeTab, debouncedSearch, activeProvider])
+  }, [pagination.page, debouncedSearch, activeProvider])
 
   useEffect(() => {
     fetchGames()
@@ -279,14 +257,13 @@ export default function Slot() {
         {/* Filter Header */}
         <div className="slot-filters-header">
           <div className="slot-tabs">
-            {tabs.map((tab) => (
+            {providerTabs.map((tab) => (
               <button
                 key={tab.id}
-                className={`slot-tab ${activeTab === tab.id ? 'active' : ''}`}
-                onClick={() => setActiveTab(tab.id)}
+                className={`slot-tab ${activeProvider === tab.id ? 'active' : ''}`}
+                onClick={() => setActiveProvider(tab.id)}
               >
-                {tab.icon && <span className="tab-icon">{tab.icon}</span>}
-                {tab.badge && <span className="tab-icon new">{tab.badge}</span>}
+                <span className="tab-icon">{tab.icon}</span>
                 {tab.label}
               </button>
             ))}
@@ -302,20 +279,6 @@ export default function Slot() {
           </div>
         </div>
 
-        {/* Provider Filter Chips */}
-        <div className="slot-providers">
-          {providerFilters.map((provider) => (
-            <button
-              key={provider.id}
-              className={`slot-provider-chip ${activeProvider === provider.id ? 'active' : ''}`}
-              onClick={() => setActiveProvider(provider.id)}
-            >
-              <span className="chip-icon">{provider.icon}</span>
-              <span className="chip-label">{provider.label}</span>
-            </button>
-          ))}
-        </div>
-
         {/* Games Count */}
         <div className="games-count">
           {pagination.total} games found
@@ -326,29 +289,23 @@ export default function Slot() {
           <div className="loading-wrapper">
             <LoadingSpinner />
           </div>
-        ) : games.length === 0 && !featuredGame ? (
+        ) : games.length === 0 ? (
           <div className="empty-state">
-            <p>No games found. Try adjusting your filters.</p>
+            <p>No games found. Try a different search.</p>
           </div>
         ) : (
           <>
-            {/* Games by Category and Provider */}
+            {/* Games by Provider */}
             <div className="slot-games-layout">
               {(() => {
-                const allGames = featuredGame ? [featuredGame, ...games] : games;
-
                 // Group games by provider
-                const advantPlayGames = allGames.filter(g => g.provider === 'AdvantPlay' || g.isAdvantPlay);
-                const uuSlotGames = allGames.filter(g => g.provider === 'UUSlot' || g.isUUSlot);
-                const evo888h5Games = allGames.filter(g => g.provider === 'EVO888H5' || g.isEvo888h5);
-                const clotPlayGames = allGames.filter(g =>
+                const advantPlayGames = games.filter(g => g.provider === 'AdvantPlay' || g.isAdvantPlay);
+                const uuSlotGames = games.filter(g => g.provider === 'UUSlot' || g.isUUSlot);
+                const evo888h5Games = games.filter(g => g.provider === 'EVO888H5' || g.isEvo888h5);
+                const clotPlayGames = games.filter(g =>
                   !g.isAdvantPlay && !g.isUUSlot && !g.isEvo888h5 &&
                   g.provider !== 'AdvantPlay' && g.provider !== 'UUSlot' && g.provider !== 'EVO888H5'
                 );
-
-                // Further categorize ClotPlay games
-                const crashGames = clotPlayGames.filter(g => g.category === CATEGORIES.CRASH);
-                const slotGames = clotPlayGames.filter(g => g.category !== CATEGORIES.CRASH);
 
                 // Get provider class name
                 const getProviderClass = (game) => {
@@ -465,34 +422,9 @@ export default function Slot() {
                           <span className="category-count">({clotPlayGames.length})</span>
                           <span className="provider-tag emerald">Top Provider</span>
                         </h2>
-
-                        {/* Crash Games Sub-section */}
-                        {crashGames.length > 0 && (
-                          <div className="game-sub-section">
-                            <h3 className="sub-category-title">
-                              <span className="category-icon">🚀</span>
-                              Crash Games
-                              <span className="category-count">({crashGames.length})</span>
-                            </h3>
-                            <div className="slot-games-grid">
-                              {crashGames.map(renderGameCard)}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Slot Games Sub-section */}
-                        {slotGames.length > 0 && (
-                          <div className="game-sub-section">
-                            <h3 className="sub-category-title">
-                              <span className="category-icon">🎰</span>
-                              Slot Games
-                              <span className="category-count">({slotGames.length})</span>
-                            </h3>
-                            <div className="slot-games-grid">
-                              {slotGames.map(renderGameCard)}
-                            </div>
-                          </div>
-                        )}
+                        <div className="slot-games-grid">
+                          {clotPlayGames.map(renderGameCard)}
+                        </div>
                       </div>
                     )}
                   </>
