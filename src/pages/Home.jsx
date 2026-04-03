@@ -500,6 +500,15 @@ export default function Home() {
         </div>
       )}
 
+      {/* Provider Tabs */}
+      <div className="provider-tabs">
+        <button className="provider-tab active" onClick={() => navigate('/')}>🎮 All</button>
+        <button className="provider-tab" onClick={() => navigate('/advantplay')}>🎯 AdvantPlay</button>
+        <button className="provider-tab" onClick={() => navigate('/uuslot')}>🎰 UUSlot</button>
+        <button className="provider-tab" onClick={() => navigate('/evo888h5')}>🌟 EVO888H5</button>
+        <button className="provider-tab" onClick={() => navigate('/clotplay')}>🎲 ClotPlay</button>
+      </div>
+
       {/* Search Bar and Leaderboard */}
       <div className="games-toolbar">
         <div className="search-container">
