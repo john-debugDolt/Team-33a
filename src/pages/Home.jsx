@@ -497,25 +497,43 @@ export default function Home() {
     setLaunchingGame(game.uniqueId || game.id)
     showToast(`Launching ${game.name}...`, 'info')
 
-    try {
-      // Use originalId for variations, otherwise use game.id
-      const gameIdToLaunch = game.originalId || game.id
-      const result = await gameService.requestGameUrl(gameIdToLaunch, user?.id)
+    // Use originalId for variations, otherwise use game.id
+    const gameIdToLaunch = game.originalId || game.id
+    const maxRetries = 5
+    let attempt = 0
+    let success = false
 
-      if (result.success && result.gameUrl) {
-        // Show game in embedded iframe
-        setEmbeddedGame({ url: result.gameUrl, name: game.name })
-        addToRecentlyPlayed(game)
-        showToast(`${game.name} launched!`, 'success')
-      } else {
-        showToast(result.error || 'Failed to launch game', 'error')
+    while (attempt < maxRetries && !success) {
+      attempt++
+      try {
+        const result = await gameService.requestGameUrl(gameIdToLaunch, user?.id)
+
+        if (result.success && result.gameUrl) {
+          // Show game in embedded iframe
+          setEmbeddedGame({ url: result.gameUrl, name: game.name })
+          addToRecentlyPlayed(game)
+          showToast(`${game.name} launched!`, 'success')
+          success = true
+        } else {
+          console.log(`[Game Launch] Attempt ${attempt} failed, retrying...`)
+          if (attempt < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 1000)) // Wait 1 second before retry
+          }
+        }
+      } catch (error) {
+        console.error(`[Game Launch] Attempt ${attempt} error:`, error)
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 1000)) // Wait 1 second before retry
+        }
       }
-    } catch (error) {
-      console.error('Game launch error:', error)
-      showToast('Failed to launch game. Please try again.', 'error')
-    } finally {
-      setLaunchingGame(null)
     }
+
+    if (!success) {
+      console.error('[Game Launch] All retries failed')
+      // Silently fail - don't show error to user, just stop loading
+    }
+
+    setLaunchingGame(null)
   }
 
   return (

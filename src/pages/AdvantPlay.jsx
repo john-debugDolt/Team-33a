@@ -104,20 +104,37 @@ export default function AdvantPlay() {
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
 
-    try {
-      const result = await gameService.requestGameUrl(game.id, user?.id)
-      if (result.success && result.gameUrl) {
-        setEmbeddedGame({ url: result.gameUrl, name: game.name })
-        showToast(`${game.name} launched!`, 'success')
-      } else {
-        showToast(result.error || 'Failed to launch game', 'error')
+    const maxRetries = 5
+    let attempt = 0
+    let success = false
+
+    while (attempt < maxRetries && !success) {
+      attempt++
+      try {
+        const result = await gameService.requestGameUrl(game.id, user?.id)
+        if (result.success && result.gameUrl) {
+          setEmbeddedGame({ url: result.gameUrl, name: game.name })
+          showToast(`${game.name} launched!`, 'success')
+          success = true
+        } else {
+          console.log(`[Game Launch] Attempt ${attempt} failed, retrying...`)
+          if (attempt < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 1000))
+          }
+        }
+      } catch (error) {
+        console.error(`[Game Launch] Attempt ${attempt} error:`, error)
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 1000))
+        }
       }
-    } catch (error) {
-      console.error('Game launch error:', error)
-      showToast('Failed to launch game. Please try again.', 'error')
-    } finally {
-      setLaunchingGame(null)
     }
+
+    if (!success) {
+      console.error('[Game Launch] All retries failed')
+    }
+
+    setLaunchingGame(null)
   }
 
   const renderGameCard = (game, index) => (
