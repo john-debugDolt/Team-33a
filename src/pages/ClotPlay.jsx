@@ -103,7 +103,7 @@ export default function ClotPlay() {
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
 
-    const maxRetries = 5
+    const maxRetries = 15
     let attempt = 0
     let success = false
 
@@ -238,56 +238,14 @@ export default function ClotPlay() {
       {embeddedGame && (
         <div className="game-player-overlay">
           <div className="game-player-container">
-            <div className="game-player-header">
-              <div className="game-player-left">
-                <button
-                  className="game-player-back"
-                  onClick={() => setShowExitConfirm(true)}
-                  title="Exit game"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                  </svg>
-                </button>
-                <h3 className="game-player-title">{embeddedGame.name}</h3>
-              </div>
-              <div className="game-player-center">
-                <div className="game-player-balance">
-                  <span className="balance-label">Balance</span>
-                  <span className="balance-amount">${(user?.balance || 0).toFixed(2)}</span>
-                </div>
-                <button
-                  className="game-player-deposit"
-                  onClick={async () => {
-                    await closeGame()
-                    navigate('/wallet')
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <path d="M12 5v14M5 12h14"/>
-                  </svg>
-                  <span>Deposit</span>
-                </button>
-              </div>
-              <div className="game-player-actions">
-                <button
-                  className="game-player-exit"
-                  onClick={() => setShowExitConfirm(true)}
-                  title="Exit game"
-                >
-                  Exit
-                </button>
-                <button
-                  className="game-player-fullscreen"
-                  onClick={() => window.open(embeddedGame.url, '_blank')}
-                  title="Open in new tab"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
+            {/* Small X button in top right corner */}
+            <button
+              className="game-player-exit"
+              onClick={() => setShowExitConfirm(true)}
+              title="Exit game"
+            />
+
+            {/* Fullscreen game iframe */}
             <div className="game-player-frame">
               <iframe
                 src={embeddedGame.url}
@@ -296,15 +254,6 @@ export default function ClotPlay() {
                 allow="autoplay; fullscreen; clipboard-write"
               />
             </div>
-
-            <button className="mobile-exit-btn" onClick={() => setShowExitConfirm(true)}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                <polyline points="16 17 21 12 16 7"/>
-                <line x1="21" y1="12" x2="9" y2="12"/>
-              </svg>
-              EXIT GAME
-            </button>
 
             {showExitConfirm && (
               <div className="exit-confirm-overlay">
