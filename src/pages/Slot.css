@@ -794,26 +794,32 @@
 
 /* ========== EMBEDDED GAME PLAYER - TRUE FULLSCREEN ========== */
 .game-player-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
-  background: #000;
-  z-index: 999999;
-  overflow: hidden;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  background: #000 !important;
+  z-index: 2147483647 !important; /* Maximum z-index value */
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .game-player-container {
-  width: 100%;
-  height: 100%;
-  position: relative;
+  width: 100% !important;
+  height: 100% !important;
+  position: relative !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* Hide the old header completely */
 .game-player-header {
-  display: none;
+  display: none !important;
 }
 
 .game-player-left,
@@ -826,49 +832,48 @@
 .game-player-deposit,
 .game-player-actions,
 .game-player-fullscreen {
-  display: none;
+  display: none !important;
 }
 
 /* Small Exit Button - Top Right Corner */
 .game-player-exit {
-  position: fixed;
-  top: 8px;
-  right: 8px;
-  top: calc(8px + env(safe-area-inset-top, 0px));
-  right: calc(8px + env(safe-area-inset-right, 0px));
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  color: #fff;
-  font-size: 0;
-  cursor: pointer;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  backdrop-filter: blur(4px);
+  position: fixed !important;
+  top: 12px !important;
+  right: 12px !important;
+  width: 40px !important;
+  height: 40px !important;
+  padding: 0 !important;
+  background: rgba(0, 0, 0, 0.6) !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 50% !important;
+  color: #fff !important;
+  font-size: 0 !important;
+  cursor: pointer !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
 }
 
 .game-player-exit::before {
-  content: '';
-  width: 16px;
-  height: 16px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 18L18 6M6 6l12 12'/%3E%3C/svg%3E");
-  background-size: contain;
-  background-repeat: no-repeat;
+  content: '' !important;
+  width: 18px !important;
+  height: 18px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 18L18 6M6 6l12 12'/%3E%3C/svg%3E") !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
 }
 
 .game-player-exit:hover {
-  background: rgba(239, 68, 68, 0.8);
-  transform: scale(1.1);
+  background: rgba(239, 68, 68, 0.9) !important;
+  transform: scale(1.1) !important;
 }
 
 .game-player-exit:active {
-  transform: scale(0.95);
+  transform: scale(0.95) !important;
 }
 
 /* Hide mobile exit button - we only need the small X */
@@ -878,20 +883,24 @@
 
 /* Game Frame - TRUE FULLSCREEN */
 .game-player-frame {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  width: 100% !important;
+  height: 100% !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .game-player-frame iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  border: none !important;
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* Exit Confirmation Dialog */
