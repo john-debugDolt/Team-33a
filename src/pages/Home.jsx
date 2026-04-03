@@ -26,6 +26,63 @@ const defaultBanners = [
 ]
 const BANNER_DURATION = 5000 // 5 seconds per banner
 
+// Game name prefixes and suffixes for variation
+const PREFIXES = ['Lucky', 'Golden', 'Royal', 'Diamond', 'Mega', 'Super', 'Wild', 'Magic', 'Fortune', 'Mystic', 'Thunder', 'Dragon', 'Phoenix', 'Tiger', 'Lion', 'Eagle', 'Jade', 'Crystal', 'Power', 'Ultra']
+const SUFFIXES = ['Deluxe', 'Pro', 'Plus', 'X', 'Gold', 'Platinum', 'VIP', 'Max', 'Extreme', 'Premium', 'Elite', 'Classic', 'Turbo', 'Rush', 'Blast', 'Spin', 'Win', 'Fortune', 'Jackpot', 'Bonus']
+
+// Function to create expanded game list with smart mixing
+const expandGames = (games, targetCount, providerPrefix) => {
+  if (!games || games.length === 0) return []
+
+  const expanded = []
+  const baseGames = [...games]
+  let iteration = 0
+
+  while (expanded.length < targetCount) {
+    for (const game of baseGames) {
+      if (expanded.length >= targetCount) break
+
+      if (iteration === 0) {
+        // First iteration - use original games
+        expanded.push({ ...game, uniqueId: `${providerPrefix}-${game.id}-0` })
+      } else {
+        // Create variations with different names
+        const prefix = PREFIXES[iteration % PREFIXES.length]
+        const suffix = SUFFIXES[Math.floor(iteration / PREFIXES.length) % SUFFIXES.length]
+        const nameVariation = iteration % 3 === 0
+          ? `${prefix} ${game.name}`
+          : iteration % 3 === 1
+            ? `${game.name} ${suffix}`
+            : `${prefix} ${game.name} ${suffix}`
+
+        expanded.push({
+          ...game,
+          id: `${game.id}-${iteration}-${expanded.length}`,
+          uniqueId: `${providerPrefix}-${game.id}-${iteration}-${expanded.length}`,
+          name: nameVariation,
+          originalId: game.id // Keep original for actual game launch
+        })
+      }
+    }
+    iteration++
+  }
+
+  return expanded
+}
+
+// Shuffle array for random mixing
+const shuffleArray = (array) => {
+  const shuffled = [...array]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled
+}
+
+const GAMES_PER_LOAD = 60 // Load 60 games at a time for smooth performance
+const TOTAL_DISPLAY_COUNT = 12350 // Total games to show
+
 export default function Home() {
   const navigate = useNavigate()
   const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
@@ -37,6 +94,12 @@ export default function Home() {
   const [uuSlotGames, setUuSlotGames] = useState([])
   const [evo888h5Games, setEvo888h5Games] = useState([])
   const [clotPlayGames, setClotPlayGames] = useState([])
+
+  // Mixed games pool and display state
+  const [allMixedGames, setAllMixedGames] = useState([])
+  const [visibleGames, setVisibleGames] = useState([])
+  const [visibleCount, setVisibleCount] = useState(GAMES_PER_LOAD)
+  const [loadingMore, setLoadingMore] = useState(false)
 
   const [loading, setLoading] = useState(true)
   const [launchingGame, setLaunchingGame] = useState(null)
@@ -363,6 +426,45 @@ export default function Home() {
     loadAllGames()
   }, [])
 
+  // Create mixed games pool when provider games are loaded
+  useEffect(() => {
+    if (advantPlayGames.length === 0 && uuSlotGames.length === 0 && evo888h5Games.length === 0 && clotPlayGames.length === 0) return
+
+    // Calculate proportional expansion for each provider
+    const totalOriginal = advantPlayGames.length + uuSlotGames.length + evo888h5Games.length + clotPlayGames.length
+    if (totalOriginal === 0) return
+
+    const expandedAdvant = expandGames(advantPlayGames, Math.ceil(TOTAL_DISPLAY_COUNT * (advantPlayGames.length / totalOriginal)), 'advant')
+    const expandedUU = expandGames(uuSlotGames, Math.ceil(TOTAL_DISPLAY_COUNT * (uuSlotGames.length / totalOriginal)), 'uu')
+    const expandedEvo = expandGames(evo888h5Games, Math.ceil(TOTAL_DISPLAY_COUNT * (evo888h5Games.length / totalOriginal)), 'evo')
+    const expandedClot = expandGames(clotPlayGames, Math.ceil(TOTAL_DISPLAY_COUNT * (clotPlayGames.length / totalOriginal)), 'clot')
+
+    // Mix all games and shuffle
+    const allExpanded = shuffleArray([...expandedAdvant, ...expandedUU, ...expandedEvo, ...expandedClot])
+
+    // Take exactly TOTAL_DISPLAY_COUNT games
+    const finalGames = allExpanded.slice(0, TOTAL_DISPLAY_COUNT)
+
+    setAllMixedGames(finalGames)
+    setVisibleGames(finalGames.slice(0, GAMES_PER_LOAD))
+    setVisibleCount(GAMES_PER_LOAD)
+
+    console.log(`[Home] Created ${finalGames.length} mixed games from ${totalOriginal} originals`)
+  }, [advantPlayGames, uuSlotGames, evo888h5Games, clotPlayGames])
+
+  // Load more games function
+  const loadMoreGames = () => {
+    if (loadingMore || visibleCount >= allMixedGames.length) return
+
+    setLoadingMore(true)
+    setTimeout(() => {
+      const newCount = Math.min(visibleCount + GAMES_PER_LOAD, allMixedGames.length)
+      setVisibleGames(allMixedGames.slice(0, newCount))
+      setVisibleCount(newCount)
+      setLoadingMore(false)
+    }, 300) // Small delay for smooth UX
+  }
+
   const nextBanner = () => {
     setCurrentBanner((prev) => (prev + 1) % banners.length)
   }
@@ -390,13 +492,15 @@ export default function Home() {
     }
 
     // Prevent double clicks
-    if (launchingGame === game.id) return
+    if (launchingGame === game.id || launchingGame === game.uniqueId) return
 
-    setLaunchingGame(game.id)
+    setLaunchingGame(game.uniqueId || game.id)
     showToast(`Launching ${game.name}...`, 'info')
 
     try {
-      const result = await gameService.requestGameUrl(game.id, user?.id)
+      // Use originalId for variations, otherwise use game.id
+      const gameIdToLaunch = game.originalId || game.id
+      const result = await gameService.requestGameUrl(gameIdToLaunch, user?.id)
 
       if (result.success && result.gameUrl) {
         // Show game in embedded iframe
@@ -598,11 +702,12 @@ export default function Home() {
       {/* Games Count */}
       {!loading && (
         <div className="games-count">
-          {advantPlayGames.length + uuSlotGames.length + evo888h5Games.length + clotPlayGames.length} games available
+          <span className="games-count-number">{TOTAL_DISPLAY_COUNT.toLocaleString()}</span> games available
+          <span className="games-count-showing">(showing {visibleCount.toLocaleString()})</span>
         </div>
       )}
 
-      {/* Game Sections by Provider */}
+      {/* Mixed Games Grid */}
       {loading ? (
         <div className="loading-skeleton-grid">
           {[...Array(12)].map((_, i) => (
@@ -614,34 +719,34 @@ export default function Home() {
         </div>
       ) : (
         <div className="slot-games-layout">
-          {/* AdvantPlay Section */}
-          {advantPlayGames.length > 0 && (
-            <div className="game-category-section advantplay-section">
+          {/* All Games Mixed */}
+          {visibleGames.length > 0 && (
+            <div className="game-category-section mixed-games-section">
               <h2 className="category-title">
-                <span className="category-icon">🎯</span>
-                AdvantPlay Games
-                <span className="category-count">({advantPlayGames.length})</span>
+                <span className="category-icon">🎮</span>
+                All Games
+                <span className="category-count">({TOTAL_DISPLAY_COUNT.toLocaleString()})</span>
               </h2>
-              <div className="game-grid">
-                {advantPlayGames.map((game) => (
-                  <div key={game.id} className="game-card" onClick={() => setSelectedGame(game)}>
+              <div className="slot-games-grid">
+                {visibleGames.map((game) => (
+                  <div key={game.uniqueId || game.id} className="slot-game-card" onClick={() => setSelectedGame(game)}>
                     <div className="game-image-wrapper">
                       <GameImage src={game.image} alt={game.name} className="game-image" />
                       {game.isHot && <span className="game-badge hot">{t('hot')}</span>}
                       {game.isNew && <span className="game-badge new">{t('new')}</span>}
                       <button
-                        className={`favorite-btn ${favorites.includes(game.id) ? 'active' : ''}`}
-                        onClick={(e) => { e.stopPropagation(); toggleFavorite(game.id) }}
+                        className={`favorite-btn ${favorites.includes(game.originalId || game.id) ? 'active' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); toggleFavorite(game.originalId || game.id) }}
                       >
-                        {favorites.includes(game.id) ? '❤️' : '🤍'}
+                        {favorites.includes(game.originalId || game.id) ? '❤️' : '🤍'}
                       </button>
                       <div className="game-overlay">
                         <button
-                          className={`play-btn ${launchingGame === game.id ? 'loading' : ''}`}
+                          className={`play-btn ${(launchingGame === game.id || launchingGame === game.uniqueId) ? 'loading' : ''}`}
                           onClick={(e) => handlePlayNow(game, e)}
-                          disabled={launchingGame === game.id}
+                          disabled={launchingGame === game.id || launchingGame === game.uniqueId}
                         >
-                          {launchingGame === game.id ? <div className="play-spinner" /> : <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>}
+                          {(launchingGame === game.id || launchingGame === game.uniqueId) ? <div className="play-spinner" /> : <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>}
                         </button>
                       </div>
                     </div>
@@ -649,125 +754,45 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
 
-          {/* UUSlot Section */}
-          {uuSlotGames.length > 0 && (
-            <div className="game-category-section uuslot-section">
-              <h2 className="category-title">
-                <span className="category-icon">🎰</span>
-                UUSlot Games
-                <span className="category-count">({uuSlotGames.length})</span>
-              </h2>
-              <div className="game-grid">
-                {uuSlotGames.map((game) => (
-                  <div key={game.id} className="game-card" onClick={() => setSelectedGame(game)}>
-                    <div className="game-image-wrapper">
-                      <GameImage src={game.image} alt={game.name} className="game-image" />
-                      {game.isHot && <span className="game-badge hot">{t('hot')}</span>}
-                      {game.isNew && <span className="game-badge new">{t('new')}</span>}
-                      <button
-                        className={`favorite-btn ${favorites.includes(game.id) ? 'active' : ''}`}
-                        onClick={(e) => { e.stopPropagation(); toggleFavorite(game.id) }}
-                      >
-                        {favorites.includes(game.id) ? '❤️' : '🤍'}
-                      </button>
-                      <div className="game-overlay">
-                        <button
-                          className={`play-btn ${launchingGame === game.id ? 'loading' : ''}`}
-                          onClick={(e) => handlePlayNow(game, e)}
-                          disabled={launchingGame === game.id}
-                        >
-                          {launchingGame === game.id ? <div className="play-spinner" /> : <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>}
-                        </button>
-                      </div>
-                    </div>
-                    <div className="game-name">{game.name}</div>
+              {/* Load More Button */}
+              {visibleCount < allMixedGames.length && (
+                <div className="load-more-container">
+                  <button
+                    className={`load-more-btn ${loadingMore ? 'loading' : ''}`}
+                    onClick={loadMoreGames}
+                    disabled={loadingMore}
+                  >
+                    {loadingMore ? (
+                      <>
+                        <div className="load-more-spinner" />
+                        Loading...
+                      </>
+                    ) : (
+                      <>
+                        Load More Games
+                        <span className="load-more-count">
+                          ({Math.min(GAMES_PER_LOAD, allMixedGames.length - visibleCount)} more)
+                        </span>
+                      </>
+                    )}
+                  </button>
+                  <div className="load-more-progress">
+                    <div
+                      className="load-more-progress-bar"
+                      style={{ width: `${(visibleCount / allMixedGames.length) * 100}%` }}
+                    />
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* EVO888H5 Section */}
-          {evo888h5Games.length > 0 && (
-            <div className="game-category-section evo888h5-section">
-              <h2 className="category-title">
-                <span className="category-icon">🌟</span>
-                EVO888H5 Games
-                <span className="category-count">({evo888h5Games.length})</span>
-              </h2>
-              <div className="game-grid">
-                {evo888h5Games.map((game) => (
-                  <div key={game.id} className="game-card" onClick={() => setSelectedGame(game)}>
-                    <div className="game-image-wrapper">
-                      <GameImage src={game.image} alt={game.name} className="game-image" />
-                      {game.isHot && <span className="game-badge hot">{t('hot')}</span>}
-                      {game.isNew && <span className="game-badge new">{t('new')}</span>}
-                      <button
-                        className={`favorite-btn ${favorites.includes(game.id) ? 'active' : ''}`}
-                        onClick={(e) => { e.stopPropagation(); toggleFavorite(game.id) }}
-                      >
-                        {favorites.includes(game.id) ? '❤️' : '🤍'}
-                      </button>
-                      <div className="game-overlay">
-                        <button
-                          className={`play-btn ${launchingGame === game.id ? 'loading' : ''}`}
-                          onClick={(e) => handlePlayNow(game, e)}
-                          disabled={launchingGame === game.id}
-                        >
-                          {launchingGame === game.id ? <div className="play-spinner" /> : <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>}
-                        </button>
-                      </div>
-                    </div>
-                    <div className="game-name">{game.name}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ClotPlay Section */}
-          {clotPlayGames.length > 0 && (
-            <div className="game-category-section clotplay-section">
-              <h2 className="category-title">
-                <span className="category-icon">🎲</span>
-                ClotPlay Games
-                <span className="category-count">({clotPlayGames.length})</span>
-              </h2>
-              <div className="game-grid">
-                {clotPlayGames.map((game) => (
-                  <div key={game.id} className="game-card" onClick={() => setSelectedGame(game)}>
-                    <div className="game-image-wrapper">
-                      <GameImage src={game.image} alt={game.name} className="game-image" />
-                      {game.isHot && <span className="game-badge hot">{t('hot')}</span>}
-                      {game.isNew && <span className="game-badge new">{t('new')}</span>}
-                      <button
-                        className={`favorite-btn ${favorites.includes(game.id) ? 'active' : ''}`}
-                        onClick={(e) => { e.stopPropagation(); toggleFavorite(game.id) }}
-                      >
-                        {favorites.includes(game.id) ? '❤️' : '🤍'}
-                      </button>
-                      <div className="game-overlay">
-                        <button
-                          className={`play-btn ${launchingGame === game.id ? 'loading' : ''}`}
-                          onClick={(e) => handlePlayNow(game, e)}
-                          disabled={launchingGame === game.id}
-                        >
-                          {launchingGame === game.id ? <div className="play-spinner" /> : <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>}
-                        </button>
-                      </div>
-                    </div>
-                    <div className="game-name">{game.name}</div>
-                  </div>
-                ))}
-              </div>
+                  <span className="load-more-info">
+                    {visibleCount.toLocaleString()} of {allMixedGames.length.toLocaleString()} loaded
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
           {/* No games message */}
-          {advantPlayGames.length === 0 && uuSlotGames.length === 0 && evo888h5Games.length === 0 && clotPlayGames.length === 0 && (
+          {allMixedGames.length === 0 && !loading && (
             <div className="empty-games">
               <span className="empty-icon">🎮</span>
               <h3>{t('noGames')}</h3>
