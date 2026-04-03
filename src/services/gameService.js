@@ -115,6 +115,12 @@ export const getAllApiGames = async () => {
   return allGames;
 };
 
+// Get all ClotPlay games with enhancement (for direct use by Slot component)
+export const getAllClotPlayGames = async () => {
+  const games = await getAllApiGames();
+  return games.map(enhanceGameWithImages);
+};
+
 // Track which providers failed so we can retry them
 let failedProviders = { clotPlay: false, advantPlay: false, uuSlot: false, evo888h5: false };
 let isRetrying = false;
