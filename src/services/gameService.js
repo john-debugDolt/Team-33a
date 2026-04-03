@@ -101,6 +101,13 @@ export const getAllApiGames = async () => {
     }
   }
 
+  // Add provider field to ClotPlay games (API doesn't include it)
+  allGames = allGames.map(game => ({
+    ...game,
+    provider: 'ClotPlay',
+    isClotPlay: true
+  }));
+
   // Cache the results
   cachedApiGames = allGames;
   cacheTimestamp = Date.now();

@@ -157,16 +157,22 @@ export default function Slot() {
     if (result.success) {
       let allGames = result.data.games
 
+      // Debug: Log what we got
+      console.log('[Slot] Total games received:', allGames.length)
+      console.log('[Slot] Active provider:', activeProvider)
+      console.log('[Slot] Sample game providers:', allGames.slice(0, 5).map(g => ({ provider: g.provider, isAdvantPlay: g.isAdvantPlay, isUUSlot: g.isUUSlot, isEvo888h5: g.isEvo888h5 })))
+
       // Filter by provider in component (more reliable)
       if (activeProvider !== 'ALL') {
+        const beforeFilter = allGames.length
         allGames = allGames.filter(g => {
           if (activeProvider === 'AdvantPlay') return g.isAdvantPlay || g.provider === 'AdvantPlay';
           if (activeProvider === 'UUSlot') return g.isUUSlot || g.provider === 'UUSlot';
           if (activeProvider === 'EVO888H5') return g.isEvo888h5 || g.provider === 'EVO888H5';
-          if (activeProvider === 'ClotPlay') return !g.isAdvantPlay && !g.isUUSlot && !g.isEvo888h5 &&
-            g.provider !== 'AdvantPlay' && g.provider !== 'UUSlot' && g.provider !== 'EVO888H5';
+          if (activeProvider === 'ClotPlay') return g.isClotPlay || g.provider === 'ClotPlay';
           return true;
         });
+        console.log('[Slot] After filter:', beforeFilter, '->', allGames.length)
       }
 
       setGames(allGames)
@@ -401,13 +407,10 @@ export default function Slot() {
                 }
 
                 // For ALL - group by provider
-                const advantPlayGames = games.filter(g => g.provider === 'AdvantPlay' || g.isAdvantPlay);
-                const uuSlotGames = games.filter(g => g.provider === 'UUSlot' || g.isUUSlot);
-                const evo888h5Games = games.filter(g => g.provider === 'EVO888H5' || g.isEvo888h5);
-                const clotPlayGames = games.filter(g =>
-                  !g.isAdvantPlay && !g.isUUSlot && !g.isEvo888h5 &&
-                  g.provider !== 'AdvantPlay' && g.provider !== 'UUSlot' && g.provider !== 'EVO888H5'
-                );
+                const advantPlayGames = games.filter(g => g.isAdvantPlay || g.provider === 'AdvantPlay');
+                const uuSlotGames = games.filter(g => g.isUUSlot || g.provider === 'UUSlot');
+                const evo888h5Games = games.filter(g => g.isEvo888h5 || g.provider === 'EVO888H5');
+                const clotPlayGames = games.filter(g => g.isClotPlay || g.provider === 'ClotPlay');
 
                 return (
                   <>
