@@ -395,11 +395,9 @@ export const gameService = {
           );
         }
 
-        // Filter by game type / category
-        if (gameType && gameType !== 'all') {
+        // Filter by game type / category (skip if 'all' or 'slot' to show all games)
+        if (gameType && gameType !== 'all' && gameType !== 'slot') {
           const categoryMap = {
-            'slot': 'slot_game',
-            'slots': 'slot_game',
             'crash': 'crash',
             'instant-win': 'instant_win',
             'card-game': 'card_game',
