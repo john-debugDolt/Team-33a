@@ -33,12 +33,15 @@ export default function Slot() {
   useEffect(() => {
     const loadGames = async () => {
       setLoading(true)
+      console.log('[Slot] Loading games from all providers...')
 
       // Fetch AdvantPlay
       try {
         const games = await getAllAdvantPlayGames()
-        console.log('[Slot] AdvantPlay loaded:', games.length)
-        setAdvantPlayGames(games || [])
+        console.log('[Slot] AdvantPlay loaded:', games?.length || 0)
+        if (games && games.length > 0) {
+          setAdvantPlayGames(games)
+        }
       } catch (e) {
         console.error('[Slot] AdvantPlay error:', e)
       }
@@ -46,8 +49,10 @@ export default function Slot() {
       // Fetch UUSlot
       try {
         const games = await getAllUUSlotGames()
-        console.log('[Slot] UUSlot loaded:', games.length)
-        setUuSlotGames(games || [])
+        console.log('[Slot] UUSlot loaded:', games?.length || 0)
+        if (games && games.length > 0) {
+          setUuSlotGames(games)
+        }
       } catch (e) {
         console.error('[Slot] UUSlot error:', e)
       }
@@ -55,8 +60,10 @@ export default function Slot() {
       // Fetch EVO888H5
       try {
         const games = await getAllEvo888h5Games()
-        console.log('[Slot] EVO888H5 loaded:', games.length)
-        setEvo888h5Games(games || [])
+        console.log('[Slot] EVO888H5 loaded:', games?.length || 0)
+        if (games && games.length > 0) {
+          setEvo888h5Games(games)
+        }
       } catch (e) {
         console.error('[Slot] EVO888H5 error:', e)
       }
@@ -64,9 +71,9 @@ export default function Slot() {
       // Fetch ClotPlay
       try {
         const result = await gameService.getGames({ page: 1, limit: 500, gameType: 'all' })
-        if (result.success) {
+        if (result.success && result.data?.games) {
           console.log('[Slot] ClotPlay loaded:', result.data.games.length)
-          setClotPlayGames(result.data.games || [])
+          setClotPlayGames(result.data.games)
         }
       } catch (e) {
         console.error('[Slot] ClotPlay error:', e)
