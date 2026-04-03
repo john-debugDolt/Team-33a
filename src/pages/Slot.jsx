@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { gameService } from '../services/gameService'
+import { gameService, getAllClotPlayGames } from '../services/gameService'
 import { getAllAdvantPlayGames } from '../services/advantPlayService'
 import { getAllUUSlotGames } from '../services/uuSlotService'
 import { getAllEvo888h5Games } from '../services/evo888h5Service'
@@ -140,24 +140,6 @@ export default function Slot() {
     setPagination(prev => ({ ...prev, page: 1 }))
   }, [debouncedSearch, activeProvider])
 
-  // Fetch games from specific provider service
-  const fetchProviderGames = async (provider) => {
-    switch (provider) {
-      case 'AdvantPlay':
-        return await getAllAdvantPlayGames()
-      case 'UUSlot':
-        return await getAllUUSlotGames()
-      case 'EVO888H5':
-        return await getAllEvo888h5Games()
-      case 'ClotPlay':
-        // ClotPlay uses gameService
-        const result = await gameService.getGames({ page: 1, limit: 1000, gameType: 'all' })
-        return result.success ? result.data.games.filter(g => !g.isAdvantPlay && !g.isUUSlot && !g.isEvo888h5) : []
-      default:
-        return []
-    }
-  }
-
   const fetchGames = useCallback(async () => {
     setLoading(true)
 
@@ -170,24 +152,36 @@ export default function Slot() {
           getAllAdvantPlayGames(),
           getAllUUSlotGames(),
           getAllEvo888h5Games(),
-          gameService.getGames({ page: 1, limit: 1000, gameType: 'all' })
+          getAllClotPlayGames()
         ])
 
         // Extract games from each provider
         const advantPlayGames = advantPlay.status === 'fulfilled' ? advantPlay.value : []
         const uuSlotGames = uuSlot.status === 'fulfilled' ? uuSlot.value : []
         const evo888h5Games = evo888h5.status === 'fulfilled' ? evo888h5.value : []
-        const clotPlayResult = clotPlay.status === 'fulfilled' ? clotPlay.value : { success: false }
-        const clotPlayGames = clotPlayResult.success ? clotPlayResult.data.games.filter(g =>
-          !g.isAdvantPlay && !g.isUUSlot && !g.isEvo888h5
-        ) : []
+        const clotPlayGames = clotPlay.status === 'fulfilled' ? clotPlay.value : []
 
         console.log('[Slot] Loaded - AdvantPlay:', advantPlayGames.length, 'UUSlot:', uuSlotGames.length, 'EVO888H5:', evo888h5Games.length, 'ClotPlay:', clotPlayGames.length)
 
         allGames = [...advantPlayGames, ...uuSlotGames, ...evo888h5Games, ...clotPlayGames]
       } else {
         // Fetch from specific provider only
-        allGames = await fetchProviderGames(activeProvider)
+        switch (activeProvider) {
+          case 'AdvantPlay':
+            allGames = await getAllAdvantPlayGames()
+            break
+          case 'UUSlot':
+            allGames = await getAllUUSlotGames()
+            break
+          case 'EVO888H5':
+            allGames = await getAllEvo888h5Games()
+            break
+          case 'ClotPlay':
+            allGames = await getAllClotPlayGames()
+            break
+          default:
+            allGames = []
+        }
         console.log('[Slot] Loaded', activeProvider, ':', allGames.length, 'games')
       }
 
