@@ -159,6 +159,15 @@ export default function Evo888h5() {
       </div>
 
       <div className="slot-content">
+        {/* Provider Logo Header */}
+        <div className="provider-header">
+          <img
+            src="https://evo888h5.com/media/logos/logo.png"
+            alt="EVO888H5"
+            className="provider-logo"
+          />
+        </div>
+
         {/* Provider Tabs */}
         <div className="provider-tabs">
           <button className="provider-tab" onClick={() => navigate('/')}>🎮 All</button>

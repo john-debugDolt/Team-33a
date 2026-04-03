@@ -159,6 +159,15 @@ export default function UUSlot() {
       </div>
 
       <div className="slot-content">
+        {/* Provider Logo Header */}
+        <div className="provider-header">
+          <img
+            src="https://uuslotsofficial.com/images/logo.png"
+            alt="UUSlot"
+            className="provider-logo"
+          />
+        </div>
+
         {/* Provider Tabs */}
         <div className="provider-tabs">
           <button className="provider-tab" onClick={() => navigate('/')}>🎮 All</button>

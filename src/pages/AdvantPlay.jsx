@@ -159,6 +159,15 @@ export default function AdvantPlay() {
       </div>
 
       <div className="slot-content">
+        {/* Provider Logo Header */}
+        <div className="provider-header">
+          <img
+            src="https://xt30sf.b-cdn.net/media/eb0212cc08386317e6000.gif"
+            alt="AdvantPlay"
+            className="provider-logo"
+          />
+        </div>
+
         {/* Provider Tabs */}
         <div className="provider-tabs">
           <button className="provider-tab" onClick={() => navigate('/')}>🎮 All</button>

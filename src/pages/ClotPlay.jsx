@@ -158,6 +158,15 @@ export default function ClotPlay() {
       </div>
 
       <div className="slot-content">
+        {/* Provider Logo Header */}
+        <div className="provider-header">
+          <img
+            src="https://scontent.fmel11-1.fna.fbcdn.net/v/t39.30808-6/488247950_556208077493821_605589263697651606_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=1d70fc&_nc_ohc=rFbxz2u02nYQ7kNvwHFD1cc&_nc_oc=Ado413tSIFepcnwcfcU8n8ndTt4pGKp0d4MmHuxLMKEAq2DEeopu1U6Vgn6WzTugeHA&_nc_zt=23&_nc_ht=scontent.fmel11-1.fna&_nc_gid=EDnohr6MTEuYtB8jwBNLkw&_nc_ss=7a389&oh=00_Af3T5bhLOwzkV_DlEZaLXzdgi6koIOEhPELHfc9paNi14Q&oe=69D4E906"
+            alt="ClotPlay"
+            className="provider-logo clotplay-logo"
+          />
+        </div>
+
         {/* Provider Tabs */}
         <div className="provider-tabs">
           <button className="provider-tab" onClick={() => navigate('/')}>🎮 All</button>
