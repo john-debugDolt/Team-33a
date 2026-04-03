@@ -86,6 +86,65 @@
   padding: 20px 24px;
 }
 
+/* Provider Logo Header */
+.provider-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px 20px;
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(16, 185, 129, 0.1);
+}
+
+.provider-logo {
+  max-height: 80px;
+  max-width: 280px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+  transition: transform 0.3s ease;
+}
+
+.provider-logo:hover {
+  transform: scale(1.05);
+}
+
+.provider-logo.clotplay-logo {
+  border-radius: 12px;
+  max-height: 70px;
+}
+
+@media (max-width: 768px) {
+  .provider-header {
+    padding: 16px 12px;
+  }
+
+  .provider-logo {
+    max-height: 60px;
+    max-width: 200px;
+  }
+
+  .provider-logo.clotplay-logo {
+    max-height: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  .provider-header {
+    padding: 12px 8px;
+  }
+
+  .provider-logo {
+    max-height: 50px;
+    max-width: 160px;
+  }
+
+  .provider-logo.clotplay-logo {
+    max-height: 40px;
+  }
+}
+
 /* Provider Tabs Navigation */
 .provider-tabs {
   display: flex;
