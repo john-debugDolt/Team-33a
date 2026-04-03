@@ -375,18 +375,22 @@ export const gameService = {
 
         // Filter by provider
         if (provider && provider !== 'ALL') {
+          console.log('[GameService] Filtering by provider:', provider);
+          console.log('[GameService] Before filter:', filteredGames.length);
+          console.log('[GameService] Sample providers:', filteredGames.slice(0, 5).map(g => g.provider));
           filteredGames = filteredGames.filter(g => {
             const gameProvider = (g.provider || '').toLowerCase();
             return gameProvider === provider.toLowerCase();
           });
+          console.log('[GameService] After filter:', filteredGames.length);
         }
 
         // Filter by search
         if (search && search.trim()) {
           const query = search.toLowerCase();
           filteredGames = filteredGames.filter(g =>
-            g.name.toLowerCase().includes(query) ||
-            g.slug.toLowerCase().includes(query) ||
+            (g.name || '').toLowerCase().includes(query) ||
+            (g.slug || '').toLowerCase().includes(query) ||
             (g.name_cn && g.name_cn.includes(query))
           );
         }
