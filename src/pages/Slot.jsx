@@ -335,167 +335,56 @@ export default function Slot() {
           </div>
         ) : (
           <>
-            {/* Games Display */}
+            {/* Simple Games Grid - Just show all games */}
             <div className="slot-games-layout">
-              {(() => {
-                // Get provider class name
-                const getProviderClass = (game) => {
-                  if (game.isAdvantPlay || game.provider === 'AdvantPlay') return 'advantplay-card';
-                  if (game.isUUSlot || game.provider === 'UUSlot') return 'uuslot-card';
-                  if (game.isEvo888h5 || game.provider === 'EVO888H5') return 'evo888h5-card';
-                  return 'clotplay-card';
-                };
-
-                // Get provider badge
-                const getProviderBadge = (game) => {
-                  if (game.isAdvantPlay || game.provider === 'AdvantPlay') {
-                    return <span className="provider-badge advantplay">AdvantPlay</span>;
-                  }
-                  if (game.isUUSlot || game.provider === 'UUSlot') {
-                    return <span className="provider-badge uuslot">UUSlot</span>;
-                  }
-                  if (game.isEvo888h5 || game.provider === 'EVO888H5') {
-                    return <span className="provider-badge evo888h5">EVO888H5</span>;
-                  }
-                  return <span className="provider-badge clotplay">ClotPlay</span>;
-                };
-
-                // Helper function to render a game card
-                const renderGameCard = (game) => (
-                  <div
-                    key={game.id}
-                    className={`slot-game-card ${getProviderClass(game)}`}
-                    onClick={() => handleGameClick(game)}
-                  >
-                    <div className="game-image-wrapper">
-                      <GameImage src={game.image} alt={game.name} className="game-image" />
-                      <div className="game-overlay">
-                        <button
-                          className={`play-btn ${launchingGame === game.id ? 'loading' : ''}`}
-                          onClick={(e) => handlePlayNow(game, e)}
-                          disabled={launchingGame === game.id}
-                        >
-                          {launchingGame === game.id ? (
-                            <div className="play-spinner" />
-                          ) : (
-                            <svg viewBox="0 0 24 24" fill="currentColor">
-                              <path d="M8 5v14l11-7z"/>
-                            </svg>
-                          )}
-                        </button>
-                      </div>
-                      {(game.isHot || game.isNew) && (
-                        <div className="game-badges">
-                          {game.isHot && <span className="game-badge hot">HOT</span>}
-                          {game.isNew && <span className="game-badge new">NEW</span>}
+              <div className="game-category-section">
+                <h2 className="category-title">
+                  <span className="category-icon">
+                    {activeProvider === 'ALL' ? '🎮' :
+                     activeProvider === 'AdvantPlay' ? '🎯' :
+                     activeProvider === 'UUSlot' ? '🎰' :
+                     activeProvider === 'EVO888H5' ? '🌟' : '🎲'}
+                  </span>
+                  {activeProvider === 'ALL' ? 'All Games' : `${activeProvider} Games`}
+                  <span className="category-count">({games.length})</span>
+                </h2>
+                <div className="slot-games-grid">
+                  {games.map((game) => (
+                    <div
+                      key={game.id || game.gameId || Math.random()}
+                      className="slot-game-card"
+                      onClick={() => handleGameClick(game)}
+                    >
+                      <div className="game-image-wrapper">
+                        <GameImage src={game.image} alt={game.name} className="game-image" />
+                        <div className="game-overlay">
+                          <button
+                            className={`play-btn ${launchingGame === game.id ? 'loading' : ''}`}
+                            onClick={(e) => handlePlayNow(game, e)}
+                            disabled={launchingGame === game.id}
+                          >
+                            {launchingGame === game.id ? (
+                              <div className="play-spinner" />
+                            ) : (
+                              <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8 5v14l11-7z"/>
+                              </svg>
+                            )}
+                          </button>
                         </div>
-                      )}
-                      {/* Provider badge */}
-                      {getProviderBadge(game)}
+                        {(game.isHot || game.isNew) && (
+                          <div className="game-badges">
+                            {game.isHot && <span className="game-badge hot">HOT</span>}
+                            {game.isNew && <span className="game-badge new">NEW</span>}
+                          </div>
+                        )}
+                        <span className="provider-badge">{game.provider || 'Game'}</span>
+                      </div>
+                      <div className="game-name">{game.name}</div>
                     </div>
-                    <div className="game-name">{game.name}</div>
-                  </div>
-                );
-
-                // Get section styling based on active provider
-                const getSectionConfig = (provider) => {
-                  switch(provider) {
-                    case 'AdvantPlay': return { class: 'advantplay-section', icon: '🎯', tag: 'purple', tagText: 'Premium Provider' };
-                    case 'UUSlot': return { class: 'uuslot-section', icon: '🎰', tag: 'orange', tagText: 'Hot Provider' };
-                    case 'EVO888H5': return { class: 'evo888h5-section', icon: '🌟', tag: 'pink', tagText: 'Star Provider' };
-                    case 'ClotPlay': return { class: 'clotplay-section', icon: '🎲', tag: 'emerald', tagText: 'Top Provider' };
-                    default: return { class: '', icon: '🎮', tag: 'emerald', tagText: 'All Providers' };
-                  }
-                };
-
-                // If specific provider selected, show single section
-                if (activeProvider !== 'ALL') {
-                  const config = getSectionConfig(activeProvider);
-                  return (
-                    <div className={`game-category-section ${config.class}`}>
-                      <h2 className="category-title">
-                        <span className="category-icon">{config.icon}</span>
-                        {activeProvider} Games
-                        <span className="category-count">({games.length})</span>
-                        <span className={`provider-tag ${config.tag}`}>{config.tagText}</span>
-                      </h2>
-                      <div className="slot-games-grid">
-                        {games.map(renderGameCard)}
-                      </div>
-                    </div>
-                  );
-                }
-
-                // For ALL - group by provider
-                const advantPlayGames = games.filter(g => g.isAdvantPlay || g.provider === 'AdvantPlay');
-                const uuSlotGames = games.filter(g => g.isUUSlot || g.provider === 'UUSlot');
-                const evo888h5Games = games.filter(g => g.isEvo888h5 || g.provider === 'EVO888H5');
-                const clotPlayGames = games.filter(g => g.isClotPlay || g.provider === 'ClotPlay');
-
-                return (
-                  <>
-                    {/* AdvantPlay Games Section */}
-                    {advantPlayGames.length > 0 && (
-                      <div className="game-category-section advantplay-section">
-                        <h2 className="category-title">
-                          <span className="category-icon">🎯</span>
-                          AdvantPlay Games
-                          <span className="category-count">({advantPlayGames.length})</span>
-                          <span className="provider-tag purple">Premium Provider</span>
-                        </h2>
-                        <div className="slot-games-grid">
-                          {advantPlayGames.map(renderGameCard)}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* UUSlot Games Section */}
-                    {uuSlotGames.length > 0 && (
-                      <div className="game-category-section uuslot-section">
-                        <h2 className="category-title">
-                          <span className="category-icon">🎰</span>
-                          UUSlot Games
-                          <span className="category-count">({uuSlotGames.length})</span>
-                          <span className="provider-tag orange">Hot Provider</span>
-                        </h2>
-                        <div className="slot-games-grid">
-                          {uuSlotGames.map(renderGameCard)}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* EVO888H5 Games Section */}
-                    {evo888h5Games.length > 0 && (
-                      <div className="game-category-section evo888h5-section">
-                        <h2 className="category-title">
-                          <span className="category-icon">🌟</span>
-                          EVO888H5 Games
-                          <span className="category-count">({evo888h5Games.length})</span>
-                          <span className="provider-tag pink">Star Provider</span>
-                        </h2>
-                        <div className="slot-games-grid">
-                          {evo888h5Games.map(renderGameCard)}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* ClotPlay Games Section */}
-                    {clotPlayGames.length > 0 && (
-                      <div className="game-category-section clotplay-section">
-                        <h2 className="category-title">
-                          <span className="category-icon">🎲</span>
-                          ClotPlay Games
-                          <span className="category-count">({clotPlayGames.length})</span>
-                          <span className="provider-tag emerald">Top Provider</span>
-                        </h2>
-                        <div className="slot-games-grid">
-                          {clotPlayGames.map(renderGameCard)}
-                        </div>
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Pagination */}
