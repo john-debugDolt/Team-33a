@@ -32,6 +32,10 @@ const Home = lazyWithRetry(() => import('./pages/Home'))
 const Sports = lazyWithRetry(() => import('./pages/Sports'))
 const LiveCasino = lazyWithRetry(() => import('./pages/LiveCasino'))
 const Slot = lazyWithRetry(() => import('./pages/Slot'))
+const AdvantPlay = lazyWithRetry(() => import('./pages/AdvantPlay'))
+const UUSlot = lazyWithRetry(() => import('./pages/UUSlot'))
+const Evo888h5 = lazyWithRetry(() => import('./pages/Evo888h5'))
+const ClotPlay = lazyWithRetry(() => import('./pages/ClotPlay'))
 const Promotions = lazyWithRetry(() => import('./pages/Promotions'))
 const Login = lazyWithRetry(() => import('./pages/Login'))
 const Signup = lazyWithRetry(() => import('./pages/Signup'))
@@ -119,6 +123,10 @@ function App() {
               <Route path="/sports" element={<WithLayout><Sports /></WithLayout>} />
               <Route path="/live-casino" element={<WithLayout><LiveCasino /></WithLayout>} />
               <Route path="/slot" element={<WithLayout><Slot /></WithLayout>} />
+              <Route path="/advantplay" element={<WithLayout><AdvantPlay /></WithLayout>} />
+              <Route path="/uuslot" element={<WithLayout><UUSlot /></WithLayout>} />
+              <Route path="/evo888h5" element={<WithLayout><Evo888h5 /></WithLayout>} />
+              <Route path="/clotplay" element={<WithLayout><ClotPlay /></WithLayout>} />
               <Route path="/card-game" element={<WithLayout><Slot /></WithLayout>} />
               <Route path="/fishing" element={<WithLayout><Slot /></WithLayout>} />
               <Route path="/esport" element={<WithLayout><Sports /></WithLayout>} />
