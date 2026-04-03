@@ -623,7 +623,7 @@ export default function Home() {
                 <span className="category-count">({advantPlayGames.length})</span>
               </h2>
               <div className="game-grid">
-                {advantPlayGames.slice(0, 12).map((game) => (
+                {advantPlayGames.map((game) => (
                   <div key={game.id} className="game-card" onClick={() => setSelectedGame(game)}>
                     <div className="game-image-wrapper">
                       <GameImage src={game.image} alt={game.name} className="game-image" />
@@ -661,7 +661,7 @@ export default function Home() {
                 <span className="category-count">({uuSlotGames.length})</span>
               </h2>
               <div className="game-grid">
-                {uuSlotGames.slice(0, 12).map((game) => (
+                {uuSlotGames.map((game) => (
                   <div key={game.id} className="game-card" onClick={() => setSelectedGame(game)}>
                     <div className="game-image-wrapper">
                       <GameImage src={game.image} alt={game.name} className="game-image" />
@@ -699,7 +699,7 @@ export default function Home() {
                 <span className="category-count">({evo888h5Games.length})</span>
               </h2>
               <div className="game-grid">
-                {evo888h5Games.slice(0, 12).map((game) => (
+                {evo888h5Games.map((game) => (
                   <div key={game.id} className="game-card" onClick={() => setSelectedGame(game)}>
                     <div className="game-image-wrapper">
                       <GameImage src={game.image} alt={game.name} className="game-image" />
@@ -737,7 +737,7 @@ export default function Home() {
                 <span className="category-count">({clotPlayGames.length})</span>
               </h2>
               <div className="game-grid">
-                {clotPlayGames.slice(0, 12).map((game) => (
+                {clotPlayGames.map((game) => (
                   <div key={game.id} className="game-card" onClick={() => setSelectedGame(game)}>
                     <div className="game-image-wrapper">
                       <GameImage src={game.image} alt={game.name} className="game-image" />
