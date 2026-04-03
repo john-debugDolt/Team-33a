@@ -601,6 +601,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 12px;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 /* Make game grid denser */
@@ -1339,6 +1341,8 @@
 /* Game Category Sections */
 .game-category-section {
   margin-bottom: 36px;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 .category-header {
