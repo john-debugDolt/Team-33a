@@ -7,6 +7,7 @@ import { useToast } from '../context/ToastContext'
 import GameDetailModal from '../components/GameDetailModal/GameDetailModal'
 import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner'
 import GameImage from '../components/GameImage'
+import GamePortal from '../components/GamePortal'
 import './Slot.css'
 
 export default function ClotPlay() {
@@ -236,45 +237,47 @@ export default function ClotPlay() {
 
       {/* Embedded Game Player */}
       {embeddedGame && (
-        <div className="game-player-overlay">
-          <div className="game-player-container">
-            {/* Small X button in top right corner */}
-            <button
-              className="game-player-exit"
-              onClick={() => setShowExitConfirm(true)}
-              title="Exit game"
-            />
-
-            {/* Fullscreen game iframe */}
-            <div className="game-player-frame">
-              <iframe
-                src={embeddedGame.url}
-                title={embeddedGame.name}
-                allowFullScreen
-                allow="autoplay; fullscreen; clipboard-write"
+        <GamePortal>
+          <div className="game-player-overlay">
+            <div className="game-player-container">
+              {/* Small X button in top right corner */}
+              <button
+                className="game-player-exit"
+                onClick={() => setShowExitConfirm(true)}
+                title="Exit game"
               />
-            </div>
 
-            {showExitConfirm && (
-              <div className="exit-confirm-overlay">
-                <div className="exit-confirm-dialog">
-                  <div className="exit-confirm-icon">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10"/>
-                      <path d="M12 8v4M12 16h.01"/>
-                    </svg>
-                  </div>
-                  <h3>Exit Game?</h3>
-                  <p>Are you sure you want to exit {embeddedGame.name}?</p>
-                  <div className="exit-confirm-buttons">
-                    <button className="exit-btn-yes" onClick={closeGame}>Yes, Exit</button>
-                    <button className="exit-btn-no" onClick={() => setShowExitConfirm(false)}>No, Continue</button>
+              {/* Fullscreen game iframe */}
+              <div className="game-player-frame">
+                <iframe
+                  src={embeddedGame.url}
+                  title={embeddedGame.name}
+                  allowFullScreen
+                  allow="autoplay; fullscreen; clipboard-write"
+                />
+              </div>
+
+              {showExitConfirm && (
+                <div className="exit-confirm-overlay">
+                  <div className="exit-confirm-dialog">
+                    <div className="exit-confirm-icon">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 8v4M12 16h.01"/>
+                      </svg>
+                    </div>
+                    <h3>Exit Game?</h3>
+                    <p>Are you sure you want to exit {embeddedGame.name}?</p>
+                    <div className="exit-confirm-buttons">
+                      <button className="exit-btn-yes" onClick={closeGame}>Yes, Exit</button>
+                      <button className="exit-btn-no" onClick={() => setShowExitConfirm(false)}>No, Continue</button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        </GamePortal>
       )}
     </div>
   )

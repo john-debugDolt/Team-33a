@@ -13,6 +13,7 @@ import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner'
 import Pagination from '../components/Pagination/Pagination'
 import GameDetailModal from '../components/GameDetailModal/GameDetailModal'
 import GameImage, { preloadGameImages } from '../components/GameImage'
+import GamePortal from '../components/GamePortal'
 import defaultBanner1 from '../images/New banner.png'
 import defaultBanner2 from '../images/New banner 2.png'
 import defaultBanner3 from '../images/New banner 3.png'
@@ -829,61 +830,63 @@ export default function Home() {
         />
       )}
 
-      {/* Embedded Game Player */}
+      {/* Embedded Game Player - Portal to body */}
       {embeddedGame && (
-        <div className="game-player-overlay">
-          <div className="game-player-container">
-            {/* Small X button in top right corner */}
-            <button
-              className="game-player-exit"
-              onClick={() => setShowExitConfirm(true)}
-              title="Exit game"
-            />
-
-            {/* Fullscreen game iframe */}
-            <div className="game-player-frame">
-              <iframe
-                src={embeddedGame.url}
-                title={embeddedGame.name}
-                allowFullScreen
-                allow="autoplay; fullscreen; clipboard-write"
+        <GamePortal>
+          <div className="game-player-overlay">
+            <div className="game-player-container">
+              {/* Small X button in top right corner */}
+              <button
+                className="game-player-exit"
+                onClick={() => setShowExitConfirm(true)}
+                title="Exit game"
               />
-            </div>
 
-            {/* Exit Confirmation Dialog */}
-            {showExitConfirm && (
-              <div className="exit-confirm-overlay">
-                <div className="exit-confirm-dialog">
-                  <div className="exit-confirm-icon">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10"/>
-                      <path d="M12 8v4M12 16h.01"/>
-                    </svg>
-                  </div>
-                  <h3>Exit Game?</h3>
-                  <p>Are you sure you want to exit {embeddedGame.name}?</p>
-                  <div className="exit-confirm-buttons">
-                    <button
-                      className="exit-btn-yes"
-                      onClick={() => {
-                        setEmbeddedGame(null)
-                        setShowExitConfirm(false)
-                      }}
-                    >
-                      Yes, Exit
-                    </button>
-                    <button
-                      className="exit-btn-no"
-                      onClick={() => setShowExitConfirm(false)}
-                    >
-                      No, Continue Playing
-                    </button>
+              {/* Fullscreen game iframe */}
+              <div className="game-player-frame">
+                <iframe
+                  src={embeddedGame.url}
+                  title={embeddedGame.name}
+                  allowFullScreen
+                  allow="autoplay; fullscreen; clipboard-write"
+                />
+              </div>
+
+              {/* Exit Confirmation Dialog */}
+              {showExitConfirm && (
+                <div className="exit-confirm-overlay">
+                  <div className="exit-confirm-dialog">
+                    <div className="exit-confirm-icon">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 8v4M12 16h.01"/>
+                      </svg>
+                    </div>
+                    <h3>Exit Game?</h3>
+                    <p>Are you sure you want to exit {embeddedGame.name}?</p>
+                    <div className="exit-confirm-buttons">
+                      <button
+                        className="exit-btn-yes"
+                        onClick={() => {
+                          setEmbeddedGame(null)
+                          setShowExitConfirm(false)
+                        }}
+                      >
+                        Yes, Exit
+                      </button>
+                      <button
+                        className="exit-btn-no"
+                        onClick={() => setShowExitConfirm(false)}
+                      >
+                        No, Continue Playing
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        </GamePortal>
       )}
 
       {/* Promotional Popup */}
