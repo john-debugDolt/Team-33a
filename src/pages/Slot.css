@@ -594,8 +594,15 @@
 /* ========== GAME CARDS - Modern Design ========== */
 .slot-games-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+/* Make game grid denser */
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
 }
 
 .slot-game-card {
@@ -1110,8 +1117,13 @@
 /* ========== RESPONSIVE - Tablet ========== */
 @media (max-width: 1024px) {
   .slot-games-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
+
+  .game-grid {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 8px;
   }
 }
 
@@ -1162,7 +1174,12 @@
   /* 3 columns on mobile for heavier look */
   .slot-games-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    gap: 6px;
+  }
+
+  .game-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
   }
 
   .slot-game-card {
@@ -1235,7 +1252,12 @@
   /* Keep 3 columns on small mobile */
   .slot-games-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
+    gap: 4px;
+  }
+
+  .game-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
   }
 
   .slot-game-card {
