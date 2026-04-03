@@ -140,11 +140,12 @@ export default function Slot() {
   const fetchGames = useCallback(async () => {
     setLoading(true)
 
+    // Always fetch ALL games, filter in component
     const params = {
-      page: pagination.page,
-      limit: 100, // Load more games per page
+      page: 1,
+      limit: 1000,
       gameType: 'all',
-      provider: activeProvider,
+      provider: 'ALL', // Always get all
     }
 
     if (debouncedSearch) {
@@ -154,12 +155,25 @@ export default function Slot() {
     const result = await gameService.getGames(params)
 
     if (result.success) {
-      const allGames = result.data.games
+      let allGames = result.data.games
+
+      // Filter by provider in component (more reliable)
+      if (activeProvider !== 'ALL') {
+        allGames = allGames.filter(g => {
+          if (activeProvider === 'AdvantPlay') return g.isAdvantPlay || g.provider === 'AdvantPlay';
+          if (activeProvider === 'UUSlot') return g.isUUSlot || g.provider === 'UUSlot';
+          if (activeProvider === 'EVO888H5') return g.isEvo888h5 || g.provider === 'EVO888H5';
+          if (activeProvider === 'ClotPlay') return !g.isAdvantPlay && !g.isUUSlot && !g.isEvo888h5 &&
+            g.provider !== 'AdvantPlay' && g.provider !== 'UUSlot' && g.provider !== 'EVO888H5';
+          return true;
+        });
+      }
+
       setGames(allGames)
       setPagination(prev => ({
         ...prev,
-        totalPages: result.data.totalPages,
-        total: result.data.total,
+        totalPages: 1,
+        total: allGames.length,
       }))
 
       // Preload game images in background for smoother experience
@@ -168,7 +182,7 @@ export default function Slot() {
     }
 
     setLoading(false)
-  }, [pagination.page, debouncedSearch, activeProvider])
+  }, [debouncedSearch, activeProvider])
 
   useEffect(() => {
     fetchGames()
@@ -295,18 +309,9 @@ export default function Slot() {
           </div>
         ) : (
           <>
-            {/* Games by Provider */}
+            {/* Games Display */}
             <div className="slot-games-layout">
               {(() => {
-                // Group games by provider
-                const advantPlayGames = games.filter(g => g.provider === 'AdvantPlay' || g.isAdvantPlay);
-                const uuSlotGames = games.filter(g => g.provider === 'UUSlot' || g.isUUSlot);
-                const evo888h5Games = games.filter(g => g.provider === 'EVO888H5' || g.isEvo888h5);
-                const clotPlayGames = games.filter(g =>
-                  !g.isAdvantPlay && !g.isUUSlot && !g.isEvo888h5 &&
-                  g.provider !== 'AdvantPlay' && g.provider !== 'UUSlot' && g.provider !== 'EVO888H5'
-                );
-
                 // Get provider class name
                 const getProviderClass = (game) => {
                   if (game.isAdvantPlay || game.provider === 'AdvantPlay') return 'advantplay-card';
@@ -364,6 +369,44 @@ export default function Slot() {
                     </div>
                     <div className="game-name">{game.name}</div>
                   </div>
+                );
+
+                // Get section styling based on active provider
+                const getSectionConfig = (provider) => {
+                  switch(provider) {
+                    case 'AdvantPlay': return { class: 'advantplay-section', icon: '🎯', tag: 'purple', tagText: 'Premium Provider' };
+                    case 'UUSlot': return { class: 'uuslot-section', icon: '🎰', tag: 'orange', tagText: 'Hot Provider' };
+                    case 'EVO888H5': return { class: 'evo888h5-section', icon: '🌟', tag: 'pink', tagText: 'Star Provider' };
+                    case 'ClotPlay': return { class: 'clotplay-section', icon: '🎲', tag: 'emerald', tagText: 'Top Provider' };
+                    default: return { class: '', icon: '🎮', tag: 'emerald', tagText: 'All Providers' };
+                  }
+                };
+
+                // If specific provider selected, show single section
+                if (activeProvider !== 'ALL') {
+                  const config = getSectionConfig(activeProvider);
+                  return (
+                    <div className={`game-category-section ${config.class}`}>
+                      <h2 className="category-title">
+                        <span className="category-icon">{config.icon}</span>
+                        {activeProvider} Games
+                        <span className="category-count">({games.length})</span>
+                        <span className={`provider-tag ${config.tag}`}>{config.tagText}</span>
+                      </h2>
+                      <div className="slot-games-grid">
+                        {games.map(renderGameCard)}
+                      </div>
+                    </div>
+                  );
+                }
+
+                // For ALL - group by provider
+                const advantPlayGames = games.filter(g => g.provider === 'AdvantPlay' || g.isAdvantPlay);
+                const uuSlotGames = games.filter(g => g.provider === 'UUSlot' || g.isUUSlot);
+                const evo888h5Games = games.filter(g => g.provider === 'EVO888H5' || g.isEvo888h5);
+                const clotPlayGames = games.filter(g =>
+                  !g.isAdvantPlay && !g.isUUSlot && !g.isEvo888h5 &&
+                  g.provider !== 'AdvantPlay' && g.provider !== 'UUSlot' && g.provider !== 'EVO888H5'
                 );
 
                 return (
