@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { gameService, getAllClotPlayGames } from '../services/gameService'
+import { gameService } from '../services/gameService'
 import { getAllAdvantPlayGames } from '../services/advantPlayService'
 import { getAllUUSlotGames } from '../services/uuSlotService'
 import { getAllEvo888h5Games } from '../services/evo888h5Service'
@@ -8,58 +8,84 @@ import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import GameDetailModal from '../components/GameDetailModal/GameDetailModal'
-import Pagination from '../components/Pagination/Pagination'
 import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner'
-import GameImage, { preloadGameImages } from '../components/GameImage'
+import GameImage from '../components/GameImage'
 import './Slot.css'
-
-// Provider tabs - All Games + each provider
-const providerTabs = [
-  { id: 'ALL', label: 'All Games', icon: '🎮' },
-  { id: 'AdvantPlay', label: 'AdvantPlay', icon: '🎯' },
-  { id: 'UUSlot', label: 'UUSlot', icon: '🎰' },
-  { id: 'EVO888H5', label: 'EVO888H5', icon: '🌟' },
-  { id: 'ClotPlay', label: 'ClotPlay', icon: '🎲' },
-]
 
 export default function Slot() {
   const navigate = useNavigate()
   const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
   const { showToast } = useToast()
 
-  const [games, setGames] = useState([])
+  // Separate state for each provider
+  const [advantPlayGames, setAdvantPlayGames] = useState([])
+  const [uuSlotGames, setUuSlotGames] = useState([])
+  const [evo888h5Games, setEvo888h5Games] = useState([])
+  const [clotPlayGames, setClotPlayGames] = useState([])
+
   const [loading, setLoading] = useState(true)
   const [launchingGame, setLaunchingGame] = useState(null)
-  const [activeProvider, setActiveProvider] = useState('ALL') // Provider tab
-  const [searchQuery, setSearchQuery] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [selectedGame, setSelectedGame] = useState(null)
-  const [embeddedGame, setEmbeddedGame] = useState(null) // { url, name }
+  const [embeddedGame, setEmbeddedGame] = useState(null)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
-  const [pagination, setPagination] = useState({
-    page: 1,
-    totalPages: 1,
-    total: 0,
-  })
 
-  // Sync balance when game closes and listen for game messages
+  // Fetch each provider separately
+  useEffect(() => {
+    const loadGames = async () => {
+      setLoading(true)
+
+      // Fetch AdvantPlay
+      try {
+        const games = await getAllAdvantPlayGames()
+        console.log('[Slot] AdvantPlay loaded:', games.length)
+        setAdvantPlayGames(games || [])
+      } catch (e) {
+        console.error('[Slot] AdvantPlay error:', e)
+      }
+
+      // Fetch UUSlot
+      try {
+        const games = await getAllUUSlotGames()
+        console.log('[Slot] UUSlot loaded:', games.length)
+        setUuSlotGames(games || [])
+      } catch (e) {
+        console.error('[Slot] UUSlot error:', e)
+      }
+
+      // Fetch EVO888H5
+      try {
+        const games = await getAllEvo888h5Games()
+        console.log('[Slot] EVO888H5 loaded:', games.length)
+        setEvo888h5Games(games || [])
+      } catch (e) {
+        console.error('[Slot] EVO888H5 error:', e)
+      }
+
+      // Fetch ClotPlay
+      try {
+        const result = await gameService.getGames({ page: 1, limit: 500, gameType: 'all' })
+        if (result.success) {
+          console.log('[Slot] ClotPlay loaded:', result.data.games.length)
+          setClotPlayGames(result.data.games || [])
+        }
+      } catch (e) {
+        console.error('[Slot] ClotPlay error:', e)
+      }
+
+      setLoading(false)
+    }
+
+    loadGames()
+  }, [])
+
+  // Balance sync
   useEffect(() => {
     const syncBalance = async () => {
       if (user?.accountId) {
         try {
           const result = await walletService.getBalance(user.accountId)
           if (result.success && result.balance !== undefined) {
-            if (typeof updateBalance === 'function') {
-              updateBalance(result.balance)
-            }
-            const storedUser = JSON.parse(localStorage.getItem('team33_user') || localStorage.getItem('user') || '{}')
-            if (storedUser.accountId) {
-              storedUser.balance = result.balance
-              localStorage.setItem('user', JSON.stringify(storedUser))
-              if (localStorage.getItem('team33_user')) {
-                localStorage.setItem('team33_user', JSON.stringify(storedUser))
-              }
-            }
+            updateBalance?.(result.balance)
           }
         } catch (error) {
           console.error('Failed to sync balance:', error)
@@ -74,25 +100,12 @@ export default function Slot() {
     const handleGameMessage = (event) => {
       const data = event.data
       if (data?.type === 'BALANCE_UPDATE' && data.balance !== undefined) {
-        walletService.updateBalance(data.balance, user?.accountId)
-        if (typeof updateBalance === 'function') {
-          updateBalance(data.balance)
-        }
-      }
-      if (data?.type === 'GAME_WIN' || data?.type === 'GAME_LOSS') {
-        const isWin = data.type === 'GAME_WIN'
-        walletService.recordGameTransaction(
-          data.amount || 0,
-          data.gameName || embeddedGame?.name || 'Game',
-          isWin,
-          user?.accountId
-        )
-        notifyTransactionUpdate() // Refresh transaction history
+        updateBalance?.(data.balance)
       }
       if (data?.type === 'GAME_EXIT') {
         syncBalance()
         setEmbeddedGame(null)
-        notifyTransactionUpdate() // Refresh transaction history
+        notifyTransactionUpdate?.()
       }
     }
 
@@ -100,149 +113,24 @@ export default function Slot() {
     return () => window.removeEventListener('message', handleGameMessage)
   }, [embeddedGame, user?.accountId, updateBalance, notifyTransactionUpdate])
 
-  // Poll balance from API while game is running (every 10 seconds)
-  useEffect(() => {
-    if (!embeddedGame || !user?.accountId) return
-
-    const pollBalance = async () => {
-      try {
-        const result = await walletService.getBalance(user.accountId)
-        if (result.success && result.balance !== undefined) {
-          // Only update if balance changed
-          if (result.balance !== user?.balance) {
-            updateBalance(result.balance)
-          }
-        }
-      } catch (error) {
-        console.error('Balance poll error:', error)
-      }
-    }
-
-    // Poll immediately when game starts
-    pollBalance()
-
-    // Then poll every 10 seconds
-    const interval = setInterval(pollBalance, 10000)
-
-    return () => clearInterval(interval)
-  }, [embeddedGame, user?.accountId, user?.balance, updateBalance])
-
-  // Debounce search query
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery)
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [searchQuery])
-
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    setPagination(prev => ({ ...prev, page: 1 }))
-  }, [debouncedSearch, activeProvider])
-
-  const fetchGames = useCallback(async () => {
-    setLoading(true)
-
-    try {
-      let allGames = []
-
-      if (activeProvider === 'ALL') {
-        // Fetch from all providers in parallel
-        const [advantPlay, uuSlot, evo888h5, clotPlay] = await Promise.allSettled([
-          getAllAdvantPlayGames(),
-          getAllUUSlotGames(),
-          getAllEvo888h5Games(),
-          getAllClotPlayGames()
-        ])
-
-        // Extract games from each provider
-        const advantPlayGames = advantPlay.status === 'fulfilled' ? advantPlay.value : []
-        const uuSlotGames = uuSlot.status === 'fulfilled' ? uuSlot.value : []
-        const evo888h5Games = evo888h5.status === 'fulfilled' ? evo888h5.value : []
-        const clotPlayGames = clotPlay.status === 'fulfilled' ? clotPlay.value : []
-
-        console.log('[Slot] Loaded - AdvantPlay:', advantPlayGames.length, 'UUSlot:', uuSlotGames.length, 'EVO888H5:', evo888h5Games.length, 'ClotPlay:', clotPlayGames.length)
-
-        allGames = [...advantPlayGames, ...uuSlotGames, ...evo888h5Games, ...clotPlayGames]
-      } else {
-        // Fetch from specific provider only
-        switch (activeProvider) {
-          case 'AdvantPlay':
-            allGames = await getAllAdvantPlayGames()
-            break
-          case 'UUSlot':
-            allGames = await getAllUUSlotGames()
-            break
-          case 'EVO888H5':
-            allGames = await getAllEvo888h5Games()
-            break
-          case 'ClotPlay':
-            allGames = await getAllClotPlayGames()
-            break
-          default:
-            allGames = []
-        }
-        console.log('[Slot] Loaded', activeProvider, ':', allGames.length, 'games')
-      }
-
-      // Apply search filter if needed
-      if (debouncedSearch) {
-        const query = debouncedSearch.toLowerCase()
-        allGames = allGames.filter(g =>
-          (g.name || '').toLowerCase().includes(query)
-        )
-      }
-
-      setGames(allGames)
-      setPagination(prev => ({
-        ...prev,
-        totalPages: 1,
-        total: allGames.length,
-      }))
-
-      // Preload game images in background
-      const imageUrls = allGames.map(game => game.image).filter(Boolean)
-      preloadGameImages(imageUrls)
-    } catch (error) {
-      console.error('[Slot] Error fetching games:', error)
-      setGames([])
-    }
-
-    setLoading(false)
-  }, [debouncedSearch, activeProvider])
-
-  useEffect(() => {
-    fetchGames()
-  }, [fetchGames])
-
-  // Auto-refresh games every 30 seconds to catch any updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchGames()
-    }, 30000)
-    return () => clearInterval(interval)
-  }, [fetchGames])
-
   const handleGameClick = (game) => {
     setSelectedGame(game)
   }
 
-  // Close game and sync balance from API
   const closeGame = async () => {
-    // Sync balance from API before closing
     if (user?.accountId) {
       try {
         const result = await walletService.getBalance(user.accountId)
         if (result.success && result.balance !== undefined) {
-          updateBalance(result.balance)
+          updateBalance?.(result.balance)
         }
       } catch (error) {
-        console.error('Balance sync error on close:', error)
+        console.error('Balance sync error:', error)
       }
     }
     setEmbeddedGame(null)
     setShowExitConfirm(false)
-    notifyTransactionUpdate()
+    notifyTransactionUpdate?.()
   }
 
   const handlePlayNow = async (game, e) => {
@@ -254,7 +142,6 @@ export default function Slot() {
       return
     }
 
-    // Prevent double clicks
     if (launchingGame === game.id) return
 
     setLaunchingGame(game.id)
@@ -262,9 +149,7 @@ export default function Slot() {
 
     try {
       const result = await gameService.requestGameUrl(game.id, user?.id)
-
       if (result.success && result.gameUrl) {
-        // Show game in embedded iframe
         setEmbeddedGame({ url: result.gameUrl, name: game.name })
         showToast(`${game.name} launched!`, 'success')
       } else {
@@ -278,10 +163,36 @@ export default function Slot() {
     }
   }
 
-  const handlePageChange = (newPage) => {
-    setPagination(prev => ({ ...prev, page: newPage }))
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+  // Render a game card
+  const renderGameCard = (game, index) => (
+    <div
+      key={game.id || game.gameId || index}
+      className="slot-game-card"
+      onClick={() => handleGameClick(game)}
+    >
+      <div className="game-image-wrapper">
+        <GameImage src={game.image} alt={game.name} className="game-image" />
+        <div className="game-overlay">
+          <button
+            className={`play-btn ${launchingGame === game.id ? 'loading' : ''}`}
+            onClick={(e) => handlePlayNow(game, e)}
+            disabled={launchingGame === game.id}
+          >
+            {launchingGame === game.id ? (
+              <div className="play-spinner" />
+            ) : (
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            )}
+          </button>
+        </div>
+      </div>
+      <div className="game-name">{game.name}</div>
+    </div>
+  )
+
+  const totalGames = advantPlayGames.length + uuSlotGames.length + evo888h5Games.length + clotPlayGames.length
 
   return (
     <div className="slot-page">
@@ -294,34 +205,9 @@ export default function Slot() {
       </div>
 
       <div className="slot-content">
-        {/* Filter Header */}
-        <div className="slot-filters-header">
-          <div className="slot-tabs">
-            {providerTabs.map((tab) => (
-              <button
-                key={tab.id}
-                className={`slot-tab ${activeProvider === tab.id ? 'active' : ''}`}
-                onClick={() => setActiveProvider(tab.id)}
-              >
-                <span className="tab-icon">{tab.icon}</span>
-                {tab.label}
-              </button>
-            ))}
-          </div>
-          <div className="slot-search">
-            <input
-              type="text"
-              placeholder="Search game..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <span className="search-icon">🔍</span>
-          </div>
-        </div>
-
         {/* Games Count */}
         <div className="games-count">
-          {pagination.total} games found
+          {totalGames} games available
         </div>
 
         {/* Loading State */}
@@ -329,73 +215,71 @@ export default function Slot() {
           <div className="loading-wrapper">
             <LoadingSpinner />
           </div>
-        ) : games.length === 0 ? (
-          <div className="empty-state">
-            <p>No games found. Try a different search.</p>
-          </div>
         ) : (
-          <>
-            {/* Simple Games Grid - Just show all games */}
-            <div className="slot-games-layout">
-              <div className="game-category-section">
+          <div className="slot-games-layout">
+            {/* AdvantPlay Section */}
+            {advantPlayGames.length > 0 && (
+              <div className="game-category-section advantplay-section">
                 <h2 className="category-title">
-                  <span className="category-icon">
-                    {activeProvider === 'ALL' ? '🎮' :
-                     activeProvider === 'AdvantPlay' ? '🎯' :
-                     activeProvider === 'UUSlot' ? '🎰' :
-                     activeProvider === 'EVO888H5' ? '🌟' : '🎲'}
-                  </span>
-                  {activeProvider === 'ALL' ? 'All Games' : `${activeProvider} Games`}
-                  <span className="category-count">({games.length})</span>
+                  <span className="category-icon">🎯</span>
+                  AdvantPlay Games
+                  <span className="category-count">({advantPlayGames.length})</span>
                 </h2>
                 <div className="slot-games-grid">
-                  {games.map((game) => (
-                    <div
-                      key={game.id || game.gameId || Math.random()}
-                      className="slot-game-card"
-                      onClick={() => handleGameClick(game)}
-                    >
-                      <div className="game-image-wrapper">
-                        <GameImage src={game.image} alt={game.name} className="game-image" />
-                        <div className="game-overlay">
-                          <button
-                            className={`play-btn ${launchingGame === game.id ? 'loading' : ''}`}
-                            onClick={(e) => handlePlayNow(game, e)}
-                            disabled={launchingGame === game.id}
-                          >
-                            {launchingGame === game.id ? (
-                              <div className="play-spinner" />
-                            ) : (
-                              <svg viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M8 5v14l11-7z"/>
-                              </svg>
-                            )}
-                          </button>
-                        </div>
-                        {(game.isHot || game.isNew) && (
-                          <div className="game-badges">
-                            {game.isHot && <span className="game-badge hot">HOT</span>}
-                            {game.isNew && <span className="game-badge new">NEW</span>}
-                          </div>
-                        )}
-                        <span className="provider-badge">{game.provider || 'Game'}</span>
-                      </div>
-                      <div className="game-name">{game.name}</div>
-                    </div>
-                  ))}
+                  {advantPlayGames.map(renderGameCard)}
                 </div>
               </div>
-            </div>
-
-            {/* Pagination */}
-            {pagination.totalPages > 1 && (
-              <Pagination
-                currentPage={pagination.page}
-                totalPages={pagination.totalPages}
-                onPageChange={handlePageChange}
-              />
             )}
-          </>
+
+            {/* UUSlot Section */}
+            {uuSlotGames.length > 0 && (
+              <div className="game-category-section uuslot-section">
+                <h2 className="category-title">
+                  <span className="category-icon">🎰</span>
+                  UUSlot Games
+                  <span className="category-count">({uuSlotGames.length})</span>
+                </h2>
+                <div className="slot-games-grid">
+                  {uuSlotGames.map(renderGameCard)}
+                </div>
+              </div>
+            )}
+
+            {/* EVO888H5 Section */}
+            {evo888h5Games.length > 0 && (
+              <div className="game-category-section evo888h5-section">
+                <h2 className="category-title">
+                  <span className="category-icon">🌟</span>
+                  EVO888H5 Games
+                  <span className="category-count">({evo888h5Games.length})</span>
+                </h2>
+                <div className="slot-games-grid">
+                  {evo888h5Games.map(renderGameCard)}
+                </div>
+              </div>
+            )}
+
+            {/* ClotPlay Section */}
+            {clotPlayGames.length > 0 && (
+              <div className="game-category-section clotplay-section">
+                <h2 className="category-title">
+                  <span className="category-icon">🎲</span>
+                  ClotPlay Games
+                  <span className="category-count">({clotPlayGames.length})</span>
+                </h2>
+                <div className="slot-games-grid">
+                  {clotPlayGames.map(renderGameCard)}
+                </div>
+              </div>
+            )}
+
+            {/* No games message */}
+            {totalGames === 0 && (
+              <div className="empty-state">
+                <p>Loading games...</p>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
@@ -471,11 +355,8 @@ export default function Slot() {
               />
             </div>
 
-            {/* Mobile Floating Exit Button */}
-            <button
-              className="mobile-exit-btn"
-              onClick={() => setShowExitConfirm(true)}
-            >
+            {/* Mobile Exit Button */}
+            <button className="mobile-exit-btn" onClick={() => setShowExitConfirm(true)}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
                 <polyline points="16 17 21 12 16 7"/>
@@ -484,7 +365,7 @@ export default function Slot() {
               EXIT GAME
             </button>
 
-            {/* Exit Confirmation Dialog */}
+            {/* Exit Confirmation */}
             {showExitConfirm && (
               <div className="exit-confirm-overlay">
                 <div className="exit-confirm-dialog">
@@ -497,18 +378,8 @@ export default function Slot() {
                   <h3>Exit Game?</h3>
                   <p>Are you sure you want to exit {embeddedGame.name}?</p>
                   <div className="exit-confirm-buttons">
-                    <button
-                      className="exit-btn-yes"
-                      onClick={closeGame}
-                    >
-                      Yes, Exit
-                    </button>
-                    <button
-                      className="exit-btn-no"
-                      onClick={() => setShowExitConfirm(false)}
-                    >
-                      No, Continue Playing
-                    </button>
+                    <button className="exit-btn-yes" onClick={closeGame}>Yes, Exit</button>
+                    <button className="exit-btn-no" onClick={() => setShowExitConfirm(false)}>No, Continue</button>
                   </div>
                 </div>
               </div>
