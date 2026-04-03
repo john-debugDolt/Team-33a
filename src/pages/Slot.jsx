@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { gameService, onGamesUpdated } from '../services/gameService'
+import { gameService } from '../services/gameService'
+import { getAllAdvantPlayGames } from '../services/advantPlayService'
+import { getAllUUSlotGames } from '../services/uuSlotService'
+import { getAllEvo888h5Games } from '../services/evo888h5Service'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -137,42 +140,63 @@ export default function Slot() {
     setPagination(prev => ({ ...prev, page: 1 }))
   }, [debouncedSearch, activeProvider])
 
+  // Fetch games from specific provider service
+  const fetchProviderGames = async (provider) => {
+    switch (provider) {
+      case 'AdvantPlay':
+        return await getAllAdvantPlayGames()
+      case 'UUSlot':
+        return await getAllUUSlotGames()
+      case 'EVO888H5':
+        return await getAllEvo888h5Games()
+      case 'ClotPlay':
+        // ClotPlay uses gameService
+        const result = await gameService.getGames({ page: 1, limit: 1000, gameType: 'all' })
+        return result.success ? result.data.games.filter(g => !g.isAdvantPlay && !g.isUUSlot && !g.isEvo888h5) : []
+      default:
+        return []
+    }
+  }
+
   const fetchGames = useCallback(async () => {
     setLoading(true)
 
-    // Always fetch ALL games, filter in component
-    const params = {
-      page: 1,
-      limit: 1000,
-      gameType: 'all',
-      provider: 'ALL', // Always get all
-    }
+    try {
+      let allGames = []
 
-    if (debouncedSearch) {
-      params.search = debouncedSearch
-    }
+      if (activeProvider === 'ALL') {
+        // Fetch from all providers in parallel
+        const [advantPlay, uuSlot, evo888h5, clotPlay] = await Promise.allSettled([
+          getAllAdvantPlayGames(),
+          getAllUUSlotGames(),
+          getAllEvo888h5Games(),
+          gameService.getGames({ page: 1, limit: 1000, gameType: 'all' })
+        ])
 
-    const result = await gameService.getGames(params)
+        // Extract games from each provider
+        const advantPlayGames = advantPlay.status === 'fulfilled' ? advantPlay.value : []
+        const uuSlotGames = uuSlot.status === 'fulfilled' ? uuSlot.value : []
+        const evo888h5Games = evo888h5.status === 'fulfilled' ? evo888h5.value : []
+        const clotPlayResult = clotPlay.status === 'fulfilled' ? clotPlay.value : { success: false }
+        const clotPlayGames = clotPlayResult.success ? clotPlayResult.data.games.filter(g =>
+          !g.isAdvantPlay && !g.isUUSlot && !g.isEvo888h5
+        ) : []
 
-    if (result.success) {
-      let allGames = result.data.games
+        console.log('[Slot] Loaded - AdvantPlay:', advantPlayGames.length, 'UUSlot:', uuSlotGames.length, 'EVO888H5:', evo888h5Games.length, 'ClotPlay:', clotPlayGames.length)
 
-      // Debug: Log what we got
-      console.log('[Slot] Total games received:', allGames.length)
-      console.log('[Slot] Active provider:', activeProvider)
-      console.log('[Slot] Sample game providers:', allGames.slice(0, 5).map(g => ({ provider: g.provider, isAdvantPlay: g.isAdvantPlay, isUUSlot: g.isUUSlot, isEvo888h5: g.isEvo888h5 })))
+        allGames = [...advantPlayGames, ...uuSlotGames, ...evo888h5Games, ...clotPlayGames]
+      } else {
+        // Fetch from specific provider only
+        allGames = await fetchProviderGames(activeProvider)
+        console.log('[Slot] Loaded', activeProvider, ':', allGames.length, 'games')
+      }
 
-      // Filter by provider in component (more reliable)
-      if (activeProvider !== 'ALL') {
-        const beforeFilter = allGames.length
-        allGames = allGames.filter(g => {
-          if (activeProvider === 'AdvantPlay') return g.isAdvantPlay || g.provider === 'AdvantPlay';
-          if (activeProvider === 'UUSlot') return g.isUUSlot || g.provider === 'UUSlot';
-          if (activeProvider === 'EVO888H5') return g.isEvo888h5 || g.provider === 'EVO888H5';
-          if (activeProvider === 'ClotPlay') return g.isClotPlay || g.provider === 'ClotPlay';
-          return true;
-        });
-        console.log('[Slot] After filter:', beforeFilter, '->', allGames.length)
+      // Apply search filter if needed
+      if (debouncedSearch) {
+        const query = debouncedSearch.toLowerCase()
+        allGames = allGames.filter(g =>
+          (g.name || '').toLowerCase().includes(query)
+        )
       }
 
       setGames(allGames)
@@ -182,9 +206,12 @@ export default function Slot() {
         total: allGames.length,
       }))
 
-      // Preload game images in background for smoother experience
+      // Preload game images in background
       const imageUrls = allGames.map(game => game.image).filter(Boolean)
       preloadGameImages(imageUrls)
+    } catch (error) {
+      console.error('[Slot] Error fetching games:', error)
+      setGames([])
     }
 
     setLoading(false)
@@ -194,13 +221,12 @@ export default function Slot() {
     fetchGames()
   }, [fetchGames])
 
-  // Listen for background game updates (when failed providers retry successfully)
+  // Auto-refresh games every 30 seconds to catch any updates
   useEffect(() => {
-    const unsubscribe = onGamesUpdated(() => {
-      console.log('[Slot] Games updated in background, refreshing...')
+    const interval = setInterval(() => {
       fetchGames()
-    })
-    return unsubscribe
+    }, 30000)
+    return () => clearInterval(interval)
   }, [fetchGames])
 
   const handleGameClick = (game) => {
