@@ -4,6 +4,13 @@ import { gameService } from '../services/gameService'
 import { getAllAdvantPlayGames } from '../services/advantPlayService'
 import { getAllUUSlotGames } from '../services/uuSlotService'
 import { getAllEvo888h5Games } from '../services/evo888h5Service'
+import { getAllMetaGamingGames } from '../services/metaGamingService'
+import { getAllWFGamingGames } from '../services/wfGamingService'
+import { getAllMegaH5Games } from '../services/megaH5Service'
+import { getAllEpicWinGames } from '../services/epicWinService'
+import { getAllRichGamingGames } from '../services/richGamingService'
+import { getAllSCR888H5Games } from '../services/scr888h5Service'
+import { getAllJDBGames } from '../services/jdbTransferService'
 import { apiClient } from '../services/api'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
@@ -95,6 +102,13 @@ export default function Home() {
   const [uuSlotGames, setUuSlotGames] = useState([])
   const [evo888h5Games, setEvo888h5Games] = useState([])
   const [clotPlayGames, setClotPlayGames] = useState([])
+  const [metaGamingGames, setMetaGamingGames] = useState([])
+  const [wfGamingGames, setWfGamingGames] = useState([])
+  const [megaH5Games, setMegaH5Games] = useState([])
+  const [epicWinGames, setEpicWinGames] = useState([])
+  const [richGamingGames, setRichGamingGames] = useState([])
+  const [scr888h5Games, setScr888h5Games] = useState([])
+  const [jdbGames, setJdbGames] = useState([])
 
   // Mixed games pool and display state
   const [allMixedGames, setAllMixedGames] = useState([])
@@ -222,7 +236,11 @@ export default function Home() {
 
   // Show promo popup on first visit (once per session)
   useEffect(() => {
-    const allGames = [...advantPlayGames, ...uuSlotGames, ...evo888h5Games, ...clotPlayGames]
+    const allGames = [
+      ...advantPlayGames, ...uuSlotGames, ...evo888h5Games, ...clotPlayGames,
+      ...metaGamingGames, ...wfGamingGames, ...megaH5Games, ...epicWinGames,
+      ...richGamingGames, ...scr888h5Games, ...jdbGames
+    ]
     const hasSeenPromo = sessionStorage.getItem('hasSeenPromo')
     if (!hasSeenPromo && allGames.length > 0) {
       // Get top/featured games (hot or new games)
@@ -239,11 +257,15 @@ export default function Home() {
       }, 1500)
       return () => clearTimeout(timer)
     }
-  }, [advantPlayGames, uuSlotGames, evo888h5Games, clotPlayGames])
+  }, [advantPlayGames, uuSlotGames, evo888h5Games, clotPlayGames, metaGamingGames, wfGamingGames, megaH5Games, epicWinGames, richGamingGames, scr888h5Games, jdbGames])
 
   // Generate live transactions
   useEffect(() => {
-    const allGames = [...advantPlayGames, ...uuSlotGames, ...evo888h5Games, ...clotPlayGames]
+    const allGames = [
+      ...advantPlayGames, ...uuSlotGames, ...evo888h5Games, ...clotPlayGames,
+      ...metaGamingGames, ...wfGamingGames, ...megaH5Games, ...epicWinGames,
+      ...richGamingGames, ...scr888h5Games, ...jdbGames
+    ]
     // Diverse names from around the world
     const userNames = [
       // Australia & New Zealand
@@ -320,7 +342,7 @@ export default function Home() {
     }, 6000 + Math.random() * 4000)
 
     return () => clearInterval(interval)
-  }, [advantPlayGames, uuSlotGames, evo888h5Games, clotPlayGames])
+  }, [advantPlayGames, uuSlotGames, evo888h5Games, clotPlayGames, metaGamingGames, wfGamingGames, megaH5Games, epicWinGames, richGamingGames, scr888h5Games, jdbGames])
 
   // Load favorites and recently played from localStorage
   useEffect(() => {
@@ -421,6 +443,83 @@ export default function Home() {
         console.error('[Home] ClotPlay error:', e)
       }
 
+      // Fetch MetaGaming
+      try {
+        const games = await getAllMetaGamingGames()
+        console.log('[Home] MetaGaming loaded:', games?.length || 0)
+        if (games && games.length > 0) {
+          setMetaGamingGames(games)
+        }
+      } catch (e) {
+        console.error('[Home] MetaGaming error:', e)
+      }
+
+      // Fetch WFGaming
+      try {
+        const games = await getAllWFGamingGames()
+        console.log('[Home] WFGaming loaded:', games?.length || 0)
+        if (games && games.length > 0) {
+          setWfGamingGames(games)
+        }
+      } catch (e) {
+        console.error('[Home] WFGaming error:', e)
+      }
+
+      // Fetch MegaH5
+      try {
+        const games = await getAllMegaH5Games()
+        console.log('[Home] MegaH5 loaded:', games?.length || 0)
+        if (games && games.length > 0) {
+          setMegaH5Games(games)
+        }
+      } catch (e) {
+        console.error('[Home] MegaH5 error:', e)
+      }
+
+      // Fetch EpicWin
+      try {
+        const games = await getAllEpicWinGames()
+        console.log('[Home] EpicWin loaded:', games?.length || 0)
+        if (games && games.length > 0) {
+          setEpicWinGames(games)
+        }
+      } catch (e) {
+        console.error('[Home] EpicWin error:', e)
+      }
+
+      // Fetch RichGaming
+      try {
+        const games = await getAllRichGamingGames()
+        console.log('[Home] RichGaming loaded:', games?.length || 0)
+        if (games && games.length > 0) {
+          setRichGamingGames(games)
+        }
+      } catch (e) {
+        console.error('[Home] RichGaming error:', e)
+      }
+
+      // Fetch SCR888H5
+      try {
+        const games = await getAllSCR888H5Games()
+        console.log('[Home] SCR888H5 loaded:', games?.length || 0)
+        if (games && games.length > 0) {
+          setScr888h5Games(games)
+        }
+      } catch (e) {
+        console.error('[Home] SCR888H5 error:', e)
+      }
+
+      // Fetch JDB
+      try {
+        const games = await getAllJDBGames()
+        console.log('[Home] JDB loaded:', games?.length || 0)
+        if (games && games.length > 0) {
+          setJdbGames(games)
+        }
+      } catch (e) {
+        console.error('[Home] JDB error:', e)
+      }
+
       setLoading(false)
     }
 
@@ -429,19 +528,34 @@ export default function Home() {
 
   // Create mixed games pool when provider games are loaded
   useEffect(() => {
-    if (advantPlayGames.length === 0 && uuSlotGames.length === 0 && evo888h5Games.length === 0 && clotPlayGames.length === 0) return
-
-    // Calculate proportional expansion for each provider
-    const totalOriginal = advantPlayGames.length + uuSlotGames.length + evo888h5Games.length + clotPlayGames.length
+    // Check if we have any games from any provider
+    const allProviderGames = [
+      advantPlayGames, uuSlotGames, evo888h5Games, clotPlayGames,
+      metaGamingGames, wfGamingGames, megaH5Games, epicWinGames,
+      richGamingGames, scr888h5Games, jdbGames
+    ]
+    const totalOriginal = allProviderGames.reduce((sum, games) => sum + games.length, 0)
     if (totalOriginal === 0) return
 
+    // Calculate proportional expansion for each provider
     const expandedAdvant = expandGames(advantPlayGames, Math.ceil(TOTAL_DISPLAY_COUNT * (advantPlayGames.length / totalOriginal)), 'advant')
     const expandedUU = expandGames(uuSlotGames, Math.ceil(TOTAL_DISPLAY_COUNT * (uuSlotGames.length / totalOriginal)), 'uu')
     const expandedEvo = expandGames(evo888h5Games, Math.ceil(TOTAL_DISPLAY_COUNT * (evo888h5Games.length / totalOriginal)), 'evo')
     const expandedClot = expandGames(clotPlayGames, Math.ceil(TOTAL_DISPLAY_COUNT * (clotPlayGames.length / totalOriginal)), 'clot')
+    const expandedMeta = expandGames(metaGamingGames, Math.ceil(TOTAL_DISPLAY_COUNT * (metaGamingGames.length / totalOriginal)), 'meta')
+    const expandedWF = expandGames(wfGamingGames, Math.ceil(TOTAL_DISPLAY_COUNT * (wfGamingGames.length / totalOriginal)), 'wf')
+    const expandedMegaH5 = expandGames(megaH5Games, Math.ceil(TOTAL_DISPLAY_COUNT * (megaH5Games.length / totalOriginal)), 'megah5')
+    const expandedEpic = expandGames(epicWinGames, Math.ceil(TOTAL_DISPLAY_COUNT * (epicWinGames.length / totalOriginal)), 'epic')
+    const expandedRich = expandGames(richGamingGames, Math.ceil(TOTAL_DISPLAY_COUNT * (richGamingGames.length / totalOriginal)), 'rich')
+    const expandedSCR = expandGames(scr888h5Games, Math.ceil(TOTAL_DISPLAY_COUNT * (scr888h5Games.length / totalOriginal)), 'scr')
+    const expandedJDB = expandGames(jdbGames, Math.ceil(TOTAL_DISPLAY_COUNT * (jdbGames.length / totalOriginal)), 'jdb')
 
     // Mix all games and shuffle
-    const allExpanded = shuffleArray([...expandedAdvant, ...expandedUU, ...expandedEvo, ...expandedClot])
+    const allExpanded = shuffleArray([
+      ...expandedAdvant, ...expandedUU, ...expandedEvo, ...expandedClot,
+      ...expandedMeta, ...expandedWF, ...expandedMegaH5, ...expandedEpic,
+      ...expandedRich, ...expandedSCR, ...expandedJDB
+    ])
 
     // Take exactly TOTAL_DISPLAY_COUNT games
     const finalGames = allExpanded.slice(0, TOTAL_DISPLAY_COUNT)
@@ -451,7 +565,7 @@ export default function Home() {
     setVisibleCount(GAMES_PER_LOAD)
 
     console.log(`[Home] Created ${finalGames.length} mixed games from ${totalOriginal} originals`)
-  }, [advantPlayGames, uuSlotGames, evo888h5Games, clotPlayGames])
+  }, [advantPlayGames, uuSlotGames, evo888h5Games, clotPlayGames, metaGamingGames, wfGamingGames, megaH5Games, epicWinGames, richGamingGames, scr888h5Games, jdbGames])
 
   // Load more games function
   const loadMoreGames = () => {
@@ -630,6 +744,13 @@ export default function Home() {
         <button className="provider-tab" onClick={() => navigate('/uuslot')}>🎰 UUSlot</button>
         <button className="provider-tab" onClick={() => navigate('/evo888h5')}>🌟 EVO888H5</button>
         <button className="provider-tab" onClick={() => navigate('/clotplay')}>🎲 ClotPlay</button>
+        <button className="provider-tab" onClick={() => navigate('/metagaming')}>🎮 MetaGaming</button>
+        <button className="provider-tab" onClick={() => navigate('/wfgaming')}>🎯 WFGaming</button>
+        <button className="provider-tab" onClick={() => navigate('/megah5')}>🎰 MegaH5</button>
+        <button className="provider-tab" onClick={() => navigate('/epicwin')}>🌟 EpicWin</button>
+        <button className="provider-tab" onClick={() => navigate('/richgaming')}>💎 RichGaming</button>
+        <button className="provider-tab" onClick={() => navigate('/scr888h5')}>🎲 SCR888H5</button>
+        <button className="provider-tab" onClick={() => navigate('/jdb')}>🎯 JDB</button>
       </div>
 
       {/* Search Bar and Leaderboard */}
@@ -688,14 +809,14 @@ export default function Home() {
       )}
 
       {/* Favorites Section */}
-      {favorites.length > 0 && (advantPlayGames.length > 0 || uuSlotGames.length > 0 || evo888h5Games.length > 0 || clotPlayGames.length > 0) && (
+      {favorites.length > 0 && (advantPlayGames.length > 0 || uuSlotGames.length > 0 || evo888h5Games.length > 0 || clotPlayGames.length > 0 || metaGamingGames.length > 0 || wfGamingGames.length > 0 || megaH5Games.length > 0 || epicWinGames.length > 0 || richGamingGames.length > 0 || scr888h5Games.length > 0 || jdbGames.length > 0) && (
         <div className="favorites-section">
           <h3 className="section-title-home">
             <span className="title-icon">❤️</span>
             My Favorites
           </h3>
           <div className="favorites-games-scroll">
-            {[...advantPlayGames, ...uuSlotGames, ...evo888h5Games, ...clotPlayGames].filter(g => favorites.includes(g.id)).map(game => (
+            {[...advantPlayGames, ...uuSlotGames, ...evo888h5Games, ...clotPlayGames, ...metaGamingGames, ...wfGamingGames, ...megaH5Games, ...epicWinGames, ...richGamingGames, ...scr888h5Games, ...jdbGames].filter(g => favorites.includes(g.id)).map(game => (
               <div
                 key={game.id}
                 className="favorite-game-card"

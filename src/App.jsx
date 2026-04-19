@@ -36,6 +36,13 @@ const AdvantPlay = lazyWithRetry(() => import('./pages/AdvantPlay'))
 const UUSlot = lazyWithRetry(() => import('./pages/UUSlot'))
 const Evo888h5 = lazyWithRetry(() => import('./pages/Evo888h5'))
 const ClotPlay = lazyWithRetry(() => import('./pages/ClotPlay'))
+const MetaGaming = lazyWithRetry(() => import('./pages/MetaGaming'))
+const WFGaming = lazyWithRetry(() => import('./pages/WFGaming'))
+const MegaH5 = lazyWithRetry(() => import('./pages/MegaH5'))
+const EpicWin = lazyWithRetry(() => import('./pages/EpicWin'))
+const RichGaming = lazyWithRetry(() => import('./pages/RichGaming'))
+const SCR888H5 = lazyWithRetry(() => import('./pages/SCR888H5'))
+const JDB = lazyWithRetry(() => import('./pages/JDB'))
 const Promotions = lazyWithRetry(() => import('./pages/Promotions'))
 const Login = lazyWithRetry(() => import('./pages/Login'))
 const Signup = lazyWithRetry(() => import('./pages/Signup'))
@@ -127,6 +134,13 @@ function App() {
               <Route path="/uuslot" element={<WithLayout><UUSlot /></WithLayout>} />
               <Route path="/evo888h5" element={<WithLayout><Evo888h5 /></WithLayout>} />
               <Route path="/clotplay" element={<WithLayout><ClotPlay /></WithLayout>} />
+              <Route path="/metagaming" element={<WithLayout><MetaGaming /></WithLayout>} />
+              <Route path="/wfgaming" element={<WithLayout><WFGaming /></WithLayout>} />
+              <Route path="/megah5" element={<WithLayout><MegaH5 /></WithLayout>} />
+              <Route path="/epicwin" element={<WithLayout><EpicWin /></WithLayout>} />
+              <Route path="/richgaming" element={<WithLayout><RichGaming /></WithLayout>} />
+              <Route path="/scr888h5" element={<WithLayout><SCR888H5 /></WithLayout>} />
+              <Route path="/jdb" element={<WithLayout><JDB /></WithLayout>} />
               <Route path="/card-game" element={<WithLayout><Slot /></WithLayout>} />
               <Route path="/fishing" element={<WithLayout><Slot /></WithLayout>} />
               <Route path="/esport" element={<WithLayout><Sports /></WithLayout>} />
