@@ -193,6 +193,13 @@ export default function UUSlot() {
           <button className="provider-tab active">🎰 UUSlot</button>
           <button className="provider-tab" onClick={() => navigate('/evo888h5')}>🌟 EVO888H5</button>
           <button className="provider-tab" onClick={() => navigate('/clotplay')}>🎲 ClotPlay</button>
+          <button className="provider-tab" onClick={() => navigate('/metagaming')}>🎮 MetaGaming</button>
+          <button className="provider-tab" onClick={() => navigate('/wfgaming')}>🎯 WFGaming</button>
+          <button className="provider-tab" onClick={() => navigate('/megah5')}>🎰 MegaH5</button>
+          <button className="provider-tab" onClick={() => navigate('/epicwin')}>🌟 EpicWin</button>
+          <button className="provider-tab" onClick={() => navigate('/richgaming')}>💎 RichGaming</button>
+          <button className="provider-tab" onClick={() => navigate('/scr888h5')}>🎲 SCR888H5</button>
+          <button className="provider-tab" onClick={() => navigate('/jdb')}>🎯 JDB</button>
         </div>
 
         {/* Games Count */}

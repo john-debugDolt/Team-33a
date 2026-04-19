@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getAllEvo888h5Games } from '../services/evo888h5Service'
+import { getAllMetaGamingGames } from '../services/metaGamingService'
 import { gameService } from '../services/gameService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
@@ -11,7 +11,7 @@ import GameImage from '../components/GameImage'
 import GamePortal from '../components/GamePortal'
 import './Slot.css'
 
-export default function Evo888h5() {
+export default function MetaGaming() {
   const navigate = useNavigate()
   const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
   const { showToast } = useToast()
@@ -27,20 +27,19 @@ export default function Evo888h5() {
     const loadGames = async () => {
       setLoading(true)
       try {
-        const result = await getAllEvo888h5Games()
-        console.log('[EVO888H5] Loaded:', result?.length || 0)
+        const result = await getAllMetaGamingGames()
+        console.log('[MetaGaming] Loaded:', result?.length || 0)
         if (result && result.length > 0) {
           setGames(result)
         }
       } catch (e) {
-        console.error('[EVO888H5] Error:', e)
+        console.error('[MetaGaming] Error:', e)
       }
       setLoading(false)
     }
     loadGames()
   }, [])
 
-  // Balance sync
   useEffect(() => {
     const syncBalance = async () => {
       if (user?.accountId) {
@@ -168,32 +167,29 @@ export default function Evo888h5() {
 
   return (
     <div className="slot-page">
-      {/* Marquee */}
       <div className="marquee">
         <span className="marquee-icon">📢</span>
         <div className="marquee-text">
-          <span>Telegram: @Team33 | EVO888H5 Games</span>
+          <span>Telegram: @Team33 | MetaGaming Games</span>
         </div>
       </div>
 
       <div className="slot-content">
-        {/* Provider Logo Header */}
         <div className="provider-header">
           <img
-            src="https://evo888h5.com/media/logos/logo.png"
-            alt="EVO888H5"
+            src="https://mg.btech4896.com/static/media/loading-logo.8501962f8392b4a44ed7.png"
+            alt="MetaGaming"
             className="provider-logo"
           />
         </div>
 
-        {/* Provider Tabs */}
         <div className="provider-tabs">
           <button className="provider-tab" onClick={() => navigate('/')}>🎮 All</button>
           <button className="provider-tab" onClick={() => navigate('/advantplay')}>🎯 AdvantPlay</button>
           <button className="provider-tab" onClick={() => navigate('/uuslot')}>🎰 UUSlot</button>
-          <button className="provider-tab active">🌟 EVO888H5</button>
+          <button className="provider-tab" onClick={() => navigate('/evo888h5')}>🌟 EVO888H5</button>
           <button className="provider-tab" onClick={() => navigate('/clotplay')}>🎲 ClotPlay</button>
-          <button className="provider-tab" onClick={() => navigate('/metagaming')}>🎮 MetaGaming</button>
+          <button className="provider-tab active">🎮 MetaGaming</button>
           <button className="provider-tab" onClick={() => navigate('/wfgaming')}>🎯 WFGaming</button>
           <button className="provider-tab" onClick={() => navigate('/megah5')}>🎰 MegaH5</button>
           <button className="provider-tab" onClick={() => navigate('/epicwin')}>🌟 EpicWin</button>
@@ -202,12 +198,10 @@ export default function Evo888h5() {
           <button className="provider-tab" onClick={() => navigate('/jdb')}>🎯 JDB</button>
         </div>
 
-        {/* Games Count */}
         <div className="games-count">
-          {games.length} EVO888H5 games available
+          {games.length} MetaGaming games available
         </div>
 
-        {/* Loading State */}
         {loading ? (
           <div className="loading-wrapper">
             <LoadingSpinner />
@@ -215,10 +209,10 @@ export default function Evo888h5() {
         ) : (
           <div className="slot-games-layout">
             {games.length > 0 ? (
-              <div className="game-category-section evo888h5-section">
+              <div className="game-category-section metagaming-section">
                 <h2 className="category-title">
-                  <span className="category-icon">🌟</span>
-                  EVO888H5 Games
+                  <span className="category-icon">🎮</span>
+                  MetaGaming Games
                   <span className="category-count">({games.length})</span>
                 </h2>
                 <div className="slot-games-grid">
@@ -227,14 +221,13 @@ export default function Evo888h5() {
               </div>
             ) : (
               <div className="empty-state">
-                <p>No EVO888H5 games available</p>
+                <p>No MetaGaming games available</p>
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* Game Detail Modal */}
       {selectedGame && (
         <GameDetailModal
           game={selectedGame}
@@ -243,19 +236,15 @@ export default function Evo888h5() {
         />
       )}
 
-      {/* Embedded Game Player */}
       {embeddedGame && (
         <GamePortal>
           <div className="game-player-overlay">
             <div className="game-player-container">
-              {/* Small X button in top right corner */}
               <button
                 className="game-player-exit"
                 onClick={() => setShowExitConfirm(true)}
                 title="Exit game"
               />
-
-              {/* Fullscreen game iframe */}
               <div className="game-player-frame">
                 <iframe
                   src={embeddedGame.url}
@@ -264,7 +253,6 @@ export default function Evo888h5() {
                   allow="autoplay; fullscreen; clipboard-write"
                 />
               </div>
-
               {showExitConfirm && (
                 <div className="exit-confirm-overlay">
                   <div className="exit-confirm-dialog">
