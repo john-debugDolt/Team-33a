@@ -28,12 +28,15 @@ const fetchWithTimeout = async (url, options = {}, timeout = 20000) => {
 
 const transformGame = (game) => {
   const name = game.gameName || game.GameName || game.name || 'Unknown Game';
-  const gameCode = game.gameCode || game.GameCode || game.mType || game.code || game.id;
+  const mType = game.mType ?? game.gameCode ?? game.GameCode ?? game.code ?? game.id;
+  const gType = game.gType ?? game.gameType;
 
   return {
-    id: `jdb-${gameCode}`,
-    gameId: gameCode,
-    slug: `jdb-${gameCode}`,
+    id: `jdb-${mType}`,
+    gameId: mType,
+    gType,
+    mType,
+    slug: `jdb-${mType}`,
     name: name,
     provider: 'JDB',
     image: game.imageUrl || game.ImageUrl || game.image || '/placeholder-game.png',
@@ -103,7 +106,7 @@ export const getAllJDBGames = async () => {
   return [];
 };
 
-export const launchJDBGame = async (gameCode, accountId, lang = 'en') => {
+export const launchJDBGame = async (game, accountId, options = {}) => {
   try {
     if (!accountId) {
       const user = JSON.parse(localStorage.getItem('team33_user') || localStorage.getItem('user') || '{}');
@@ -111,17 +114,29 @@ export const launchJDBGame = async (gameCode, accountId, lang = 'en') => {
     }
     if (!accountId) return { success: false, error: 'Please login to play' };
 
-    const params = new URLSearchParams({ accountId, gameCode, lang });
+    const params = new URLSearchParams({ accountId, lang: options.lang || 'en' });
+    const gType = game?.gType ?? options.gType;
+    const mType = game?.mType ?? options.mType;
+    if (gType !== undefined && gType !== null && gType !== '') params.set('gType', String(gType));
+    if (mType !== undefined && mType !== null && mType !== '') params.set('mType', String(mType));
+    if (options.amount !== undefined) params.set('amount', String(options.amount));
+    if (options.nickname) params.set('nickname', options.nickname);
+    if (options.windowMode) params.set('windowMode', String(options.windowMode));
+    if (options.isApp) params.set('isApp', 'true');
+
     const urls = [`${BASE_URL}/api/jdb-transfer/launch?${params}`, `/api/jdb-transfer/launch?${params}`];
 
     for (const url of urls) {
       try {
-        const response = await fetchWithTimeout(url);
+        const response = await fetchWithTimeout(url, { method: 'POST' });
         if (!response.ok) continue;
         const data = await response.json();
-        const gameUrl = (data.gameUrl || data.url || data.launchUrl)?.trim();
-        if (gameUrl) return { success: true, gameUrl, ...data };
-        if (data.error) return { success: false, error: data.error };
+        if (data.status === '0000' && data.path) {
+          return { success: true, gameUrl: data.path.trim(), ...data };
+        }
+        if (data.status && data.status !== '0000') {
+          return { success: false, error: data.err_text || `Launch failed (${data.status})`, ...data };
+        }
       } catch (err) {
         console.log('[JDBService] Launch error:', err.message);
       }
@@ -147,11 +162,15 @@ export const exitJDBGame = async (accountId) => {
     const url = `${BASE_URL}/api/jdb-transfer/exit?accountId=${accountId}`;
     console.log('[JDBService] Exiting game for account:', accountId);
 
-    const response = await fetchWithTimeout(url);
+    const response = await fetchWithTimeout(url, { method: 'POST' });
     if (response.ok) {
       const data = await response.json();
-      console.log('[JDBService] Exit successful:', data);
-      return { success: true, ...data };
+      console.log('[JDBService] Exit response:', data);
+      // 6002 (User balance is zero) is a clean no-op
+      if (data.status === '0000' || data.status === '6002') {
+        return { success: true, ...data };
+      }
+      return { success: false, error: data.err_text || `Exit failed (${data.status})`, ...data };
     }
     return { success: false, error: 'Exit failed' };
   } catch (error) {
@@ -171,7 +190,10 @@ export const getJDBBalance = async (accountId) => {
     const response = await fetchWithTimeout(`${BASE_URL}/api/jdb-transfer/balance?accountId=${accountId}`);
     if (response.ok) {
       const data = await response.json();
-      return { success: true, balance: data.balance || data.data?.balance || 0 };
+      if (data.status === '0000') {
+        return { success: true, balance: data.jdbBalance ?? 0, currency: data.currency, active: data.active, ...data };
+      }
+      return { success: false, error: data.err_text || `Balance fetch failed (${data.status})` };
     }
     return { success: false, error: 'Failed to get balance' };
   } catch (error) {

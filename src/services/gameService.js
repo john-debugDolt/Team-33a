@@ -3,6 +3,14 @@ import { games as localGames, getGamesByCategory, getHotGames as getLocalHotGame
 import { getAllAdvantPlayGames, launchAdvantPlayGame } from './advantPlayService';
 import { getAllUUSlotGames, launchUUSlotGame } from './uuSlotService';
 import { getAllEvo888h5Games, launchEvo888h5Game } from './evo888h5Service';
+// Import all remaining game provider services
+import { getAllMetaGamingGames } from './metaGamingService';
+import { getAllWFGamingGames } from './wfGamingService';
+import { getAllMegaH5Games } from './megaH5Service';
+import { getAllEpicWinGames } from './epicWinService';
+import { getAllRichGamingGames } from './richGamingService';
+import { getAllSCR888H5Games } from './scr888h5Service';
+import { getAllJDBGames } from './jdbTransferService';
 
 // Get headers for API calls (no auth token needed for user frontend)
 const getHeaders = () => {
@@ -122,7 +130,7 @@ export const getAllClotPlayGames = async () => {
 };
 
 // Track which providers failed so we can retry them
-let failedProviders = { clotPlay: false, advantPlay: false, uuSlot: false, evo888h5: false };
+let failedProviders = { clotPlay: false, advantPlay: false, uuSlot: false, evo888h5: false, metaGaming: false, wfGaming: false, megaH5: false, epicWin: false, richGaming: false, scr888h5: false, jdb: false };
 let isRetrying = false;
 
 // Listeners for game updates (so UI can refresh when more games load)
@@ -198,6 +206,30 @@ const retryFailedProviders = async () => {
     );
   }
 
+  // Retry additional providers
+  const additionalRetries = [
+    { key: 'metaGaming', fetcher: getAllMetaGamingGames },
+    { key: 'wfGaming', fetcher: getAllWFGamingGames },
+    { key: 'megaH5', fetcher: getAllMegaH5Games },
+    { key: 'epicWin', fetcher: getAllEpicWinGames },
+    { key: 'richGaming', fetcher: getAllRichGamingGames },
+    { key: 'scr888h5', fetcher: getAllSCR888H5Games },
+    { key: 'jdb', fetcher: getAllJDBGames },
+  ];
+  additionalRetries.forEach(({ key, fetcher }) => {
+    if (failedProviders[key]) {
+      retryPromises.push(
+        fetcher().then(games => {
+          if (games.length > 0) {
+            failedProviders[key] = false;
+            return { provider: key, games };
+          }
+          return null;
+        }).catch(() => null)
+      );
+    }
+  });
+
   const results = await Promise.all(retryPromises);
   const successfulRetries = results.filter(Boolean);
 
@@ -224,7 +256,7 @@ const retryFailedProviders = async () => {
   }
 };
 
-// Get all games from all providers (ClotPlay + AdvantPlay + UUSlot + EVO888H5) with caching
+// Get all games from all providers with caching
 export const getAllCombinedGames = async () => {
   // Return cached data if valid
   if (cachedCombinedGames && combinedCacheTimestamp &&
@@ -233,34 +265,46 @@ export const getAllCombinedGames = async () => {
     return cachedCombinedGames;
   }
 
-  // Fetch from all providers in parallel with error handling
+  // Fetch from all 11 providers in parallel with error handling
   const results = await Promise.allSettled([
-    getAllApiGames(),
-    getAllAdvantPlayGames(),
-    getAllUUSlotGames(),
-    getAllEvo888h5Games()
+    getAllApiGames(),        // 0 - ClotPlay
+    getAllAdvantPlayGames(), // 1 - AdvantPlay
+    getAllUUSlotGames(),     // 2 - UUSlot
+    getAllEvo888h5Games(),   // 3 - EVO888H5
+    getAllMetaGamingGames(), // 4 - MetaGaming
+    getAllWFGamingGames(),   // 5 - WFGaming
+    getAllMegaH5Games(),     // 6 - MegaH5
+    getAllEpicWinGames(),    // 7 - EpicWin
+    getAllRichGamingGames(), // 8 - RichGaming
+    getAllSCR888H5Games(),   // 9 - SCR888H5
+    getAllJDBGames(),        // 10 - JDB
   ]);
 
-  // Extract games from successful requests and track failures
-  const clotPlayGames = results[0].status === 'fulfilled' ? results[0].value : [];
-  const advantPlayGames = results[1].status === 'fulfilled' ? results[1].value : [];
-  const uuSlotGames = results[2].status === 'fulfilled' ? results[2].value : [];
-  const evo888h5Games = results[3].status === 'fulfilled' ? results[3].value : [];
+  // Map of index to provider key for tracking failures
+  const providerMap = [
+    { key: 'clotPlay', label: 'ClotPlay' },
+    { key: 'advantPlay', label: 'AdvantPlay' },
+    { key: 'uuSlot', label: 'UUSlot' },
+    { key: 'evo888h5', label: 'EVO888H5' },
+    { key: 'metaGaming', label: 'MetaGaming' },
+    { key: 'wfGaming', label: 'WFGaming' },
+    { key: 'megaH5', label: 'MegaH5' },
+    { key: 'epicWin', label: 'EpicWin' },
+    { key: 'richGaming', label: 'RichGaming' },
+    { key: 'scr888h5', label: 'SCR888H5' },
+    { key: 'jdb', label: 'JDB' },
+  ];
 
-  // Track which providers failed
-  failedProviders.clotPlay = clotPlayGames.length === 0;
-  failedProviders.advantPlay = advantPlayGames.length === 0;
-  failedProviders.uuSlot = uuSlotGames.length === 0;
-  failedProviders.evo888h5 = evo888h5Games.length === 0;
+  // Extract games from each provider, track failures, and log results
+  const allProviderGames = providerMap.map((provider, index) => {
+    const games = results[index].status === 'fulfilled' ? (results[index].value || []) : [];
+    failedProviders[provider.key] = games.length === 0;
+    console.log(`[GameService] ${provider.label}: ${games.length}${failedProviders[provider.key] ? ' (FAILED)' : ''}`);
+    return games;
+  });
 
-  // Log results
-  console.log('[GameService] ClotPlay:', clotPlayGames.length, failedProviders.clotPlay ? '(FAILED)' : '');
-  console.log('[GameService] AdvantPlay:', advantPlayGames.length, failedProviders.advantPlay ? '(FAILED)' : '');
-  console.log('[GameService] UUSlot:', uuSlotGames.length, failedProviders.uuSlot ? '(FAILED)' : '');
-  console.log('[GameService] EVO888H5:', evo888h5Games.length, failedProviders.evo888h5 ? '(FAILED)' : '');
-
-  // Combine games from all providers
-  const combined = [...clotPlayGames, ...advantPlayGames, ...uuSlotGames, ...evo888h5Games];
+  // Combine games from all providers into a single flat array
+  const combined = allProviderGames.flat();
 
   // Always cache whatever we have (so UI shows something)
   cachedCombinedGames = combined;
@@ -569,9 +613,10 @@ export const gameService = {
 
   async getProviders() {
     try {
+      // Fetch games from all 11 providers via getAllCombinedGames
       const allGames = await getAllCombinedGames();
       if (allGames && allGames.length > 0) {
-        // Extract unique providers
+        // Extract unique providers and count games per provider
         const providerSet = new Set();
         allGames.forEach(g => {
           if (g.provider) providerSet.add(g.provider);
@@ -586,21 +631,30 @@ export const gameService = {
           }))
         ];
 
-        return { success: true, data: { providers } };
+        // Total count of games across all providers
+        const totalGames = allGames.length;
+
+        // Log summary to console for debugging
+        console.log('[GameService] === Provider Summary ===');
+        providers.forEach(p => console.log(`[GameService]   ${p.name}: ${p.count} games`));
+        console.log(`[GameService] Total game providers: ${providerSet.size}`);
+        console.log(`[GameService] Total games across all providers: ${totalGames}`);
+
+        return { success: true, data: { providers, totalGames, totalProviders: providerSet.size } };
       }
-      // Fallback
+      // Fallback to local games data
       const providerNames = [...new Set(localGames.map(g => g.provider))];
       const providers = [
-        { id: 'ALL', name: 'ALL' },
+        { id: 'ALL', name: 'ALL', count: localGames.length },
         ...providerNames.map(name => ({
           id: name,
           name: name,
           count: localGames.filter(g => g.provider === name).length
         }))
       ];
-      return { success: true, data: { providers } };
+      return { success: true, data: { providers, totalGames: localGames.length, totalProviders: providerNames.length } };
     } catch (error) {
-      return { success: false, data: { providers: [{ id: 'ALL', name: 'ALL' }] } };
+      return { success: false, data: { providers: [{ id: 'ALL', name: 'ALL' }], totalGames: 0, totalProviders: 0 } };
     }
   },
 
