@@ -28,12 +28,12 @@ const fetchWithTimeout = async (url, options = {}, timeout = 20000) => {
 
 const transformGame = (game) => {
   const name = game.gameName || game.GameName || game.name || 'Unknown Game';
-  const gameCode = game.gameCode || game.GameCode || game.code || game.id;
+  const gameId = game.gameId ?? game.gameCode ?? game.GameCode ?? game.code ?? game.id;
 
   return {
-    id: `scr888h5-${gameCode}`,
-    gameId: gameCode,
-    slug: `scr888h5-${gameCode}`,
+    id: `scr888h5-${gameId}`,
+    gameId: gameId,
+    slug: `scr888h5-${gameId}`,
     name: name,
     provider: 'SCR888H5',
     image: game.imageUrl || game.ImageUrl || game.image || '/placeholder-game.png',
@@ -102,7 +102,7 @@ export const getAllSCR888H5Games = async () => {
   return [];
 };
 
-export const launchSCR888H5Game = async (gameCode, accountId, lang = 'en-us') => {
+export const launchSCR888H5Game = async (game, accountId) => {
   try {
     if (!accountId) {
       const user = JSON.parse(localStorage.getItem('team33_user') || localStorage.getItem('user') || '{}');
@@ -110,7 +110,12 @@ export const launchSCR888H5Game = async (gameCode, accountId, lang = 'en-us') =>
     }
     if (!accountId) return { success: false, error: 'Please login to play' };
 
-    const params = new URLSearchParams({ accountId, gameCode, lang });
+    const gameId = typeof game === 'object' ? (game?.gameId ?? game?.id) : game;
+    if (gameId === undefined || gameId === null || gameId === '') {
+      return { success: false, error: 'Missing gameId' };
+    }
+
+    const params = new URLSearchParams({ accountId, gameId: String(gameId) });
     const urls = [`${BASE_URL}/api/scr888h5/launch?${params}`, `/api/scr888h5/launch?${params}`];
 
     for (const url of urls) {
@@ -118,9 +123,15 @@ export const launchSCR888H5Game = async (gameCode, accountId, lang = 'en-us') =>
         const response = await fetchWithTimeout(url);
         if (!response.ok) continue;
         const data = await response.json();
-        const gameUrl = (data.gameUrl || data.url || data.launchUrl)?.trim();
-        if (gameUrl) return { success: true, gameUrl, ...data };
-        if (data.error) return { success: false, error: data.error };
+        if (data.success && data.gameUrl) {
+          return { success: true, gameUrl: data.gameUrl.trim(), ...data };
+        }
+        if (data.success === false) {
+          const msg = data.errorCode === 6006 ? 'Insufficient balance'
+                    : data.errorCode === 7501 ? 'Wallet not found'
+                    : (data.error || data.message || 'Launch failed');
+          return { success: false, error: msg, errorCode: data.errorCode, ...data };
+        }
       } catch (err) {
         console.log('[SCR888H5Service] Launch error:', err.message);
       }
@@ -146,11 +157,14 @@ export const transferOutSCR888H5 = async (accountId) => {
     const url = `${BASE_URL}/api/scr888h5/transfer-out?accountId=${accountId}`;
     console.log('[SCR888H5Service] Transferring out for account:', accountId);
 
-    const response = await fetchWithTimeout(url);
+    const response = await fetchWithTimeout(url, { method: 'POST' });
     if (response.ok) {
       const data = await response.json();
-      console.log('[SCR888H5Service] Transfer out successful:', data);
-      return { success: true, ...data };
+      console.log('[SCR888H5Service] Transfer out response:', data);
+      if (data.success) {
+        return { success: true, amountTransferred: data.amountTransferred ?? 0, ...data };
+      }
+      return { success: false, error: data.error || data.message || 'Transfer out failed', ...data };
     }
     return { success: false, error: 'Transfer out failed' };
   } catch (error) {

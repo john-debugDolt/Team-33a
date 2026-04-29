@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getAllSCR888H5Games, transferOutSCR888H5 } from '../services/scr888h5Service'
-import { gameService } from '../services/gameService'
+import { getAllSCR888H5Games, transferOutSCR888H5, launchSCR888H5Game } from '../services/scr888h5Service'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -80,7 +79,15 @@ export default function SCR888H5() {
     if (user?.accountId) {
       try {
         console.log('[SCR888H5] Calling transfer-out on exit...')
-        await transferOutSCR888H5(user.accountId)
+        const result = await transferOutSCR888H5(user.accountId)
+        if (result?.success) {
+          const amount = Number(result.amountTransferred ?? 0)
+          if (amount > 0) {
+            showToast(`+${amount} returned to your wallet`, 'success')
+          }
+        } else if (result?.error) {
+          showToast(result.error, 'error')
+        }
       } catch (error) {
         console.error('[SCR888H5] Transfer out error:', error)
       }
@@ -120,13 +127,18 @@ export default function SCR888H5() {
     while (attempt < maxRetries && !success) {
       attempt++
       try {
-        const result = await gameService.requestGameUrl(game.id, user?.id)
+        const result = await launchSCR888H5Game(game, user?.accountId)
         if (result.success && result.gameUrl) {
           setEmbeddedGame({ url: result.gameUrl, name: game.name })
           showToast(`${game.name} launched!`, 'success')
           success = true
         } else {
-          console.log(`[Game Launch] Attempt ${attempt} failed, retrying...`)
+          console.log(`[Game Launch] Attempt ${attempt} failed:`, result.error)
+          // Don't retry on terminal errors
+          if (result.errorCode === 6006 || result.errorCode === 7501) {
+            showToast(result.error, 'error')
+            break
+          }
           if (attempt < maxRetries) {
             await new Promise(resolve => setTimeout(resolve, 1000))
           }
