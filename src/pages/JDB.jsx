@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getAllJDBGames, exitJDBGame } from '../services/jdbTransferService'
-import { gameService } from '../services/gameService'
+import { getAllJDBGames, exitJDBGame, launchJDBGame } from '../services/jdbTransferService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -120,13 +119,18 @@ export default function JDB() {
     while (attempt < maxRetries && !success) {
       attempt++
       try {
-        const result = await gameService.requestGameUrl(game.id, user?.id)
+        const result = await launchJDBGame(game, user?.accountId)
         if (result.success && result.gameUrl) {
           setEmbeddedGame({ url: result.gameUrl, name: game.name })
           showToast(`${game.name} launched!`, 'success')
           success = true
         } else {
-          console.log(`[Game Launch] Attempt ${attempt} failed, retrying...`)
+          console.log(`[Game Launch] Attempt ${attempt} failed:`, result.error)
+          // Don't retry on terminal errors (insufficient balance, suspended, not found)
+          if (['6006', '7501', '7502', '8003'].includes(result.status)) {
+            showToast(result.error || 'Cannot launch game', 'error')
+            break
+          }
           if (attempt < maxRetries) {
             await new Promise(resolve => setTimeout(resolve, 1000))
           }
