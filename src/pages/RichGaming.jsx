@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getAllRichGamingGames } from '../services/richGamingService'
-import { gameService } from '../services/gameService'
+import { getAllRichGamingGames, launchRichGamingGame } from '../services/richGamingService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -111,13 +110,18 @@ export default function RichGaming() {
     while (attempt < maxRetries && !success) {
       attempt++
       try {
-        const result = await gameService.requestGameUrl(game.id, user?.id)
+        const result = await launchRichGamingGame(game, user?.accountId)
         if (result.success && result.gameUrl) {
           setEmbeddedGame({ url: result.gameUrl, name: game.name })
           showToast(`${game.name} launched!`, 'success')
           success = true
         } else {
-          console.log(`[Game Launch] Attempt ${attempt} failed, retrying...`)
+          console.log(`[Game Launch] Attempt ${attempt} failed:`, result.error)
+          // 2000 = bad input — retrying won't help. 1500 = transient — keep retrying.
+          if (result.code === 2000) {
+            showToast(result.error || 'Cannot launch game', 'error')
+            break
+          }
           if (attempt < maxRetries) {
             await new Promise(resolve => setTimeout(resolve, 1000))
           }

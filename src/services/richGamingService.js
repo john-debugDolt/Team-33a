@@ -24,18 +24,20 @@ const fetchWithTimeout = async (url, options = {}, timeout = 20000) => {
 };
 
 const transformGame = (game) => {
-  const name = game.gameName || game.GameName || game.name || 'Unknown Game';
-  const gameCode = game.gameCode || game.GameCode || game.code || game.id;
+  const name = game.game_name || game.gameName || game.GameName || game.name || 'Unknown Game';
+  const gameCode = game.game_code ?? game.gameCode ?? game.GameCode ?? game.code ?? game.id;
+  const img = game.game_img || game.imageUrl || game.ImageUrl || game.image || '/placeholder-game.png';
 
   return {
     id: `richgaming-${gameCode}`,
     gameId: gameCode,
+    gameCode: gameCode,
     slug: `richgaming-${gameCode}`,
     name: name,
     provider: 'RichGaming',
-    image: game.imageUrl || game.ImageUrl || game.image || '/placeholder-game.png',
-    portraitImage: game.imageUrl || game.ImageUrl || '/placeholder-game.png',
-    squareImage: game.imageUrl || game.ImageUrl || '/placeholder-game.png',
+    image: img,
+    portraitImage: img,
+    squareImage: img,
     category: (game.gameType || 'slot').toLowerCase(),
     isHot: game.isHot || false,
     isNew: game.isNew || false,
@@ -68,19 +70,24 @@ export const fetchRichGamingGames = async () => {
 
         const data = JSON.parse(text);
 
-        // RichGaming returns { status: true, data: { games: [...] } }
+        // RichGaming returns { status: true, code: 0, logo_img, game_list: [...] }
         let games = [];
-        if (data.status === true && data.data?.games) {
-          games = data.data.games;
+        if (Array.isArray(data?.game_list)) {
+          games = data.game_list;
         } else if (Array.isArray(data)) {
           games = data;
-        } else if (data.games) {
+        } else if (data?.games) {
           games = data.games;
+        } else if (data?.data?.games) {
+          games = data.data.games;
         }
 
-        if (games.length > 0) {
-          console.log('[RichGamingService] Found', games.length, 'games');
-          return { success: true, games: games.map(g => transformGame(g)) };
+        // Filter out disabled games (game_status !== 1)
+        const activeGames = games.filter(g => g.game_status === undefined || g.game_status === 1);
+
+        if (activeGames.length > 0) {
+          console.log('[RichGamingService] Found', activeGames.length, 'active games');
+          return { success: true, games: activeGames.map(g => transformGame(g)) };
         }
       } catch (err) {
         console.log('[RichGamingService] Error:', err.message);
@@ -105,7 +112,7 @@ export const getAllRichGamingGames = async () => {
   return [];
 };
 
-export const launchRichGamingGame = async (gameCode, accountId, device = 0) => {
+export const launchRichGamingGame = async (game, accountId, device) => {
   try {
     if (!accountId) {
       const user = JSON.parse(localStorage.getItem('team33_user') || localStorage.getItem('user') || '{}');
@@ -113,12 +120,17 @@ export const launchRichGamingGame = async (gameCode, accountId, device = 0) => {
     }
     if (!accountId) return { success: false, error: 'Please login to play' };
 
+    const gameCode = typeof game === 'object' ? (game?.gameCode ?? game?.gameId) : game;
+    if (gameCode === undefined || gameCode === null || gameCode === '') {
+      return { success: false, error: 'Missing gameCode' };
+    }
+
     // Detect device: 0=Desktop, 1=Mobile
     if (device === undefined) {
       device = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 1 : 0;
     }
 
-    const params = new URLSearchParams({ accountId, gameCode, device: device.toString() });
+    const params = new URLSearchParams({ accountId, gameCode: String(gameCode), device: String(device) });
     const urls = [`${BASE_URL}/api/richgaming/launch?${params}`, `/api/richgaming/launch?${params}`];
 
     for (const url of urls) {
@@ -127,10 +139,16 @@ export const launchRichGamingGame = async (gameCode, accountId, device = 0) => {
         if (!response.ok) continue;
         const data = await response.json();
 
-        // RichGaming returns { status: true, data: { gameUrl: "..." } }
-        const gameUrl = (data.data?.gameUrl || data.gameUrl || data.url)?.trim();
-        if (gameUrl) return { success: true, gameUrl, ...data };
-        if (data.error) return { success: false, error: data.error };
+        // Apidoc: { status: true, code: 0, url: "..." } on success, { status: false, code, message } on error
+        if (data.status === true && data.url) {
+          return { success: true, gameUrl: data.url.trim(), ...data };
+        }
+        if (data.status === false) {
+          const msg = data.code === 2000 ? 'Invalid request'
+                    : data.code === 1500 ? 'Service temporarily unavailable, retrying...'
+                    : (data.message || 'Launch failed');
+          return { success: false, error: msg, code: data.code, ...data };
+        }
       } catch (err) {
         console.log('[RichGamingService] Launch error:', err.message);
       }
