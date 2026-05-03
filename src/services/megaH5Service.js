@@ -36,7 +36,7 @@ const transformGame = (game) => {
     image: game.imageUrl || game.ImageUrl || game.image || '/placeholder-game.png',
     portraitImage: game.imageUrl || game.ImageUrl || '/placeholder-game.png',
     squareImage: game.imageUrl || game.ImageUrl || '/placeholder-game.png',
-    category: (game.gameType || 'slot').toLowerCase(),
+    category: String(game.gameType ?? 'slot').toLowerCase(),
     isHot: game.isHot || false,
     isNew: game.isNew || false,
     hasDemo: game.hasDemo || false,
@@ -119,7 +119,8 @@ export const launchMegaH5Game = async (game, accountId, lang = 'en-us') => {
 
     for (const url of urls) {
       try {
-        const response = await fetchWithTimeout(url, { method: 'POST' });
+        // GET verified working against live API; avoids CORS preflight overhead
+        const response = await fetchWithTimeout(url);
         if (!response.ok) continue;
         const data = await response.json();
         // Apidoc: { success: true, gameUrl: "...", message: "OK" }
