@@ -270,6 +270,23 @@
   transform: scale(1.05);
 }
 
+.fchat-guest-hint {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.fchat-guest-hint a {
+  color: #34d399;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.fchat-guest-hint a:hover {
+  text-decoration: underline;
+}
+
 .fchat-social-links {
   margin-top: 24px;
   padding-top: 20px;

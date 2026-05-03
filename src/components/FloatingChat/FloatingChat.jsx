@@ -9,7 +9,23 @@ const STORAGE_KEYS = {
   CHAT_SESSION: 'team33_chat_session',
   CHAT_MESSAGES: 'team33_chat_messages',
   CHAT_STARTED: 'team33_chat_started',
+  GUEST_ID: 'team33_chat_guest_id',
 };
+
+// Returns a stable per-browser guest accountId for unauthenticated chat users.
+// Format: guest-<16 hex chars>. Persisted so the same browser keeps the same
+// session across page reloads.
+function getOrCreateGuestId() {
+  let id = localStorage.getItem(STORAGE_KEYS.GUEST_ID);
+  if (!id) {
+    const rand = (crypto.randomUUID?.() || Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2))
+      .replace(/-/g, '')
+      .slice(0, 16);
+    id = `guest-${rand}`;
+    localStorage.setItem(STORAGE_KEYS.GUEST_ID, id);
+  }
+  return id;
+}
 
 export default function FloatingChat() {
   const { user, isAuthenticated } = useAuth();
@@ -56,7 +72,8 @@ export default function FloatingChat() {
     if (savedStarted) setChatStarted(savedStarted);
 
     // If there's a saved session and chat was started, reconnect
-    if (savedSession && savedStarted && isAuthenticated) {
+    // (allow guest sessions — auth no longer required to chat)
+    if (savedSession && savedStarted) {
       reconnectSession(savedSession);
     }
   }, [isAuthenticated]);
@@ -197,13 +214,12 @@ export default function FloatingChat() {
   };
 
   useEffect(() => {
-    const accountId = user?.accountId || user?.id;
-    if (!isAuthenticated || !accountId) return;
+    // Subscribe regardless of auth — guest users get events too
     const unsubscribe = chatService.subscribe(handleChatEvent);
     return () => {
       unsubscribe();
     };
-  }, [isAuthenticated, user?.accountId, user?.id, handleChatEvent]);
+  }, [handleChatEvent]);
 
   const handleToggleChat = () => {
     setIsOpen(!isOpen);
@@ -214,8 +230,8 @@ export default function FloatingChat() {
   };
 
   const handleStartChat = async () => {
-    const accountId = user?.accountId || user?.id;
-    if (!accountId) return;
+    // Logged in → real accountId. Guest → stable per-browser guest-<hex> id.
+    const accountId = user?.accountId || user?.id || getOrCreateGuestId();
 
     setChatStarted(true);
     setConnectionStatus('connecting');
@@ -229,7 +245,7 @@ export default function FloatingChat() {
     }]);
 
     try {
-      const userName = user?.fullName || user?.firstName || user?.name || 'User';
+      const userName = user?.fullName || user?.firstName || user?.name || 'Guest';
       const result = await chatService.connect(accountId, 'Support Request', userName);
 
       if (result.success) {
@@ -399,15 +415,13 @@ export default function FloatingChat() {
                 <h3>Welcome to Team33 Support</h3>
                 <p>How can we help you today?</p>
 
-                {isAuthenticated ? (
-                  <button className="fchat-start-btn" onClick={handleStartChat}>
-                    Start Chat
-                  </button>
-                ) : (
-                  <div className="fchat-login-prompt">
-                    <p>Please login to chat with us</p>
-                    <a href="/login" className="fchat-login-btn">Login</a>
-                  </div>
+                <button className="fchat-start-btn" onClick={handleStartChat}>
+                  Start Chat
+                </button>
+                {!isAuthenticated && (
+                  <p className="fchat-guest-hint">
+                    Chatting as guest. <a href="/login">Log in</a> for faster help and chat history.
+                  </p>
                 )}
 
                 <div className="fchat-social-links">
