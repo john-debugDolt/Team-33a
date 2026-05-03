@@ -7,7 +7,7 @@ const PROVIDERS = [
   { id: 'advantplay', name: 'AdvantPlay', path: '/advantplay', logo: 'https://xt30sf.b-cdn.net/media/eb0212cc08386317e6000.gif' },
   { id: 'uuslot', name: 'UUSlot', path: '/uuslot', logo: 'https://uuslotsofficial.com/images/logo.png' },
   { id: 'evo888h5', name: 'EVO888H5', path: '/evo888h5', logo: 'https://evo888h5.com/media/logos/logo.png' },
-  { id: 'clotplay', name: 'ClotPlay', path: '/clotplay', logo: 'https://scontent.fmel11-1.fna.fbcdn.net/v/t39.30808-6/488247950_556208077493821_605589263697651606_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=1d70fc&_nc_ohc=rFbxz2u02nYQ7kNvwHFD1cc&_nc_oc=Ado413tSIFepcnwcfcU8n8ndTt4pGKp0d4MmHuxLMKEAq2DEeopu1U6Vgn6WzTugeHA&_nc_zt=23&_nc_ht=scontent.fmel11-1.fna&_nc_gid=EDnohr6MTEuYtB8jwBNLkw&_nc_ss=7a389&oh=00_Af3T5bhLOwzkV_DlEZaLXzdgi6koIOEhPELHfc9paNi14Q&oe=69D4E906' },
+  { id: 'clotplay', name: 'ClotPlay', path: '/clotplay', logo: '/providers/clotplay.jpg' },
   { id: 'metagaming', name: 'MetaGaming', path: '/metagaming', logo: 'https://mg.btech4896.com/static/media/loading-logo.8501962f8392b4a44ed7.png' },
   { id: 'wfgaming', name: 'WFGaming', path: '/wfgaming', logo: 'https://imgs.search.brave.com/Ip5Thj11mYAp02XCwDMhX_92_e1zD5kJHiZCAY3duWU/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tZWRp/YS5saW5rLm1lL2Nk/bi1jZ2kvaW1hZ2Uv/d2lkdGg9MTA5Mixo/ZWlnaHQ9MTA5Mixx/dWFsaXR5PTc1LGZv/cm1hdD13ZWJwL2lt/YWdlcy93ZWJwLWlt/YWdlcy91c2VyLXBy/b2ZpbGUvMTQ2NDIz/OS90bXAtMjQ2Ny0x/NzQ3ODgyNTI3NjA2/LndlYnA' },
   { id: 'megah5', name: 'MegaH5', path: '/megah5', logo: 'https://syarikatcuci.com/wp-content/uploads/2024/11/download.jpeg' },
