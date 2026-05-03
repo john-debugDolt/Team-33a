@@ -174,6 +174,48 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
       },
+      // Proxy MegaH5 Games API
+      '/api/megah5': {
+        target: 'https://seamless.team33.mx',
+        changeOrigin: true,
+        secure: true,
+      },
+      // Proxy SCR888H5 Games API
+      '/api/scr888h5': {
+        target: 'https://seamless.team33.mx',
+        changeOrigin: true,
+        secure: true,
+      },
+      // Proxy JDB Transfer Games API
+      '/api/jdb-transfer': {
+        target: 'https://seamless.team33.mx',
+        changeOrigin: true,
+        secure: true,
+      },
+      // Proxy RichGaming Games API
+      '/api/richgaming': {
+        target: 'https://seamless.team33.mx',
+        changeOrigin: true,
+        secure: true,
+      },
+      // Proxy MetaGaming Games API
+      '/api/metagaming': {
+        target: 'https://seamless.team33.mx',
+        changeOrigin: true,
+        secure: true,
+      },
+      // Proxy WFGaming Games API
+      '/api/wfgaming': {
+        target: 'https://seamless.team33.mx',
+        changeOrigin: true,
+        secure: true,
+      },
+      // Proxy EpicWin Games API
+      '/api/epicwin': {
+        target: 'https://seamless.team33.mx',
+        changeOrigin: true,
+        secure: true,
+      },
       // Fallback for other /api/games requests
       '/api/games': {
         target: 'https://api.team33.mx',

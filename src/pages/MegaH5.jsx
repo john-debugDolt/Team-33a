@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getAllMegaH5Games } from '../services/megaH5Service'
-import { gameService } from '../services/gameService'
+import { getAllMegaH5Games, launchMegaH5Game } from '../services/megaH5Service'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -111,13 +110,13 @@ export default function MegaH5() {
     while (attempt < maxRetries && !success) {
       attempt++
       try {
-        const result = await gameService.requestGameUrl(game.id, user?.id)
+        const result = await launchMegaH5Game(game, user?.accountId)
         if (result.success && result.gameUrl) {
           setEmbeddedGame({ url: result.gameUrl, name: game.name })
           showToast(`${game.name} launched!`, 'success')
           success = true
         } else {
-          console.log(`[Game Launch] Attempt ${attempt} failed, retrying...`)
+          console.log(`[Game Launch] Attempt ${attempt} failed:`, result.error)
           if (attempt < maxRetries) {
             await new Promise(resolve => setTimeout(resolve, 1000))
           }
