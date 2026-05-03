@@ -4,13 +4,13 @@ import { getAllAdvantPlayGames, launchAdvantPlayGame } from './advantPlayService
 import { getAllUUSlotGames, launchUUSlotGame } from './uuSlotService';
 import { getAllEvo888h5Games, launchEvo888h5Game } from './evo888h5Service';
 // Import all remaining game provider services
-import { getAllMetaGamingGames } from './metaGamingService';
-import { getAllWFGamingGames } from './wfGamingService';
-import { getAllMegaH5Games } from './megaH5Service';
-import { getAllEpicWinGames } from './epicWinService';
-import { getAllRichGamingGames } from './richGamingService';
-import { getAllSCR888H5Games } from './scr888h5Service';
-import { getAllJDBGames } from './jdbTransferService';
+import { getAllMetaGamingGames, launchMetaGamingGame } from './metaGamingService';
+import { getAllWFGamingGames, launchWFGamingGame } from './wfGamingService';
+import { getAllMegaH5Games, launchMegaH5Game } from './megaH5Service';
+import { getAllEpicWinGames, launchEpicWinGame } from './epicWinService';
+import { getAllRichGamingGames, launchRichGamingGame } from './richGamingService';
+import { getAllSCR888H5Games, launchSCR888H5Game } from './scr888h5Service';
+import { getAllJDBGames, launchJDBGame } from './jdbTransferService';
 
 // Get headers for API calls (no auth token needed for user frontend)
 const getHeaders = () => {
@@ -735,6 +735,48 @@ export const gameService = {
       } catch (error) {
         return { success: false, error: error.message };
       }
+    }
+
+    // MegaH5 (Seamless Wallet) — launch takes game object
+    if (game.isMegaH5 || game.provider === 'MegaH5') {
+      console.log('[GameService] Launching MegaH5 game:', game.gameCode || game.gameId, 'accountId:', accountId);
+      return await launchMegaH5Game(game, accountId);
+    }
+
+    // SCR888H5 (Transfer Wallet) — launch takes game object, sends gameId
+    if (game.isSCR888H5 || game.provider === 'SCR888H5') {
+      console.log('[GameService] Launching SCR888H5 game:', game.gameId, 'accountId:', accountId);
+      return await launchSCR888H5Game(game, accountId);
+    }
+
+    // RichGaming (Seamless Wallet) — launch takes game object, sends gameCode
+    if (game.isRichGaming || game.provider === 'RichGaming') {
+      console.log('[GameService] Launching RichGaming game:', game.gameCode || game.gameId, 'accountId:', accountId);
+      return await launchRichGamingGame(game, accountId);
+    }
+
+    // JDB (Transfer Wallet) — launch takes game object (needs gType + mType)
+    if (game.isJDB || game.provider === 'JDB') {
+      console.log('[GameService] Launching JDB game:', game.mType, game.gType, 'accountId:', accountId);
+      return await launchJDBGame(game, accountId);
+    }
+
+    // MetaGaming (Seamless Wallet) — launch takes gameCode string
+    if (game.isMetaGaming || game.provider === 'MetaGaming') {
+      console.log('[GameService] Launching MetaGaming game:', game.gameId, 'accountId:', accountId);
+      return await launchMetaGamingGame(game.gameCode || game.gameId, accountId);
+    }
+
+    // WFGaming (Seamless Wallet) — launch takes gameCode string
+    if (game.isWFGaming || game.provider === 'WFGaming') {
+      console.log('[GameService] Launching WFGaming game:', game.gameId, 'accountId:', accountId);
+      return await launchWFGamingGame(game.gameCode || game.gameId, accountId);
+    }
+
+    // EpicWin (Seamless Wallet) — launch takes gameCode string
+    if (game.isEpicWin || game.provider === 'EpicWin') {
+      console.log('[GameService] Launching EpicWin game:', game.gameId, 'accountId:', accountId);
+      return await launchEpicWinGame(game.gameCode || game.gameId, accountId);
     }
 
     // Direct API call to games backend (ClotPlay)

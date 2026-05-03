@@ -39,7 +39,6 @@ function ProviderCard({ provider, isActive, onClick }) {
           alt={provider.name}
           className="provider-sponsor-logo"
           onError={() => setImgFailed(true)}
-          referrerPolicy="no-referrer"
         />
       ) : (
         <span className="provider-sponsor-name-fallback">{provider.name}</span>
