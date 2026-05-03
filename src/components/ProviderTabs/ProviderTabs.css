@@ -38,8 +38,9 @@
 }
 
 .provider-sponsor-logo {
-  max-height: 100%;
-  max-width: 100%;
+  display: block;
+  max-height: 68px;
+  max-width: 90%;
   width: auto;
   height: auto;
   object-fit: contain;
@@ -72,6 +73,17 @@
   text-transform: uppercase;
 }
 
+.provider-sponsor-name-fallback {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: #fff;
+  text-transform: uppercase;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  text-align: center;
+  padding: 0 6px;
+}
+
 @media (max-width: 768px) {
   .provider-sponsor-strip {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -82,6 +94,10 @@
   .provider-sponsor-card {
     height: 72px;
     padding: 8px 10px;
+  }
+
+  .provider-sponsor-logo {
+    max-height: 54px;
   }
 
   .provider-sponsor-all-icon {
@@ -101,5 +117,9 @@
 
   .provider-sponsor-card {
     height: 64px;
+  }
+
+  .provider-sponsor-logo {
+    max-height: 48px;
   }
 }

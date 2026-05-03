@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './ProviderTabs.css'
 
@@ -16,38 +17,49 @@ const PROVIDERS = [
   { id: 'jdb', name: 'JDB', path: '/jdb', logo: 'https://imgs.search.brave.com/YduaC2JMbt9I_sC0tnmPzrYxRj4IT9J-OQvBmWd_wlc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9hc3Nl/dHMuc2xvdHNsYXVu/Y2guY29tLzMwNzI4/L0lzWGYzcWZFYjM4/VkcwYjVwb0JpWXpy/VFIyZmpjNS1tZXRh/U2tSQ1gweHZaMjlm/TXpBd2VETXdNQzVx/Y0djPS0uanBn' },
 ]
 
-export default function ProviderTabs({ active }) {
-  const navigate = useNavigate()
+function ProviderCard({ provider, isActive, onClick }) {
+  const [imgFailed, setImgFailed] = useState(false)
+  const showLogo = provider.logo && !imgFailed
 
   return (
+    <button
+      className={`provider-sponsor-card ${isActive ? 'active' : ''}`}
+      onClick={onClick}
+      aria-label={provider.name}
+      title={provider.name}
+    >
+      {provider.id === 'all' ? (
+        <div className="provider-sponsor-all">
+          <span className="provider-sponsor-all-icon">🎮</span>
+          <span className="provider-sponsor-all-text">All Games</span>
+        </div>
+      ) : showLogo ? (
+        <img
+          src={provider.logo}
+          alt={provider.name}
+          className="provider-sponsor-logo"
+          onError={() => setImgFailed(true)}
+          referrerPolicy="no-referrer"
+        />
+      ) : (
+        <span className="provider-sponsor-name-fallback">{provider.name}</span>
+      )}
+    </button>
+  )
+}
+
+export default function ProviderTabs({ active }) {
+  const navigate = useNavigate()
+  return (
     <div className="provider-sponsor-strip">
-      {PROVIDERS.map((p) => {
-        const isActive = active === p.id
-        return (
-          <button
-            key={p.id}
-            className={`provider-sponsor-card ${isActive ? 'active' : ''}`}
-            onClick={() => navigate(p.path)}
-            aria-label={p.name}
-            title={p.name}
-          >
-            {p.logo ? (
-              <img
-                src={p.logo}
-                alt={p.name}
-                className="provider-sponsor-logo"
-                loading="lazy"
-                onError={(e) => { e.currentTarget.style.display = 'none' }}
-              />
-            ) : (
-              <div className="provider-sponsor-all">
-                <span className="provider-sponsor-all-icon">🎮</span>
-                <span className="provider-sponsor-all-text">All Games</span>
-              </div>
-            )}
-          </button>
-        )
-      })}
+      {PROVIDERS.map((p) => (
+        <ProviderCard
+          key={p.id}
+          provider={p}
+          isActive={active === p.id}
+          onClick={() => navigate(p.path)}
+        />
+      ))}
     </div>
   )
 }
