@@ -26,6 +26,7 @@ import defaultBanner2 from '../images/New banner 2.png'
 import defaultBanner3 from '../images/New banner 3.png'
 import belowBanner from '../images/new r banner.png'
 import './Slot.css' // Import slot section styles
+import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
 
 const defaultBanners = [
   { id: 'default1', image: defaultBanner1, name: 'Banner 1', link: '' },
@@ -738,20 +739,7 @@ export default function Home() {
       )}
 
       {/* Provider Tabs */}
-      <div className="provider-tabs">
-        <button className="provider-tab active" onClick={() => navigate('/')}>🎮 All</button>
-        <button className="provider-tab" onClick={() => navigate('/advantplay')}>🎯 AdvantPlay</button>
-        <button className="provider-tab" onClick={() => navigate('/uuslot')}>🎰 UUSlot</button>
-        <button className="provider-tab" onClick={() => navigate('/evo888h5')}>🌟 EVO888H5</button>
-        <button className="provider-tab" onClick={() => navigate('/clotplay')}>🎲 ClotPlay</button>
-        <button className="provider-tab" onClick={() => navigate('/metagaming')}>🎮 MetaGaming</button>
-        <button className="provider-tab" onClick={() => navigate('/wfgaming')}>🎯 WFGaming</button>
-        <button className="provider-tab" onClick={() => navigate('/megah5')}>🎰 MegaH5</button>
-        <button className="provider-tab" onClick={() => navigate('/epicwin')}>🌟 EpicWin</button>
-        <button className="provider-tab" onClick={() => navigate('/richgaming')}>💎 RichGaming</button>
-        <button className="provider-tab" onClick={() => navigate('/scr888h5')}>🎲 SCR888H5</button>
-        <button className="provider-tab" onClick={() => navigate('/jdb')}>🎯 JDB</button>
-      </div>
+      <ProviderTabs active="all" />
 
       {/* Search Bar and Leaderboard */}
       <div className="games-toolbar">

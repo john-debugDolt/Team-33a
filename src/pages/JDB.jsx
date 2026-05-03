@@ -9,6 +9,7 @@ import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner'
 import GameImage from '../components/GameImage'
 import GamePortal from '../components/GamePortal'
 import './Slot.css'
+import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
 
 export default function JDB() {
   const navigate = useNavigate()
@@ -196,20 +197,7 @@ export default function JDB() {
           />
         </div>
 
-        <div className="provider-tabs">
-          <button className="provider-tab" onClick={() => navigate('/')}>🎮 All</button>
-          <button className="provider-tab" onClick={() => navigate('/advantplay')}>🎯 AdvantPlay</button>
-          <button className="provider-tab" onClick={() => navigate('/uuslot')}>🎰 UUSlot</button>
-          <button className="provider-tab" onClick={() => navigate('/evo888h5')}>🌟 EVO888H5</button>
-          <button className="provider-tab" onClick={() => navigate('/clotplay')}>🎲 ClotPlay</button>
-          <button className="provider-tab" onClick={() => navigate('/metagaming')}>🎮 MetaGaming</button>
-          <button className="provider-tab" onClick={() => navigate('/wfgaming')}>🎯 WFGaming</button>
-          <button className="provider-tab" onClick={() => navigate('/megah5')}>🎰 MegaH5</button>
-          <button className="provider-tab" onClick={() => navigate('/epicwin')}>🌟 EpicWin</button>
-          <button className="provider-tab" onClick={() => navigate('/richgaming')}>💎 RichGaming</button>
-          <button className="provider-tab" onClick={() => navigate('/scr888h5')}>🎲 SCR888H5</button>
-          <button className="provider-tab active">🎯 JDB</button>
-        </div>
+        <ProviderTabs active="jdb" />
 
         <div className="games-count">
           {games.length} JDB games available
