@@ -7,10 +7,10 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import GameDetailModal from '../components/GameDetailModal/GameDetailModal'
 import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner'
-import GameImage from '../components/GameImage'
 import GamePortal from '../components/GamePortal'
 import './Slot.css'
 import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
+import GameCard from '../components/GameCard/GameCard'
 
 export default function MetaGaming() {
   const navigate = useNavigate()
@@ -139,31 +139,13 @@ export default function MetaGaming() {
   }
 
   const renderGameCard = (game, index) => (
-    <div
+    <GameCard
       key={game.id || game.gameId || index}
-      className="slot-game-card"
-      onClick={() => setSelectedGame(game)}
-    >
-      <div className="game-image-wrapper">
-        <GameImage src={game.image} alt={game.name} className="game-image" />
-        <div className="game-overlay">
-          <button
-            className={`play-btn ${launchingGame === game.id ? 'loading' : ''}`}
-            onClick={(e) => handlePlayNow(game, e)}
-            disabled={launchingGame === game.id}
-          >
-            {launchingGame === game.id ? (
-              <div className="play-spinner" />
-            ) : (
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M8 5v14l11-7z"/>
-              </svg>
-            )}
-          </button>
-        </div>
-      </div>
-      <div className="game-name">{game.name}</div>
-    </div>
+      game={game}
+      isLaunching={launchingGame === game.id}
+      onLaunch={handlePlayNow}
+      onLongPress={(g) => setSelectedGame(g)}
+    />
   )
 
   return (
