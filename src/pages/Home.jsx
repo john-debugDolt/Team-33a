@@ -856,31 +856,34 @@ export default function Home() {
                 <span className="category-count">({TOTAL_DISPLAY_COUNT.toLocaleString()})</span>
               </h2>
               <div className="slot-games-grid">
-                {visibleGames.map((game) => (
-                  <div key={game.uniqueId || game.id} className="slot-game-card" onClick={() => setSelectedGame(game)}>
-                    <div className="game-image-wrapper">
-                      <GameImage src={game.image} alt={game.name} className="game-image" />
-                      {game.isHot && <span className="game-badge hot">{t('hot')}</span>}
-                      {game.isNew && <span className="game-badge new">{t('new')}</span>}
-                      <button
-                        className={`favorite-btn ${favorites.includes(game.originalId || game.id) ? 'active' : ''}`}
-                        onClick={(e) => { e.stopPropagation(); toggleFavorite(game.originalId || game.id) }}
-                      >
-                        {favorites.includes(game.originalId || game.id) ? '❤️' : '🤍'}
-                      </button>
-                      <div className="game-overlay">
+                {visibleGames.map((game) => {
+                  const isLaunching = launchingGame === game.id || launchingGame === game.uniqueId
+                  return (
+                    <div
+                      key={game.uniqueId || game.id}
+                      className={`slot-game-card ${isLaunching ? 'launching' : ''}`}
+                      onClick={(e) => !isLaunching && handlePlayNow(game, e)}
+                    >
+                      <div className="game-image-wrapper">
+                        <GameImage src={game.image} alt={game.name} className="game-image" />
+                        {game.isHot && <span className="game-badge hot">{t('hot')}</span>}
+                        {game.isNew && <span className="game-badge new">{t('new')}</span>}
                         <button
-                          className={`play-btn ${(launchingGame === game.id || launchingGame === game.uniqueId) ? 'loading' : ''}`}
-                          onClick={(e) => handlePlayNow(game, e)}
-                          disabled={launchingGame === game.id || launchingGame === game.uniqueId}
+                          className={`favorite-btn ${favorites.includes(game.originalId || game.id) ? 'active' : ''}`}
+                          onClick={(e) => { e.stopPropagation(); toggleFavorite(game.originalId || game.id) }}
                         >
-                          {(launchingGame === game.id || launchingGame === game.uniqueId) ? <div className="play-spinner" /> : <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>}
+                          {favorites.includes(game.originalId || game.id) ? '❤️' : '🤍'}
                         </button>
+                        {isLaunching && (
+                          <div className="game-launching-overlay">
+                            <div className="play-spinner" />
+                          </div>
+                        )}
                       </div>
+                      <div className="game-name">{game.name}</div>
                     </div>
-                    <div className="game-name">{game.name}</div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
 
               {/* Load More Button */}
