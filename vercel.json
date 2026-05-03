@@ -82,6 +82,34 @@
       "destination": "https://evo888h5.seamless.team33.mx/api/evo888h5/:path*"
     },
     {
+      "source": "/api/megah5/:path*",
+      "destination": "https://seamless.team33.mx/api/megah5/:path*"
+    },
+    {
+      "source": "/api/scr888h5/:path*",
+      "destination": "https://seamless.team33.mx/api/scr888h5/:path*"
+    },
+    {
+      "source": "/api/jdb-transfer/:path*",
+      "destination": "https://seamless.team33.mx/api/jdb-transfer/:path*"
+    },
+    {
+      "source": "/api/richgaming/:path*",
+      "destination": "https://seamless.team33.mx/api/richgaming/:path*"
+    },
+    {
+      "source": "/api/metagaming/:path*",
+      "destination": "https://seamless.team33.mx/api/metagaming/:path*"
+    },
+    {
+      "source": "/api/wfgaming/:path*",
+      "destination": "https://seamless.team33.mx/api/wfgaming/:path*"
+    },
+    {
+      "source": "/api/epicwin/:path*",
+      "destination": "https://seamless.team33.mx/api/epicwin/:path*"
+    },
+    {
       "source": "/api/games",
       "destination": "https://api.team33.mx/api/games"
     },

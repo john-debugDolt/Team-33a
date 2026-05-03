@@ -56,7 +56,8 @@ const transformGame = (game) => {
 
 export const fetchMegaH5Games = async () => {
   try {
-    const urls = [`${BASE_URL}/api/megah5/games`, `/api/megah5/games`];
+    // Prefer same-origin proxy first (avoids CORS), fall back to direct
+    const urls = [`/api/megah5/games`, `${BASE_URL}/api/megah5/games`];
 
     for (const url of urls) {
       try {
@@ -68,12 +69,13 @@ export const fetchMegaH5Games = async () => {
         if (!text || text.startsWith('<!')) continue;
 
         const data = JSON.parse(text);
+        // Apidoc: { success: true, count, games: [...], message: "OK" }
         if (data.success === false) continue;
 
         let games = Array.isArray(data) ? data : (data.games || data.data || []);
 
         if (games.length > 0) {
-          console.log('[MegaH5Service] Found', games.length, 'games');
+          console.log('[MegaH5Service] Found', games.length, 'games (count:', data.count, ')');
           return { success: true, games: games.map(g => transformGame(g)) };
         }
       } catch (err) {
@@ -99,7 +101,7 @@ export const getAllMegaH5Games = async () => {
   return [];
 };
 
-export const launchMegaH5Game = async (gameCode, accountId, lang = 'en-us') => {
+export const launchMegaH5Game = async (game, accountId, lang = 'en-us') => {
   try {
     if (!accountId) {
       const user = JSON.parse(localStorage.getItem('team33_user') || localStorage.getItem('user') || '{}');
@@ -107,17 +109,26 @@ export const launchMegaH5Game = async (gameCode, accountId, lang = 'en-us') => {
     }
     if (!accountId) return { success: false, error: 'Please login to play' };
 
-    const params = new URLSearchParams({ accountId, gameCode, lang });
-    const urls = [`${BASE_URL}/api/megah5/launch?${params}`, `/api/megah5/launch?${params}`];
+    const gameCode = typeof game === 'object' ? (game?.gameCode ?? game?.gameId) : game;
+    if (gameCode === undefined || gameCode === null || gameCode === '') {
+      return { success: false, error: 'Missing gameCode' };
+    }
+
+    const params = new URLSearchParams({ accountId, gameCode: String(gameCode), lang });
+    const urls = [`/api/megah5/launch?${params}`, `${BASE_URL}/api/megah5/launch?${params}`];
 
     for (const url of urls) {
       try {
-        const response = await fetchWithTimeout(url);
+        const response = await fetchWithTimeout(url, { method: 'POST' });
         if (!response.ok) continue;
         const data = await response.json();
-        const gameUrl = (data.gameUrl || data.url || data.launchUrl)?.trim();
-        if (gameUrl) return { success: true, gameUrl, ...data };
-        if (data.error) return { success: false, error: data.error };
+        // Apidoc: { success: true, gameUrl: "...", message: "OK" }
+        if (data.success && data.gameUrl) {
+          return { success: true, gameUrl: data.gameUrl.trim(), ...data };
+        }
+        if (data.success === false) {
+          return { success: false, error: data.message || data.error || 'Launch failed', ...data };
+        }
       } catch (err) {
         console.log('[MegaH5Service] Launch error:', err.message);
       }
