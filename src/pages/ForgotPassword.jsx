@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { useToast } from '../context/ToastContext';
 import { ButtonSpinner } from '../components/LoadingSpinner/LoadingSpinner';
-import logo from '../images/New logo.png';
+import logo from '../images/team33newlogo.png';
 
 export default function ForgotPassword() {
   const { showToast } = useToast();
