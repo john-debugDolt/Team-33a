@@ -168,6 +168,7 @@ const transformAdvantPlayGame = (game, iconSize = DEFAULT_ICON_SIZE) => {
 
     // Category and tags
     category: mapAdvantPlayCategory(game.GameCategory),
+    rawCategory: Array.isArray(game.GameCategory) ? game.GameCategory.join(',') : (game.GameCategory || null),
     isHot: isGameHot(game),
     isNew: isGameNew(game),
     gameTag: game.GameTag || '',

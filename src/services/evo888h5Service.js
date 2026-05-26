@@ -40,6 +40,7 @@ const transformEvo888h5Game = (game) => {
     provider: 'EVO888H5',
     image: game.thumbnail,
     category: 'slot',
+    rawCategory: game.gameType || game.category || game.type || 'slot',
     releaseDate: game.releasedate,
     weekTurnover: game.weekturnover || 0,
     monthTurnover: game.monthturnover || 0,

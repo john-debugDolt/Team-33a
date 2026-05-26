@@ -383,6 +383,7 @@ export const enhanceGameWithImages = (game) => {
     portraitImage,
     squareImage,
     image: portraitImage, // Default image for display
+    rawCategory: game.category || game.gameType || game.type || null,
     // Default values for modal display
     rating: game.rating || 4.5,
     playCount: game.playCount || Math.floor(Math.random() * 50000) + 10000,

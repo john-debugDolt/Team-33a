@@ -39,6 +39,7 @@ const transformGame = (game) => {
     portraitImage: img,
     squareImage: img,
     category: (game.gameType || 'slot').toLowerCase(),
+    rawCategory: game.gameType ?? game.GameType ?? game.game_type ?? game.category ?? null,
     isHot: game.isHot || false,
     isNew: game.isNew || false,
     rating: 4.5,
