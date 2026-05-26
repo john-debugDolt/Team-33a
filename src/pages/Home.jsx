@@ -427,15 +427,30 @@ export default function Home() {
     const timings = []
     let firstResolved = false
 
+    // Pull distinct categories out of a provider's game list. Each transformer
+    // assigns a `category` field per game, so we can grab the unique set + a
+    // per-category count to see what each provider actually exposes.
+    const summarizeCategories = (games) => {
+      if (!Array.isArray(games)) return null
+      const counts = {}
+      for (const g of games) {
+        const c = g?.category || 'uncategorized'
+        counts[c] = (counts[c] || 0) + 1
+      }
+      return counts
+    }
+
     const time = (provider, fn, onSuccess) => {
       const start = performance.now()
       return Promise.resolve()
         .then(fn)
         .then((result) => {
           const ms = Math.round(performance.now() - start)
-          const count = Array.isArray(result) ? result.length : (result?.data?.games?.length || 0)
-          timings.push({ provider, ms, count, ok: true })
-          console.log(`[Home] ${provider} loaded: ${count} (${ms}ms)`)
+          const games = Array.isArray(result) ? result : (result?.data?.games || [])
+          const count = games.length
+          const categories = summarizeCategories(games)
+          timings.push({ provider, ms, count, categories, ok: true })
+          console.log(`[Home] ${provider} loaded: ${count} (${ms}ms) categories:`, categories)
           onSuccess(result)
           // Flip the loading spinner off after the first provider returns so
           // users see content immediately instead of waiting for the slowest.
@@ -473,6 +488,20 @@ export default function Home() {
       setLoading(false)
       console.log('[Home] Provider latency (sorted fastest first):')
       console.table(timings.slice().sort((a, b) => a.ms - b.ms))
+
+      // Roll up every category seen across every provider and show which
+      // providers offer each one. Helps when designing the category filter.
+      const byCategory = {}
+      for (const t of timings) {
+        if (!t.categories) continue
+        for (const [cat, n] of Object.entries(t.categories)) {
+          if (!byCategory[cat]) byCategory[cat] = { category: cat, total: 0, providers: '' }
+          byCategory[cat].total += n
+          byCategory[cat].providers += `${t.provider}(${n}) `
+        }
+      }
+      console.log('[Home] Categories across all providers:')
+      console.table(Object.values(byCategory).sort((a, b) => b.total - a.total))
     })
   }, [])
 
