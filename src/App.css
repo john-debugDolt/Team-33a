@@ -1412,31 +1412,35 @@ body::before {
   height: 100%;
 }
 
-/* Description sits on top of the banner image, centered. A soft radial
-   scrim keeps the silver text legible without darkening the artwork. */
+/* Description sits on top of the banner image, centered. The banner artwork
+   leaves only the middle ~30% clear (characters fill the sides), so the
+   overlay is constrained to that band. A soft radial scrim keeps the silver
+   text legible without darkening the artwork. */
 .banner-text-overlay {
   position: absolute;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 35%;
+  right: 35%;
   z-index: 3;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 6% 8%;
-  background: radial-gradient(ellipse at center, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 65%);
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 70%);
   pointer-events: none;
 }
 
 /* Silver metallic description — gradient text with a subtle shine. */
 .banner-description-silver {
   margin: 0;
-  font-size: clamp(18px, 3vw, 40px);
+  font-size: clamp(12px, 1.5vw, 22px);
   font-weight: 800;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   line-height: 1.15;
   text-transform: uppercase;
   text-align: center;
-  max-width: 80%;
+  width: 100%;
   background: linear-gradient(
     180deg,
     #ffffff 0%,
@@ -1452,6 +1456,17 @@ body::before {
   -webkit-text-fill-color: transparent;
   color: transparent;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7)) drop-shadow(0 0 18px rgba(220,220,220,0.25));
+}
+
+/* On narrow viewports the 30% band gets too tight — open it up a bit. */
+@media (max-width: 768px) {
+  .banner-text-overlay {
+    left: 28%;
+    right: 28%;
+  }
+  .banner-description-silver {
+    font-size: clamp(10px, 2.2vw, 16px);
+  }
 }
 
 /* Progress Bar */
