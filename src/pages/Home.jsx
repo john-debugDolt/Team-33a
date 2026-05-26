@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { gameService } from '../services/gameService'
 import { getAllAdvantPlayGames } from '../services/advantPlayService'
@@ -45,6 +45,39 @@ const BANNER_DURATION = 5000 // 5 seconds per banner
 // Game name prefixes and suffixes for variation
 const PREFIXES = ['Lucky', 'Golden', 'Royal', 'Diamond', 'Mega', 'Super', 'Wild', 'Magic', 'Fortune', 'Mystic', 'Thunder', 'Dragon', 'Phoenix', 'Tiger', 'Lion', 'Eagle', 'Jade', 'Crystal', 'Power', 'Ultra']
 const SUFFIXES = ['Deluxe', 'Pro', 'Plus', 'X', 'Gold', 'Platinum', 'VIP', 'Max', 'Extreme', 'Premium', 'Elite', 'Classic', 'Turbo', 'Rush', 'Blast', 'Spin', 'Win', 'Fortune', 'Jackpot', 'Bonus']
+
+// Filter chips shown above the games grid.
+const CATEGORIES = [
+  { id: 'all', label: 'All', icon: '🎮' },
+  { id: 'slot', label: 'Slots', icon: '🎰' },
+  { id: 'fishing', label: 'Fishing', icon: '🎣' },
+  { id: 'crash', label: 'Crash', icon: '🚀' },
+  { id: 'card', label: 'Card/Table', icon: '🃏' },
+  { id: 'live', label: 'Live', icon: '🎬' },
+  { id: 'arcade', label: 'Arcade', icon: '🕹️' },
+  { id: 'other', label: 'Other', icon: '✨' },
+]
+
+// Normalize each game's upstream category into one of the canonical filter
+// buckets above. Mapping derived from live raw-category samples:
+//   - 'slot'/'Slots'/'slot_game' (everywhere); numeric '1'/'0'/'141' (JDB,
+//     MetaGaming, MegaH5, WFGaming, EpicWin all use these for slots)
+//   - 'fishing'/'Fishing'; JDB gType '7'/'142'
+//   - 'crash'/'crash_game'; JDB '200'; MetaGaming '5' (crash games)
+//   - 'card'/'table'; JDB '18'; MetaGaming '2'
+//   - 'live'/'live_casino'
+//   - 'arcade'/'mini'; JDB '9'
+const getDisplayCategory = (game) => {
+  const raw = (game?.rawCategory ?? game?.category ?? '').toString().toLowerCase().trim()
+  if (!raw || raw === '-') return 'other'
+  if (raw.includes('slot') || raw === '1' || raw === 'type-1' || raw === '0' || raw === '141') return 'slot'
+  if (raw.includes('fish') || raw === '7' || raw === '142') return 'fishing'
+  if (raw.includes('crash') || raw === '5' || raw === '200') return 'crash'
+  if (raw.includes('card') || raw.includes('table') || raw === '2' || raw === '18') return 'card'
+  if (raw.includes('live')) return 'live'
+  if (raw.includes('arcade') || raw.includes('mini') || raw === '9') return 'arcade'
+  return 'other'
+}
 
 // Function to create expanded game list with smart mixing
 const expandGames = (games, targetCount, providerPrefix) => {
@@ -123,6 +156,7 @@ export default function Home() {
   const [visibleGames, setVisibleGames] = useState([])
   const [visibleCount, setVisibleCount] = useState(GAMES_PER_LOAD)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState('all')
 
   const [loading, setLoading] = useState(true)
   const [launchingGame, setLaunchingGame] = useState(null)
@@ -541,20 +575,47 @@ export default function Home() {
     const finalGames = allExpanded.slice(0, TOTAL_DISPLAY_COUNT)
 
     setAllMixedGames(finalGames)
-    setVisibleGames(finalGames.slice(0, GAMES_PER_LOAD))
     setVisibleCount(GAMES_PER_LOAD)
 
     console.log(`[Home] Created ${finalGames.length} mixed games from ${totalOriginal} originals`)
   }, [advantPlayGames, uuSlotGames, evo888h5Games, clotPlayGames, metaGamingGames, wfGamingGames, megaH5Games, epicWinGames, richGamingGames, scr888h5Games, jdbGames])
 
+  // Games filtered by the currently selected category chip. The mixed pool
+  // can have ~12k entries, so we recompute only when the pool or filter
+  // changes — not on every render.
+  const filteredGames = useMemo(() => {
+    if (selectedCategory === 'all') return allMixedGames
+    return allMixedGames.filter((g) => getDisplayCategory(g) === selectedCategory)
+  }, [allMixedGames, selectedCategory])
+
+  // Per-category counts for the chip badges. Computed once per pool change so
+  // the chips don't have to scan the full pool on each render.
+  const categoryCounts = useMemo(() => {
+    const counts = {}
+    for (const g of allMixedGames) {
+      const c = getDisplayCategory(g)
+      counts[c] = (counts[c] || 0) + 1
+    }
+    return counts
+  }, [allMixedGames])
+
+  // Recompute the visible slice whenever the filtered pool or count moves.
+  useEffect(() => {
+    setVisibleGames(filteredGames.slice(0, visibleCount))
+  }, [filteredGames, visibleCount])
+
+  // Reset pagination when the user switches category.
+  useEffect(() => {
+    setVisibleCount(GAMES_PER_LOAD)
+  }, [selectedCategory])
+
   // Load more games function
   const loadMoreGames = () => {
-    if (loadingMore || visibleCount >= allMixedGames.length) return
+    if (loadingMore || visibleCount >= filteredGames.length) return
 
     setLoadingMore(true)
     setTimeout(() => {
-      const newCount = Math.min(visibleCount + GAMES_PER_LOAD, allMixedGames.length)
-      setVisibleGames(allMixedGames.slice(0, newCount))
+      const newCount = Math.min(visibleCount + GAMES_PER_LOAD, filteredGames.length)
       setVisibleCount(newCount)
       setLoadingMore(false)
     }, 300) // Small delay for smooth UX
@@ -815,11 +876,34 @@ export default function Home() {
         </div>
       )}
 
+      {/* Category Filter Chips */}
+      {!loading && allMixedGames.length > 0 && (
+        <div className="category-chips">
+          {CATEGORIES.map((cat) => {
+            const count = cat.id === 'all'
+              ? allMixedGames.length
+              : categoryCounts[cat.id] || 0
+            if (cat.id !== 'all' && count === 0) return null
+            return (
+              <button
+                key={cat.id}
+                className={`category-chip ${selectedCategory === cat.id ? 'active' : ''}`}
+                onClick={() => setSelectedCategory(cat.id)}
+              >
+                <span className="category-chip-icon">{cat.icon}</span>
+                <span className="category-chip-label">{cat.label}</span>
+                <span className="category-chip-count">{count.toLocaleString()}</span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+
       {/* Games Count */}
       {!loading && (
         <div className="games-count">
-          <span className="games-count-number">{TOTAL_DISPLAY_COUNT.toLocaleString()}</span> games available
-          <span className="games-count-showing">(showing {visibleCount.toLocaleString()})</span>
+          <span className="games-count-number">{filteredGames.length.toLocaleString()}</span> games
+          <span className="games-count-showing">(showing {Math.min(visibleCount, filteredGames.length).toLocaleString()})</span>
         </div>
       )}
 
@@ -836,12 +920,14 @@ export default function Home() {
       ) : (
         <div className="slot-games-layout">
           {/* All Games Mixed */}
-          {visibleGames.length > 0 && (
+          {visibleGames.length > 0 && (() => {
+            const activeCat = CATEGORIES.find((c) => c.id === selectedCategory) || CATEGORIES[0]
+            return (
             <div className="game-category-section mixed-games-section">
               <h2 className="category-title">
-                <span className="category-icon">🎮</span>
-                All Games
-                <span className="category-count">({TOTAL_DISPLAY_COUNT.toLocaleString()})</span>
+                <span className="category-icon">{activeCat.icon}</span>
+                {selectedCategory === 'all' ? 'All Games' : activeCat.label}
+                <span className="category-count">({filteredGames.length.toLocaleString()})</span>
               </h2>
               <div className="slot-games-grid">
                 {visibleGames.map((game) => {
@@ -875,7 +961,7 @@ export default function Home() {
               </div>
 
               {/* Load More Button */}
-              {visibleCount < allMixedGames.length && (
+              {visibleCount < filteredGames.length && (
                 <div className="load-more-container">
                   <button
                     className={`load-more-btn ${loadingMore ? 'loading' : ''}`}
@@ -891,7 +977,7 @@ export default function Home() {
                       <>
                         Load More Games
                         <span className="load-more-count">
-                          ({Math.min(GAMES_PER_LOAD, allMixedGames.length - visibleCount)} more)
+                          ({Math.min(GAMES_PER_LOAD, filteredGames.length - visibleCount)} more)
                         </span>
                       </>
                     )}
@@ -899,16 +985,17 @@ export default function Home() {
                   <div className="load-more-progress">
                     <div
                       className="load-more-progress-bar"
-                      style={{ width: `${(visibleCount / allMixedGames.length) * 100}%` }}
+                      style={{ width: `${(visibleCount / filteredGames.length) * 100}%` }}
                     />
                   </div>
                   <span className="load-more-info">
-                    {visibleCount.toLocaleString()} of {allMixedGames.length.toLocaleString()} loaded
+                    {visibleCount.toLocaleString()} of {filteredGames.length.toLocaleString()} loaded
                   </span>
                 </div>
               )}
             </div>
-          )}
+            )
+          })()}
 
           {/* No games message */}
           {allMixedGames.length === 0 && !loading && (

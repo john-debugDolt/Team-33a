@@ -1838,6 +1838,67 @@ body::before {
   opacity: 0;
 }
 
+/* Category filter chips — sits above the games grid. Horizontal scroll on
+   narrow viewports so the chips never wrap awkwardly. */
+.category-chips {
+  max-width: var(--container-max);
+  margin: 0 auto 12px;
+  padding: 0 var(--section-padding);
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.category-chips::-webkit-scrollbar { display: none; }
+
+.category-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.18s;
+  white-space: nowrap;
+}
+.category-chip:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.category-chip.active {
+  background: linear-gradient(135deg, var(--emerald-500), var(--emerald-400));
+  color: #0a0f0c;
+  border-color: transparent;
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.25);
+}
+.category-chip-icon { font-size: 15px; line-height: 1; }
+.category-chip-count {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.25);
+  color: inherit;
+  opacity: 0.85;
+}
+.category-chip.active .category-chip-count {
+  background: rgba(0, 0, 0, 0.18);
+}
+
+@media (max-width: 768px) {
+  .category-chip { padding: 7px 12px; font-size: 12px; }
+  .category-chip-count { font-size: 10px; padding: 2px 6px; }
+}
+
 /* Games Count */
 .games-count {
   max-width: var(--container-max);
