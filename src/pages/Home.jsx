@@ -419,74 +419,61 @@ export default function Home() {
     })
   }
 
-  // Fetch games from all providers
+  // Fetch games from all providers in parallel. Each provider's games are
+  // committed to state the moment its individual fetch resolves, so the grid
+  // paints progressively — fast providers (most are <300ms cached) show up
+  // before the slow ones (ClotPlay ~2s, EVO888H5 ~850ms) have even returned.
   useEffect(() => {
-    const loadAllGames = async () => {
-      setLoading(true)
-      console.log('[Home] Loading games from all providers...')
+    const timings = []
+    let firstResolved = false
 
-      // Per-provider latency log. Each entry records the wall-clock ms the
-      // provider call took, plus how many games it returned. Logged as a
-      // sorted table at the end so we can see fastest -> slowest at a glance.
-      const timings = []
-      const time = async (provider, fn) => {
-        const start = performance.now()
-        try {
-          const result = await fn()
+    const time = (provider, fn, onSuccess) => {
+      const start = performance.now()
+      return Promise.resolve()
+        .then(fn)
+        .then((result) => {
           const ms = Math.round(performance.now() - start)
           const count = Array.isArray(result) ? result.length : (result?.data?.games?.length || 0)
           timings.push({ provider, ms, count, ok: true })
           console.log(`[Home] ${provider} loaded: ${count} (${ms}ms)`)
-          return result
-        } catch (e) {
+          onSuccess(result)
+          // Flip the loading spinner off after the first provider returns so
+          // users see content immediately instead of waiting for the slowest.
+          if (!firstResolved) {
+            firstResolved = true
+            setLoading(false)
+          }
+        })
+        .catch((e) => {
           const ms = Math.round(performance.now() - start)
           timings.push({ provider, ms, count: 0, ok: false })
           console.error(`[Home] ${provider} error (${ms}ms):`, e)
-          return null
-        }
-      }
-
-      const advantPlay = await time('AdvantPlay', getAllAdvantPlayGames)
-      if (advantPlay?.length > 0) setAdvantPlayGames(advantPlay)
-
-      const uuSlot = await time('UUSlot', getAllUUSlotGames)
-      if (uuSlot?.length > 0) setUuSlotGames(uuSlot)
-
-      const evo = await time('EVO888H5', getAllEvo888h5Games)
-      if (evo?.length > 0) setEvo888h5Games(evo)
-
-      const clot = await time('ClotPlay', () => gameService.getGames({ page: 1, limit: 500, gameType: 'all' }))
-      if (clot?.success && clot.data?.games) setClotPlayGames(clot.data.games)
-
-      const meta = await time('MetaGaming', getAllMetaGamingGames)
-      if (meta?.length > 0) setMetaGamingGames(meta)
-
-      const wf = await time('WFGaming', getAllWFGamingGames)
-      if (wf?.length > 0) setWfGamingGames(wf)
-
-      const mega = await time('MegaH5', getAllMegaH5Games)
-      if (mega?.length > 0) setMegaH5Games(mega)
-
-      const epic = await time('EpicWin', getAllEpicWinGames)
-      if (epic?.length > 0) setEpicWinGames(epic)
-
-      const rich = await time('RichGaming', getAllRichGamingGames)
-      if (rich?.length > 0) setRichGamingGames(rich)
-
-      const scr = await time('SCR888H5', getAllSCR888H5Games)
-      if (scr?.length > 0) setScr888h5Games(scr)
-
-      const jdb = await time('JDB', getAllJDBGames)
-      if (jdb?.length > 0) setJdbGames(jdb)
-
-      // Sort fastest -> slowest and dump to the console. Open DevTools to see.
-      console.log('[Home] Provider latency (sorted fastest first):')
-      console.table(timings.slice().sort((a, b) => a.ms - b.ms))
-
-      setLoading(false)
+        })
     }
 
-    loadAllGames()
+    console.log('[Home] Loading games from all providers (parallel)...')
+
+    const all = [
+      time('AdvantPlay', getAllAdvantPlayGames, (g) => g?.length > 0 && setAdvantPlayGames(g)),
+      time('UUSlot', getAllUUSlotGames, (g) => g?.length > 0 && setUuSlotGames(g)),
+      time('EVO888H5', getAllEvo888h5Games, (g) => g?.length > 0 && setEvo888h5Games(g)),
+      time('ClotPlay', () => gameService.getGames({ page: 1, limit: 500, gameType: 'all' }),
+        (r) => r?.success && r.data?.games && setClotPlayGames(r.data.games)),
+      time('MetaGaming', getAllMetaGamingGames, (g) => g?.length > 0 && setMetaGamingGames(g)),
+      time('WFGaming', getAllWFGamingGames, (g) => g?.length > 0 && setWfGamingGames(g)),
+      time('MegaH5', getAllMegaH5Games, (g) => g?.length > 0 && setMegaH5Games(g)),
+      time('EpicWin', getAllEpicWinGames, (g) => g?.length > 0 && setEpicWinGames(g)),
+      time('RichGaming', getAllRichGamingGames, (g) => g?.length > 0 && setRichGamingGames(g)),
+      time('SCR888H5', getAllSCR888H5Games, (g) => g?.length > 0 && setScr888h5Games(g)),
+      time('JDB', getAllJDBGames, (g) => g?.length > 0 && setJdbGames(g)),
+    ]
+
+    Promise.allSettled(all).then(() => {
+      // Safety: clear loading even if every provider somehow failed.
+      setLoading(false)
+      console.log('[Home] Provider latency (sorted fastest first):')
+      console.table(timings.slice().sort((a, b) => a.ms - b.ms))
+    })
   }, [])
 
   // Create mixed games pool when provider games are loaded
