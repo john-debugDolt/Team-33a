@@ -33,17 +33,6 @@ import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
 
 const BANNER_IMAGES = [bannerImg1, bannerImg2, bannerImg3, bannerImg4, bannerImg5]
 
-// Shuffle the banner images once per page load so each visit pairs them
-// with bonuses in a different order — keeps the carousel feeling fresh.
-const shuffleArray = (arr) => {
-  const a = [...arr]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]]
-  }
-  return a
-}
-
 // Initial slides while bonuses are loading — banner images with no overlay.
 const initialBanners = BANNER_IMAGES.map((image, idx) => ({
   id: `init-${idx}`,
