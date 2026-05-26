@@ -37,6 +37,7 @@ const transformGame = (game) => {
     portraitImage: game.imageUrl || game.ImageUrl || '/placeholder-game.png',
     squareImage: game.imageUrl || game.ImageUrl || '/placeholder-game.png',
     category: (game.gameType || game.gType || 'slot').toString().toLowerCase(),
+    rawCategory: game.gameType ?? game.gType ?? game.category ?? null,
     isHot: game.isHot || false,
     isNew: game.isNew || false,
     hasDemo: true,

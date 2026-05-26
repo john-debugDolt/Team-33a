@@ -427,14 +427,15 @@ export default function Home() {
     const timings = []
     let firstResolved = false
 
-    // Pull distinct categories out of a provider's game list. Each transformer
-    // assigns a `category` field per game, so we can grab the unique set + a
-    // per-category count to see what each provider actually exposes.
+    // Pull distinct categories out of a provider's game list. We count by the
+    // raw category from the upstream API (preserved as `rawCategory` on each
+    // game) so we can see the full granularity, not the collapsed 7 internal
+    // buckets. Fallback to the normalized `category` when raw is missing.
     const summarizeCategories = (games) => {
       if (!Array.isArray(games)) return null
       const counts = {}
       for (const g of games) {
-        const c = g?.category || 'uncategorized'
+        const c = (g?.rawCategory ?? g?.category) || 'uncategorized'
         counts[c] = (counts[c] || 0) + 1
       }
       return counts

@@ -40,6 +40,7 @@ const transformGame = (game) => {
     portraitImage: game.imageUrl || game.ImageUrl || '/placeholder-game.png',
     squareImage: game.imageUrl || game.ImageUrl || '/placeholder-game.png',
     category: (game.gameType || 'slot').toLowerCase(),
+    rawCategory: game.gameType ?? game.GameType ?? game.category ?? null,
     isHot: game.isHot || false,
     isNew: game.isNew || false,
     hasDemo: game.hasDemo || false,

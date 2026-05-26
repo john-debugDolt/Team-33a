@@ -133,6 +133,7 @@ const transformUUSlotGame = (game) => {
 
     // Category and tags
     category: mapUUSlotCategory(game.GameType, game.Method),
+    rawCategory: game.Method || (game.GameType != null ? `type-${game.GameType}` : null),
     isHot: isGameHot(game),
     isNew: isGameNew(game),
     hasDemo: game.HasDemo || false,
