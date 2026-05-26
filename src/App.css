@@ -1431,31 +1431,36 @@ body::before {
   pointer-events: none;
 }
 
-/* Silver metallic description — gradient text with a subtle shine. */
+/* Metallic gold description — gradient text with warm shine. Clamped to two
+   lines so longer descriptions stay readable inside the narrow center band. */
 .banner-description-silver {
   margin: 0;
-  font-size: clamp(12px, 1.5vw, 22px);
+  font-size: clamp(16px, 2.1vw, 30px);
   font-weight: 800;
   letter-spacing: 0.03em;
   line-height: 1.15;
   text-transform: uppercase;
   text-align: center;
   width: 100%;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   background: linear-gradient(
     180deg,
-    #ffffff 0%,
-    #e8e8e8 18%,
-    #b8b8b8 38%,
-    #8a8a8a 50%,
-    #b8b8b8 62%,
-    #e8e8e8 82%,
-    #ffffff 100%
+    #fff5cc 0%,
+    #f5d97a 18%,
+    #d4a83a 38%,
+    #a06d14 50%,
+    #d4a83a 62%,
+    #f5d97a 82%,
+    #fff5cc 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7)) drop-shadow(0 0 18px rgba(220,220,220,0.25));
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.75)) drop-shadow(0 0 18px rgba(212,168,58,0.35));
 }
 
 /* On narrow viewports the 30% band gets too tight — open it up a bit. */
@@ -1465,7 +1470,7 @@ body::before {
     right: 28%;
   }
   .banner-description-silver {
-    font-size: clamp(10px, 2.2vw, 16px);
+    font-size: clamp(13px, 3vw, 20px);
   }
 }
 
