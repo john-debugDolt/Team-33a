@@ -1449,13 +1449,12 @@ body::before {
   background: linear-gradient(
     180deg,
     #fff5cc 0%,
-    #f5d97a 15%,
-    #d4a83a 32%,
-    #c08020 48%,
-    #8a8a8a 52%,
-    #b8b8b8 68%,
-    #e8e8e8 85%,
-    #ffffff 100%
+    #f5d97a 18%,
+    #d4a83a 38%,
+    #a06d14 50%,
+    #d4a83a 62%,
+    #f5d97a 82%,
+    #fff5cc 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
