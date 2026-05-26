@@ -425,126 +425,63 @@ export default function Home() {
       setLoading(true)
       console.log('[Home] Loading games from all providers...')
 
-      // Fetch AdvantPlay
-      try {
-        const games = await getAllAdvantPlayGames()
-        console.log('[Home] AdvantPlay loaded:', games?.length || 0)
-        if (games && games.length > 0) {
-          setAdvantPlayGames(games)
+      // Per-provider latency log. Each entry records the wall-clock ms the
+      // provider call took, plus how many games it returned. Logged as a
+      // sorted table at the end so we can see fastest -> slowest at a glance.
+      const timings = []
+      const time = async (provider, fn) => {
+        const start = performance.now()
+        try {
+          const result = await fn()
+          const ms = Math.round(performance.now() - start)
+          const count = Array.isArray(result) ? result.length : (result?.data?.games?.length || 0)
+          timings.push({ provider, ms, count, ok: true })
+          console.log(`[Home] ${provider} loaded: ${count} (${ms}ms)`)
+          return result
+        } catch (e) {
+          const ms = Math.round(performance.now() - start)
+          timings.push({ provider, ms, count: 0, ok: false })
+          console.error(`[Home] ${provider} error (${ms}ms):`, e)
+          return null
         }
-      } catch (e) {
-        console.error('[Home] AdvantPlay error:', e)
       }
 
-      // Fetch UUSlot
-      try {
-        const games = await getAllUUSlotGames()
-        console.log('[Home] UUSlot loaded:', games?.length || 0)
-        if (games && games.length > 0) {
-          setUuSlotGames(games)
-        }
-      } catch (e) {
-        console.error('[Home] UUSlot error:', e)
-      }
+      const advantPlay = await time('AdvantPlay', getAllAdvantPlayGames)
+      if (advantPlay?.length > 0) setAdvantPlayGames(advantPlay)
 
-      // Fetch EVO888H5
-      try {
-        const games = await getAllEvo888h5Games()
-        console.log('[Home] EVO888H5 loaded:', games?.length || 0)
-        if (games && games.length > 0) {
-          setEvo888h5Games(games)
-        }
-      } catch (e) {
-        console.error('[Home] EVO888H5 error:', e)
-      }
+      const uuSlot = await time('UUSlot', getAllUUSlotGames)
+      if (uuSlot?.length > 0) setUuSlotGames(uuSlot)
 
-      // Fetch ClotPlay
-      try {
-        const result = await gameService.getGames({ page: 1, limit: 500, gameType: 'all' })
-        if (result.success && result.data?.games) {
-          console.log('[Home] ClotPlay loaded:', result.data.games.length)
-          setClotPlayGames(result.data.games)
-        }
-      } catch (e) {
-        console.error('[Home] ClotPlay error:', e)
-      }
+      const evo = await time('EVO888H5', getAllEvo888h5Games)
+      if (evo?.length > 0) setEvo888h5Games(evo)
 
-      // Fetch MetaGaming
-      try {
-        const games = await getAllMetaGamingGames()
-        console.log('[Home] MetaGaming loaded:', games?.length || 0)
-        if (games && games.length > 0) {
-          setMetaGamingGames(games)
-        }
-      } catch (e) {
-        console.error('[Home] MetaGaming error:', e)
-      }
+      const clot = await time('ClotPlay', () => gameService.getGames({ page: 1, limit: 500, gameType: 'all' }))
+      if (clot?.success && clot.data?.games) setClotPlayGames(clot.data.games)
 
-      // Fetch WFGaming
-      try {
-        const games = await getAllWFGamingGames()
-        console.log('[Home] WFGaming loaded:', games?.length || 0)
-        if (games && games.length > 0) {
-          setWfGamingGames(games)
-        }
-      } catch (e) {
-        console.error('[Home] WFGaming error:', e)
-      }
+      const meta = await time('MetaGaming', getAllMetaGamingGames)
+      if (meta?.length > 0) setMetaGamingGames(meta)
 
-      // Fetch MegaH5
-      try {
-        const games = await getAllMegaH5Games()
-        console.log('[Home] MegaH5 loaded:', games?.length || 0)
-        if (games && games.length > 0) {
-          setMegaH5Games(games)
-        }
-      } catch (e) {
-        console.error('[Home] MegaH5 error:', e)
-      }
+      const wf = await time('WFGaming', getAllWFGamingGames)
+      if (wf?.length > 0) setWfGamingGames(wf)
 
-      // Fetch EpicWin
-      try {
-        const games = await getAllEpicWinGames()
-        console.log('[Home] EpicWin loaded:', games?.length || 0)
-        if (games && games.length > 0) {
-          setEpicWinGames(games)
-        }
-      } catch (e) {
-        console.error('[Home] EpicWin error:', e)
-      }
+      const mega = await time('MegaH5', getAllMegaH5Games)
+      if (mega?.length > 0) setMegaH5Games(mega)
 
-      // Fetch RichGaming
-      try {
-        const games = await getAllRichGamingGames()
-        console.log('[Home] RichGaming loaded:', games?.length || 0)
-        if (games && games.length > 0) {
-          setRichGamingGames(games)
-        }
-      } catch (e) {
-        console.error('[Home] RichGaming error:', e)
-      }
+      const epic = await time('EpicWin', getAllEpicWinGames)
+      if (epic?.length > 0) setEpicWinGames(epic)
 
-      // Fetch SCR888H5
-      try {
-        const games = await getAllSCR888H5Games()
-        console.log('[Home] SCR888H5 loaded:', games?.length || 0)
-        if (games && games.length > 0) {
-          setScr888h5Games(games)
-        }
-      } catch (e) {
-        console.error('[Home] SCR888H5 error:', e)
-      }
+      const rich = await time('RichGaming', getAllRichGamingGames)
+      if (rich?.length > 0) setRichGamingGames(rich)
 
-      // Fetch JDB
-      try {
-        const games = await getAllJDBGames()
-        console.log('[Home] JDB loaded:', games?.length || 0)
-        if (games && games.length > 0) {
-          setJdbGames(games)
-        }
-      } catch (e) {
-        console.error('[Home] JDB error:', e)
-      }
+      const scr = await time('SCR888H5', getAllSCR888H5Games)
+      if (scr?.length > 0) setScr888h5Games(scr)
+
+      const jdb = await time('JDB', getAllJDBGames)
+      if (jdb?.length > 0) setJdbGames(jdb)
+
+      // Sort fastest -> slowest and dump to the console. Open DevTools to see.
+      console.log('[Home] Provider latency (sorted fastest first):')
+      console.table(timings.slice().sort((a, b) => a.ms - b.ms))
 
       setLoading(false)
     }
