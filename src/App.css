@@ -1395,6 +1395,65 @@ body::before {
   transition: transform 0.5s ease;
 }
 
+/* Slide wrapper supports both image and text-only modes. */
+.banner-slide {
+  position: relative;
+  width: 100%;
+  min-width: 100%;
+  aspect-ratio: 16/5;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.banner-slide .banner-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Description sits on top of the banner image, centered. A soft radial
+   scrim keeps the silver text legible without darkening the artwork. */
+.banner-text-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6% 8%;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 65%);
+  pointer-events: none;
+}
+
+/* Silver metallic description — gradient text with a subtle shine. */
+.banner-description-silver {
+  margin: 0;
+  font-size: clamp(18px, 3vw, 40px);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  text-transform: uppercase;
+  text-align: center;
+  max-width: 80%;
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #e8e8e8 18%,
+    #b8b8b8 38%,
+    #8a8a8a 50%,
+    #b8b8b8 62%,
+    #e8e8e8 82%,
+    #ffffff 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7)) drop-shadow(0 0 18px rgba(220,220,220,0.25));
+}
+
 /* Progress Bar */
 .banner-progress {
   position: absolute;
