@@ -13,6 +13,7 @@ import { getAllSCR888H5Games } from '../services/scr888h5Service'
 import { getAllJDBGames } from '../services/jdbTransferService'
 import { apiClient } from '../services/api'
 import { walletService } from '../services/walletService'
+import { bonusService } from '../services/bonusService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useTranslation } from '../context/TranslationContext'
@@ -21,18 +22,35 @@ import Pagination from '../components/Pagination/Pagination'
 import GameDetailModal from '../components/GameDetailModal/GameDetailModal'
 import GameImage, { preloadGameImages } from '../components/GameImage'
 import GamePortal from '../components/GamePortal'
-import defaultBanner1 from '../images/New banner.png'
-import defaultBanner2 from '../images/New banner 2.png'
-import defaultBanner3 from '../images/New banner 3.png'
+import bannerImg1 from '../images/banner-team33-1.png'
+import bannerImg2 from '../images/banner-team33-2.png'
+import bannerImg3 from '../images/banner-team33-3.png'
+import bannerImg4 from '../images/banner-team33-4.png'
+import bannerImg5 from '../images/banner-team33-5.png'
 import belowBanner from '../images/new r banner.png'
 import './Slot.css' // Import slot section styles
 import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
 
-const defaultBanners = [
-  { id: 'default1', image: defaultBanner1, name: 'Banner 1', link: '' },
-  { id: 'default2', image: defaultBanner2, name: 'Banner 2', link: '' },
-  { id: 'default3', image: defaultBanner3, name: 'Banner 3', link: '' }
-]
+const BANNER_IMAGES = [bannerImg1, bannerImg2, bannerImg3, bannerImg4, bannerImg5]
+
+// Shuffle the banner images once per page load so each visit pairs them
+// with bonuses in a different order — keeps the carousel feeling fresh.
+const shuffleArray = (arr) => {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+// Initial slides while bonuses are loading — banner images with no overlay.
+const initialBanners = BANNER_IMAGES.map((image, idx) => ({
+  id: `init-${idx}`,
+  image,
+  name: `Banner ${idx + 1}`
+}))
+
 const BANNER_DURATION = 5000 // 5 seconds per banner
 
 // Game name prefixes and suffixes for variation
@@ -124,7 +142,7 @@ export default function Home() {
   const [showExitConfirm, setShowExitConfirm] = useState(false)
 
   // Banner state
-  const [banners, setBanners] = useState(defaultBanners)
+  const [banners, setBanners] = useState(initialBanners)
   const [currentBanner, setCurrentBanner] = useState(0)
 
   // Promotional popup state
@@ -149,20 +167,38 @@ export default function Home() {
     { id: 5, name: 'Maria L.', avatar: 'M', date: '1 week ago', stars: 5, text: 'The VIP program is excellent. Great bonuses and exclusive promotions for loyal players.' }
   ])
 
-  // Fetch banners on mount (skip if endpoint doesn't exist)
+  // Pull the 5 most recent active bonuses and overlay their descriptions on
+  // the banner images. Banners are shuffled per page load so the pairing
+  // looks different on each visit.
   useEffect(() => {
-    const fetchBanners = async () => {
-      try {
-        const result = await apiClient.get('/banners')
-        if (result.success && result.data?.banners?.length > 0) {
-          setBanners(result.data.banners)
-        }
-      } catch (err) {
-        // Banners API may not exist - silently ignore
-      }
+    let cancelled = false
+    const fetchBonuses = async () => {
+      const bonuses = await bonusService.getActiveBonuses()
+      if (cancelled || !Array.isArray(bonuses) || bonuses.length === 0) return
+
+      // Sort newest first by createdAt (fallback to id) and keep only ones
+      // with a real description so the banner text isn't blank.
+      const recent = [...bonuses]
+        .filter((b) => typeof b.description === 'string' && b.description.trim().length > 0)
+        .sort((a, b) => {
+          const ad = a.createdAt ? new Date(a.createdAt).getTime() : a.id || 0
+          const bd = b.createdAt ? new Date(b.createdAt).getTime() : b.id || 0
+          return bd - ad
+        })
+        .slice(0, 5)
+
+      if (recent.length === 0) return
+
+      const shuffledImages = shuffleArray(BANNER_IMAGES)
+      const slides = recent.map((b, idx) => ({
+        id: `bonus-${b.id || b.bonusCode}`,
+        image: shuffledImages[idx % shuffledImages.length],
+        description: b.description.trim()
+      }))
+      setBanners(slides)
     }
-    // Disabled - banners endpoint not available
-    // fetchBanners()
+    fetchBonuses()
+    return () => { cancelled = true }
   }, [])
 
   // Sync balance when game closes and listen for game messages
@@ -667,7 +703,16 @@ export default function Home() {
             style={{ transform: `translateX(-${currentBanner * 100}%)` }}
           >
             {banners.map((banner, idx) => (
-              <img key={banner.id || idx} src={banner.image} alt={banner.name || `Banner ${idx + 1}`} className="banner-image" />
+              <div key={banner.id || idx} className="banner-slide">
+                {banner.image && (
+                  <img src={banner.image} alt={banner.name || `Banner ${idx + 1}`} className="banner-image" />
+                )}
+                {banner.description && (
+                  <div className="banner-text-overlay">
+                    <p className="banner-description-silver">{banner.description}</p>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
           <div className="banner-progress">
