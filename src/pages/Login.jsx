@@ -160,6 +160,8 @@ export default function Login() {
               <button type="submit" className="login-btn-golden" disabled={loading}>
                 {loading ? <ButtonSpinner /> : 'LOGIN'}
               </button>
+
+              <Link to="/forgot-password" className="forgot-link-golden">Forgot Password?</Link>
             </form>
 
             <div className="register-section-golden">

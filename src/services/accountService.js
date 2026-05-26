@@ -330,6 +330,47 @@ class AccountService {
       };
     }
   }
+
+  /**
+   * Reset password after OTP verification
+   * PATCH /api/accounts/{accountId}/password
+   *
+   * Same endpoint as updatePassword but without currentPassword — the call
+   * is only made after /api/otp/verify returned phoneVerified:true so the
+   * backend must accept the OTP-verified path. If the backend still requires
+   * currentPassword, this needs a tweak server-side.
+   *
+   * @param {string} accountId
+   * @param {string} newPassword - min 6 chars
+   */
+  async resetPasswordAfterOtp(accountId, newPassword) {
+    try {
+      if (!newPassword || newPassword.length < 6) {
+        return { success: false, error: 'New password must be at least 6 characters long.' };
+      }
+
+      const response = await fetch(`${API_BASE}/api/accounts/${accountId}/password`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword, otpVerified: true }),
+      });
+
+      if (response.status === 204 || response.ok) {
+        return { success: true };
+      }
+
+      let errorMessage = 'Failed to reset password';
+      try {
+        const data = await response.json();
+        errorMessage = data.error || data.message || errorMessage;
+      } catch (e) { /* no body */ }
+
+      return { success: false, error: errorMessage };
+    } catch (error) {
+      console.error('[AccountService] Reset password error:', error);
+      return { success: false, error: 'Network error. Please try again.' };
+    }
+  }
 }
 
 export const accountService = new AccountService();
