@@ -1,0 +1,101 @@
+.category-sort-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 var(--section-padding, 16px);
+  margin: 0 auto 14px;
+  max-width: var(--container-max, 1280px);
+  flex-wrap: wrap;
+}
+
+.csb-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-right: 4px;
+}
+
+.csb-chips {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.csb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s, color 0.18s, border-color 0.18s, transform 0.12s;
+}
+.csb-chip:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.csb-chip.active {
+  background: linear-gradient(135deg, var(--emerald-500), var(--emerald-400));
+  color: #0a0f0c;
+  border-color: transparent;
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.25);
+}
+
+.csb-chip-count {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.28);
+  color: inherit;
+}
+.csb-chip.active .csb-chip-count {
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.csb-sort {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.csb-sort-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+.csb-sort-select {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  font-size: 13px;
+  padding: 7px 26px 7px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.csb-sort-select:focus { outline: 1px solid var(--emerald-500); border-color: var(--emerald-500); }
+.csb-sort-select option { background: #0f1612; color: #fff; }
+
+@media (max-width: 768px) {
+  .csb-chip { padding: 6px 11px; font-size: 12px; }
+  .csb-chip-count { font-size: 10px; padding: 2px 5px; }
+  .csb-sort-label { display: none; }
+}

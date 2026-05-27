@@ -10,6 +10,7 @@ import GamePortal from '../components/GamePortal'
 import './Slot.css'
 import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
 import GameCard from '../components/GameCard/GameCard'
+import { useCategoryAndSort } from '../components/CategorySortBar/CategorySortBar'
 
 export default function JDB() {
   const navigate = useNavigate()
@@ -22,6 +23,8 @@ export default function JDB() {
   const [selectedGame, setSelectedGame] = useState(null)
   const [embeddedGame, setEmbeddedGame] = useState(null)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
+
+  const { bar, filteredGames } = useCategoryAndSort(games, { labels: { '0': 'Slots', '7': 'Fishing', '9': 'Arcade', '12': 'Bingo', '18': 'Card', '50': 'Lottery', '140': 'eSports', '141': 'New Slots', '142': 'New Fishing', '200': 'Crash', '201': 'Mini' } })
 
   useEffect(() => {
     const loadGames = async () => {
@@ -182,8 +185,10 @@ export default function JDB() {
         <ProviderTabs active="jdb" />
 
         <div className="games-count">
-          {games.length} JDB games available
+          {filteredGames.length} JDB games available
         </div>
+
+        {!loading && games.length > 0 && bar}
 
         {loading ? (
           <div className="loading-wrapper">
@@ -191,15 +196,15 @@ export default function JDB() {
           </div>
         ) : (
           <div className="slot-games-layout">
-            {games.length > 0 ? (
+            {filteredGames.length > 0 ? (
               <div className="game-category-section jdb-section">
                 <h2 className="category-title">
                   <span className="category-icon">🎯</span>
                   JDB Games
-                  <span className="category-count">({games.length})</span>
+                  <span className="category-count">({filteredGames.length})</span>
                 </h2>
                 <div className="slot-games-grid">
-                  {games.map(renderGameCard)}
+                  {filteredGames.map(renderGameCard)}
                 </div>
               </div>
             ) : (

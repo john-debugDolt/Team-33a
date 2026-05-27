@@ -11,6 +11,7 @@ import GamePortal from '../components/GamePortal'
 import './Slot.css'
 import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
 import GameCard from '../components/GameCard/GameCard'
+import { useCategoryAndSort } from '../components/CategorySortBar/CategorySortBar'
 
 export default function UUSlot() {
   const navigate = useNavigate()
@@ -23,6 +24,12 @@ export default function UUSlot() {
   const [selectedGame, setSelectedGame] = useState(null)
   const [embeddedGame, setEmbeddedGame] = useState(null)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
+
+  // UUSlot is effectively single-category in production data — chips will
+  // auto-hide. The sort dropdown still shows.
+  const { bar, filteredGames } = useCategoryAndSort(games, {
+    labels: { Slots: 'Slots' },
+  })
 
   useEffect(() => {
     const loadGames = async () => {
@@ -174,8 +181,11 @@ export default function UUSlot() {
 
         {/* Games Count */}
         <div className="games-count">
-          {games.length} UUSlot games available
+          {filteredGames.length} UUSlot games available
         </div>
+
+        {/* Filter + Sort */}
+        {!loading && games.length > 0 && bar}
 
         {/* Loading State */}
         {loading ? (
@@ -184,15 +194,15 @@ export default function UUSlot() {
           </div>
         ) : (
           <div className="slot-games-layout">
-            {games.length > 0 ? (
+            {filteredGames.length > 0 ? (
               <div className="game-category-section uuslot-section">
                 <h2 className="category-title">
                   <span className="category-icon">🎰</span>
                   UUSlot Games
-                  <span className="category-count">({games.length})</span>
+                  <span className="category-count">({filteredGames.length})</span>
                 </h2>
                 <div className="slot-games-grid">
-                  {games.map(renderGameCard)}
+                  {filteredGames.map(renderGameCard)}
                 </div>
               </div>
             ) : (
