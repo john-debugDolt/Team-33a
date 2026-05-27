@@ -11,6 +11,7 @@ import GamePortal from '../components/GamePortal'
 import './Slot.css'
 import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
 import GameCard from '../components/GameCard/GameCard'
+import { useCategoryAndSort } from '../components/CategorySortBar/CategorySortBar'
 
 export default function MetaGaming() {
   const navigate = useNavigate()
@@ -23,6 +24,8 @@ export default function MetaGaming() {
   const [selectedGame, setSelectedGame] = useState(null)
   const [embeddedGame, setEmbeddedGame] = useState(null)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
+
+  const { bar, filteredGames } = useCategoryAndSort(games, { labels: { '1': 'Slots', '2': 'Card', '3': 'Other', '5': 'Crash' } })
 
   useEffect(() => {
     const loadGames = async () => {
@@ -169,8 +172,10 @@ export default function MetaGaming() {
         <ProviderTabs active="metagaming" />
 
         <div className="games-count">
-          {games.length} MetaGaming games available
+          {filteredGames.length} MetaGaming games available
         </div>
+
+        {!loading && games.length > 0 && bar}
 
         {loading ? (
           <div className="loading-wrapper">
@@ -178,15 +183,15 @@ export default function MetaGaming() {
           </div>
         ) : (
           <div className="slot-games-layout">
-            {games.length > 0 ? (
+            {filteredGames.length > 0 ? (
               <div className="game-category-section metagaming-section">
                 <h2 className="category-title">
                   <span className="category-icon">🎮</span>
                   MetaGaming Games
-                  <span className="category-count">({games.length})</span>
+                  <span className="category-count">({filteredGames.length})</span>
                 </h2>
                 <div className="slot-games-grid">
-                  {games.map(renderGameCard)}
+                  {filteredGames.map(renderGameCard)}
                 </div>
               </div>
             ) : (

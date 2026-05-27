@@ -10,6 +10,7 @@ import GamePortal from '../components/GamePortal'
 import './Slot.css'
 import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
 import GameCard from '../components/GameCard/GameCard'
+import { useCategoryAndSort } from '../components/CategorySortBar/CategorySortBar'
 
 export default function ClotPlay() {
   const navigate = useNavigate()
@@ -22,6 +23,11 @@ export default function ClotPlay() {
   const [selectedGame, setSelectedGame] = useState(null)
   const [embeddedGame, setEmbeddedGame] = useState(null)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
+
+  // ClotPlay raw categories observed live: slot_game (91), crash_game (12)
+  const { bar, filteredGames } = useCategoryAndSort(games, {
+    labels: { slot_game: 'Slots', crash_game: 'Crash', live_game: 'Live', fishing_game: 'Fishing', table_game: 'Table' },
+  })
 
   useEffect(() => {
     const loadGames = async () => {
@@ -173,8 +179,10 @@ export default function ClotPlay() {
 
         {/* Games Count */}
         <div className="games-count">
-          {games.length} ClotPlay games available
+          {filteredGames.length} ClotPlay games available
         </div>
+
+        {!loading && games.length > 0 && bar}
 
         {/* Loading State */}
         {loading ? (
@@ -183,15 +191,15 @@ export default function ClotPlay() {
           </div>
         ) : (
           <div className="slot-games-layout">
-            {games.length > 0 ? (
+            {filteredGames.length > 0 ? (
               <div className="game-category-section clotplay-section">
                 <h2 className="category-title">
                   <span className="category-icon">🎲</span>
                   ClotPlay Games
-                  <span className="category-count">({games.length})</span>
+                  <span className="category-count">({filteredGames.length})</span>
                 </h2>
                 <div className="slot-games-grid">
-                  {games.map(renderGameCard)}
+                  {filteredGames.map(renderGameCard)}
                 </div>
               </div>
             ) : (

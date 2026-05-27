@@ -11,6 +11,7 @@ import GamePortal from '../components/GamePortal'
 import './Slot.css'
 import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
 import GameCard from '../components/GameCard/GameCard'
+import { useCategoryAndSort } from '../components/CategorySortBar/CategorySortBar'
 
 export default function AdvantPlay() {
   const navigate = useNavigate()
@@ -23,6 +24,11 @@ export default function AdvantPlay() {
   const [selectedGame, setSelectedGame] = useState(null)
   const [embeddedGame, setEmbeddedGame] = useState(null)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
+
+  // AdvantPlay rawCategory is a CSV string of GameCategory[] (e.g. 'slot').
+  const { bar, filteredGames } = useCategoryAndSort(games, {
+    labels: { slot: 'Slots', mini: 'Mini', table: 'Table', fishing: 'Fishing', live: 'Live', card: 'Card', arcade: 'Arcade' },
+  })
 
   useEffect(() => {
     const loadGames = async () => {
@@ -174,8 +180,10 @@ export default function AdvantPlay() {
 
         {/* Games Count */}
         <div className="games-count">
-          {games.length} AdvantPlay games available
+          {filteredGames.length} AdvantPlay games available
         </div>
+
+        {!loading && games.length > 0 && bar}
 
         {/* Loading State */}
         {loading ? (
@@ -184,15 +192,15 @@ export default function AdvantPlay() {
           </div>
         ) : (
           <div className="slot-games-layout">
-            {games.length > 0 ? (
+            {filteredGames.length > 0 ? (
               <div className="game-category-section advantplay-section">
                 <h2 className="category-title">
                   <span className="category-icon">🎯</span>
                   AdvantPlay Games
-                  <span className="category-count">({games.length})</span>
+                  <span className="category-count">({filteredGames.length})</span>
                 </h2>
                 <div className="slot-games-grid">
-                  {games.map(renderGameCard)}
+                  {filteredGames.map(renderGameCard)}
                 </div>
               </div>
             ) : (

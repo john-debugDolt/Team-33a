@@ -10,6 +10,7 @@ import GamePortal from '../components/GamePortal'
 import './Slot.css'
 import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
 import GameCard from '../components/GameCard/GameCard'
+import { useCategoryAndSort } from '../components/CategorySortBar/CategorySortBar'
 
 export default function SCR888H5() {
   const navigate = useNavigate()
@@ -22,6 +23,8 @@ export default function SCR888H5() {
   const [selectedGame, setSelectedGame] = useState(null)
   const [embeddedGame, setEmbeddedGame] = useState(null)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
+
+  const { bar, filteredGames } = useCategoryAndSort(games, { labels: { Slot: 'Slots', Fishing: 'Fishing' } })
 
   useEffect(() => {
     const loadGames = async () => {
@@ -190,8 +193,10 @@ export default function SCR888H5() {
         <ProviderTabs active="scr888h5" />
 
         <div className="games-count">
-          {games.length} SCR888H5 games available
+          {filteredGames.length} SCR888H5 games available
         </div>
+
+        {!loading && games.length > 0 && bar}
 
         {loading ? (
           <div className="loading-wrapper">
@@ -199,15 +204,15 @@ export default function SCR888H5() {
           </div>
         ) : (
           <div className="slot-games-layout">
-            {games.length > 0 ? (
+            {filteredGames.length > 0 ? (
               <div className="game-category-section scr888h5-section">
                 <h2 className="category-title">
                   <span className="category-icon">🎲</span>
                   SCR888H5 Games
-                  <span className="category-count">({games.length})</span>
+                  <span className="category-count">({filteredGames.length})</span>
                 </h2>
                 <div className="slot-games-grid">
-                  {games.map(renderGameCard)}
+                  {filteredGames.map(renderGameCard)}
                 </div>
               </div>
             ) : (

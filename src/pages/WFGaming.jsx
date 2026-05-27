@@ -11,6 +11,7 @@ import GamePortal from '../components/GamePortal'
 import './Slot.css'
 import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
 import GameCard from '../components/GameCard/GameCard'
+import { useCategoryAndSort } from '../components/CategorySortBar/CategorySortBar'
 
 export default function WFGaming() {
   const navigate = useNavigate()
@@ -23,6 +24,8 @@ export default function WFGaming() {
   const [selectedGame, setSelectedGame] = useState(null)
   const [embeddedGame, setEmbeddedGame] = useState(null)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
+
+  const { bar, filteredGames } = useCategoryAndSort(games, { labels: { '1': 'Slots' } })
 
   useEffect(() => {
     const loadGames = async () => {
@@ -169,8 +172,10 @@ export default function WFGaming() {
         <ProviderTabs active="wfgaming" />
 
         <div className="games-count">
-          {games.length} WFGaming games available
+          {filteredGames.length} WFGaming games available
         </div>
+
+        {!loading && games.length > 0 && bar}
 
         {loading ? (
           <div className="loading-wrapper">
@@ -178,15 +183,15 @@ export default function WFGaming() {
           </div>
         ) : (
           <div className="slot-games-layout">
-            {games.length > 0 ? (
+            {filteredGames.length > 0 ? (
               <div className="game-category-section wfgaming-section">
                 <h2 className="category-title">
                   <span className="category-icon">🎯</span>
                   WFGaming Games
-                  <span className="category-count">({games.length})</span>
+                  <span className="category-count">({filteredGames.length})</span>
                 </h2>
                 <div className="slot-games-grid">
-                  {games.map(renderGameCard)}
+                  {filteredGames.map(renderGameCard)}
                 </div>
               </div>
             ) : (

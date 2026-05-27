@@ -11,6 +11,7 @@ import GamePortal from '../components/GamePortal'
 import './Slot.css'
 import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
 import GameCard from '../components/GameCard/GameCard'
+import { useCategoryAndSort } from '../components/CategorySortBar/CategorySortBar'
 
 export default function Evo888h5() {
   const navigate = useNavigate()
@@ -23,6 +24,9 @@ export default function Evo888h5() {
   const [selectedGame, setSelectedGame] = useState(null)
   const [embeddedGame, setEmbeddedGame] = useState(null)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
+
+  // EVO888H5 is slot-only — chips auto-hide; sort dropdown remains useful.
+  const { bar, filteredGames } = useCategoryAndSort(games)
 
   useEffect(() => {
     const loadGames = async () => {
@@ -174,8 +178,10 @@ export default function Evo888h5() {
 
         {/* Games Count */}
         <div className="games-count">
-          {games.length} EVO888H5 games available
+          {filteredGames.length} EVO888H5 games available
         </div>
+
+        {!loading && games.length > 0 && bar}
 
         {/* Loading State */}
         {loading ? (
@@ -184,15 +190,15 @@ export default function Evo888h5() {
           </div>
         ) : (
           <div className="slot-games-layout">
-            {games.length > 0 ? (
+            {filteredGames.length > 0 ? (
               <div className="game-category-section evo888h5-section">
                 <h2 className="category-title">
                   <span className="category-icon">🌟</span>
                   EVO888H5 Games
-                  <span className="category-count">({games.length})</span>
+                  <span className="category-count">({filteredGames.length})</span>
                 </h2>
                 <div className="slot-games-grid">
-                  {games.map(renderGameCard)}
+                  {filteredGames.map(renderGameCard)}
                 </div>
               </div>
             ) : (
