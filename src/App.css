@@ -281,6 +281,7 @@ body::before {
 }
 
 .header-content {
+  position: relative;
   max-width: var(--container-max);
   height: 100%;
   margin: 0 auto;
