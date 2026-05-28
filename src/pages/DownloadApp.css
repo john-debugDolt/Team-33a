@@ -1,0 +1,206 @@
+.download-app-page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+  color: var(--text-primary);
+}
+
+.download-hero {
+  text-align: center;
+  padding: 32px 16px 24px;
+  background: linear-gradient(180deg, rgba(5, 150, 105, 0.18) 0%, rgba(5, 150, 105, 0) 100%);
+  border-radius: 20px;
+  margin-bottom: 28px;
+}
+
+.download-logo {
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+  border-radius: 20px;
+  background: var(--bg-elevated);
+  padding: 10px;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
+  margin-bottom: 16px;
+}
+
+.download-title {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  background: linear-gradient(90deg, var(--emerald-300), var(--emerald-500));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.download-subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 0 auto 24px;
+  max-width: 460px;
+}
+
+.platform-tabs {
+  display: inline-flex;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.platform-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.platform-tab.active {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+}
+
+.platform-tab:not(.active):hover {
+  color: var(--text-primary);
+  background: var(--bg-card-hover);
+}
+
+.steps-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  counter-reset: step;
+}
+
+.step-card {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 16px;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.step-card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+}
+
+.step-image-wrap {
+  flex-shrink: 0;
+  width: 110px;
+  height: 180px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-subtle);
+}
+
+.step-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.step-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.step-number {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--primary-muted);
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+}
+
+.step-title {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  color: var(--text-primary);
+}
+
+.step-desc {
+  font-size: 13.5px;
+  line-height: 1.55;
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.download-footer-note {
+  margin-top: 28px;
+  padding: 16px 18px;
+  background: var(--primary-muted);
+  border-left: 3px solid var(--accent);
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.download-footer-note strong {
+  color: var(--accent-light);
+}
+
+@media (max-width: 520px) {
+  .download-app-page {
+    padding: 20px 14px 80px;
+  }
+
+  .download-title {
+    font-size: 22px;
+  }
+
+  .platform-tab {
+    padding: 9px 14px;
+    font-size: 13px;
+  }
+
+  .step-card {
+    flex-direction: row;
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .step-image-wrap {
+    width: 84px;
+    height: 140px;
+  }
+
+  .step-title {
+    font-size: 15px;
+  }
+
+  .step-desc {
+    font-size: 12.5px;
+  }
+}
