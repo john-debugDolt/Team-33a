@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import logo from '../images/team33newlogo.png'
+import logo from '../images/mobilepwalogo.png'
 import step1 from '../images/step1.png'
 import step2 from '../images/step2.png'
 import step3 from '../images/step3.png'
