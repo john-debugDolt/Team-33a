@@ -2686,8 +2686,8 @@ body::before {
 
   .header {
     top: 0;
-    height: calc(56px + var(--safe-area-top));
-    padding-top: var(--safe-area-top);
+    height: calc(56px + var(--safe-area-top) + 12px);
+    padding-top: calc(var(--safe-area-top) + 12px);
     background: linear-gradient(180deg,
       var(--emerald-800) 0%,
       var(--emerald-950) 100%
@@ -2737,7 +2737,7 @@ body::before {
   }
 
   .app main {
-    padding-top: calc(56px + var(--safe-area-top) + 12px);
+    padding-top: calc(56px + var(--safe-area-top) + 24px);
     padding-bottom: calc(70px + var(--safe-area-bottom));
     min-height: calc(100vh - 56px - 70px);
   }
@@ -3053,7 +3053,7 @@ body::before {
   }
 
   .header {
-    height: calc(52px + var(--safe-area-top));
+    height: calc(52px + var(--safe-area-top) + 12px);
   }
 
   .header-content {
@@ -7458,7 +7458,8 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 
   /* Header - compact */
   .header {
-    height: 44px !important;
+    height: calc(48px + var(--safe-area-top) + 12px) !important;
+    padding-top: calc(var(--safe-area-top) + 12px) !important;
   }
 
   .header-content {
@@ -7514,7 +7515,7 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
 
   /* Main content padding adjustment */
   .app main {
-    padding-top: 88px;
+    padding-top: calc(48px + var(--safe-area-top) + 24px);
   }
 
   .app::after {
