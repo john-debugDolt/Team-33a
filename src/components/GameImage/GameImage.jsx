@@ -1,49 +1,46 @@
 import { useState, useEffect, useRef } from 'react'
 import './GameImage.css'
 
-// Track which images have successfully loaded (session memory cache)
 const loadedImages = new Set()
-
-// Track images currently being preloaded
 const preloadingImages = new Set()
+const PLACEHOLDER = '/placeholder-game.png'
 
-/**
- * GameImage Component
- *
- * Improved lazy-loading image component that:
- * - Uses standard <img> tags for CDN compatibility
- * - Does NOT add cache-busting on retries (allows browser caching)
- * - Tracks successfully loaded images in memory
- * - Has smarter retry logic with faster initial retries
- */
 export default function GameImage({ src, alt, className }) {
+  const [isInView, setIsInView] = useState(() => loadedImages.has(src))
+  const [displaySrc, setDisplaySrc] = useState(() =>
+    loadedImages.has(src) ? src : null
+  )
   const [isLoaded, setIsLoaded] = useState(() => loadedImages.has(src))
-  const [hasError, setHasError] = useState(false)
-  const [retryCount, setRetryCount] = useState(0)
-  const [isInView, setIsInView] = useState(false)
-  const [currentSrc, setCurrentSrc] = useState(src)
+  const [showingPlaceholder, setShowingPlaceholder] = useState(false)
+
   const imgRef = useRef(null)
   const retryTimeoutRef = useRef(null)
+  const probeRef = useRef(null)
   const isMountedRef = useRef(true)
+  const retryCountRef = useRef(0)
 
-  const PLACEHOLDER = '/placeholder-game.png'
-  // Keep retrying indefinitely - never give up on loading the real image
-  const RETRY_FOREVER = true
-
-  // Check if src is valid
   const isValidSrc = src && src !== 'undefined' && src !== 'null' && src !== PLACEHOLDER
 
-  // Intersection Observer for lazy loading
   useEffect(() => {
     isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current)
+      if (probeRef.current) {
+        probeRef.current.onload = null
+        probeRef.current.onerror = null
+      }
+    }
+  }, [])
 
-    // If already loaded before, show immediately
+  // Lazy load via IntersectionObserver (skip if already cached)
+  useEffect(() => {
     if (loadedImages.has(src)) {
       setIsInView(true)
-      setIsLoaded(true)
       return
     }
-
+    const node = imgRef.current
+    if (!node) return
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -53,91 +50,95 @@ export default function GameImage({ src, alt, className }) {
       },
       { rootMargin: '300px', threshold: 0.01 }
     )
-
-    if (imgRef.current) {
-      observer.observe(imgRef.current)
-    }
-
-    return () => {
-      isMountedRef.current = false
-      observer.disconnect()
-      if (retryTimeoutRef.current) {
-        clearTimeout(retryTimeoutRef.current)
-      }
-    }
+    observer.observe(node)
+    return () => observer.disconnect()
   }, [src])
 
-  // Reset state when src changes
+  // Reset when src changes
   useEffect(() => {
-    if (loadedImages.has(src)) {
-      setIsLoaded(true)
-      setHasError(false)
-      setCurrentSrc(src)
-    } else {
-      setIsLoaded(false)
-      setHasError(false)
-      setRetryCount(0)
-      setCurrentSrc(src)
-    }
+    retryCountRef.current = 0
+    if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current)
 
-    if (retryTimeoutRef.current) {
-      clearTimeout(retryTimeoutRef.current)
+    if (loadedImages.has(src)) {
+      setDisplaySrc(src)
+      setIsLoaded(true)
+      setShowingPlaceholder(false)
+    } else {
+      setDisplaySrc(isValidSrc ? src : PLACEHOLDER)
+      setIsLoaded(false)
+      setShowingPlaceholder(!isValidSrc)
     }
-  }, [src])
+  }, [src, isValidSrc])
 
   const handleLoad = () => {
     if (!isMountedRef.current) return
-
-    setIsLoaded(true)
-    setHasError(false)
-
-    // Remember this image loaded successfully
-    if (isValidSrc) {
-      loadedImages.add(src)
+    if (displaySrc === PLACEHOLDER) {
+      setIsLoaded(true)
+      return
     }
+    setIsLoaded(true)
+    setShowingPlaceholder(false)
+    if (isValidSrc) loadedImages.add(src)
+  }
+
+  // Background probe — fetches the real URL using a new Image() with cache-busted URL.
+  // Once it succeeds, swap the displayed img to the real src.
+  const scheduleProbe = () => {
+    if (!isMountedRef.current || !isValidSrc) return
+
+    const attempt = retryCountRef.current
+    // Backoff: 1s, 2s, 4s, 8s, capped at 15s, forever
+    const delay = Math.min(1000 * Math.pow(2, attempt), 15000)
+
+    retryTimeoutRef.current = setTimeout(() => {
+      if (!isMountedRef.current) return
+
+      const probe = new Image()
+      probeRef.current = probe
+      // Cache buster to force the browser to re-fetch instead of returning the cached failure
+      const probeUrl = `${src}${src.includes('?') ? '&' : '?'}_r=${Date.now()}`
+
+      probe.onload = () => {
+        if (!isMountedRef.current) return
+        loadedImages.add(src)
+        setDisplaySrc(src)
+        setShowingPlaceholder(false)
+        setIsLoaded(true)
+      }
+      probe.onerror = () => {
+        if (!isMountedRef.current) return
+        retryCountRef.current += 1
+        scheduleProbe()
+      }
+      probe.src = probeUrl
+    }, delay)
   }
 
   const handleError = () => {
     if (!isMountedRef.current) return
-
-    if (isValidSrc) {
-      // Keep retrying with exponential backoff, max 10 seconds between retries
-      // Retries: 1s, 2s, 3s, 4s, 5s, 6s, 7s, 8s, 9s, 10s, 10s, 10s...
-      const delay = Math.min(1000 + (retryCount * 1000), 10000)
-
-      retryTimeoutRef.current = setTimeout(() => {
-        if (isMountedRef.current) {
-          // Force image reload by briefly clearing src then setting it back
-          setCurrentSrc('')
-          setTimeout(() => {
-            if (isMountedRef.current) {
-              setCurrentSrc(src)
-              setRetryCount(prev => prev + 1)
-            }
-          }, 50)
-        }
-      }, delay)
-    } else {
-      // Invalid src - show placeholder
-      setHasError(true)
-      setCurrentSrc(PLACEHOLDER)
+    if (!isValidSrc) {
+      setShowingPlaceholder(true)
+      setDisplaySrc(PLACEHOLDER)
       setIsLoaded(true)
+      return
     }
+    // Real image failed — fall back to placeholder visually and start background probing
+    setDisplaySrc(PLACEHOLDER)
+    setShowingPlaceholder(true)
+    setIsLoaded(true)
+    scheduleProbe()
   }
 
-  // Determine what to display
-  const displaySrc = isValidSrc ? currentSrc : PLACEHOLDER
-
-  // Show loading state if we're retrying
-  const isRetrying = retryCount > 0 && !isLoaded && isValidSrc
-
   return (
-    <div ref={imgRef} className={`game-image-container ${isLoaded ? 'loaded' : ''} ${isRetrying ? 'retrying' : ''}`}>
+    <div
+      ref={imgRef}
+      className={`game-image-container ${isLoaded ? 'loaded' : ''} ${showingPlaceholder ? 'placeholder-fallback' : ''}`}
+    >
       {isInView && displaySrc ? (
         <img
           src={displaySrc}
           alt={alt}
-          className={`${className} ${hasError ? 'error' : ''}`}
+          className={className}
           onLoad={handleLoad}
           onError={handleError}
           loading="lazy"
@@ -147,20 +148,11 @@ export default function GameImage({ src, alt, className }) {
       ) : (
         <div className="game-image-placeholder" />
       )}
-      {/* Show loader when loading or retrying */}
-      {!isLoaded && isInView && (
-        <div className="game-image-loader">
-          {isRetrying && <span className="retry-count">Retry {retryCount}</span>}
-        </div>
-      )}
+      {!isLoaded && isInView && <div className="game-image-loader" />}
     </div>
   )
 }
 
-/**
- * Preload game images in the background
- * Uses Image() objects which respect browser cache
- */
 export const preloadGameImages = (urls) => {
   if (!urls || !Array.isArray(urls)) return
 
@@ -168,24 +160,21 @@ export const preloadGameImages = (urls) => {
     url &&
     url !== 'undefined' &&
     url !== 'null' &&
-    url !== '/placeholder-game.png' &&
+    url !== PLACEHOLDER &&
     !loadedImages.has(url) &&
     !preloadingImages.has(url)
   )
 
-  // Preload in small batches to avoid overwhelming the browser
   const BATCH_SIZE = 4
   let currentBatch = 0
 
   const loadBatch = () => {
     const start = currentBatch * BATCH_SIZE
     const batch = validUrls.slice(start, start + BATCH_SIZE)
-
     if (batch.length === 0) return
 
     batch.forEach(url => {
       preloadingImages.add(url)
-
       const img = new Image()
       img.onload = () => {
         loadedImages.add(url)
@@ -198,13 +187,10 @@ export const preloadGameImages = (urls) => {
     })
 
     currentBatch++
-
-    // Load next batch after a short delay
     if (start + BATCH_SIZE < validUrls.length) {
       setTimeout(loadBatch, 200)
     }
   }
 
-  // Start preloading after a short delay to not block initial render
   setTimeout(loadBatch, 100)
 }
