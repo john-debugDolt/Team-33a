@@ -53,6 +53,7 @@ const Settings = lazyWithRetry(() => import('./pages/Settings'))
 const Terms = lazyWithRetry(() => import('./pages/Terms'))
 const ForgotPassword = lazyWithRetry(() => import('./pages/ForgotPassword'))
 const ReferFriend = lazyWithRetry(() => import('./pages/ReferFriend'))
+const DownloadApp = lazyWithRetry(() => import('./pages/DownloadApp'))
 
 // Error boundary for catching lazy load failures
 class ErrorBoundary extends Component {
@@ -153,6 +154,7 @@ function App() {
               <Route path="/history" element={<WithLayout><History /></WithLayout>} />
               <Route path="/settings" element={<WithLayout><Settings /></WithLayout>} />
               <Route path="/refer" element={<WithLayout><ReferFriend /></WithLayout>} />
+              <Route path="/app" element={<WithLayout><DownloadApp /></WithLayout>} />
               </Routes>
             </Suspense>
           </Router>
