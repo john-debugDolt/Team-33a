@@ -51,7 +51,7 @@ export default function AceWin() {
     const loadGames = async () => {
       setLoading(true)
       try {
-        const result = await getAllAceWinGames()
+        const result = await getAllAceWinGames(acewinLogo)
         console.log('[AceWin] Loaded:', result?.length || 0)
         if (result && result.length > 0) {
           setGames(result)
