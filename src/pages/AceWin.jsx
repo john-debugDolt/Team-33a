@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllAceWinGames, exitAceWinGame, launchAceWinGame } from '../services/acewinTransferService'
+import { getAllJDBGames } from '../services/jdbTransferService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -51,8 +52,30 @@ export default function AceWin() {
     const loadGames = async () => {
       setLoading(true)
       try {
-        const result = await getAllAceWinGames(acewinLogo)
-        console.log('[AceWin] Loaded:', result?.length || 0)
+        // AceWin's catalogue ships no thumbnails. Borrow images from JDB
+        // (which has hundreds of real game images) and assign them
+        // deterministically by GameId so each AceWin game keeps the same
+        // image across renders.
+        const [acewinGames, jdbGames] = await Promise.all([
+          getAllAceWinGames(acewinLogo),
+          getAllJDBGames().catch(() => []),
+        ])
+
+        const imagePool = (jdbGames || [])
+          .map(g => g.image)
+          .filter(src => src && src !== '/placeholder-game.png')
+
+        let result = acewinGames
+        if (result && result.length > 0 && imagePool.length > 0) {
+          result = result.map(g => {
+            const idx = Math.abs(Number(g.gameId) || 0) % imagePool.length
+            const img = imagePool[idx]
+            return { ...g, image: img, portraitImage: img, squareImage: img }
+          })
+        }
+
+        console.log('[AceWin] Loaded:', result?.length || 0, '| image pool:', imagePool.length)
+
         if (result && result.length > 0) {
           setGames(result)
         } else {
