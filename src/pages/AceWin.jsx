@@ -46,7 +46,15 @@ export default function AceWin() {
   const [embeddedGame, setEmbeddedGame] = useState(null)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
 
-  const { bar, filteredGames } = useCategoryAndSort(games)
+  const { bar, filteredGames } = useCategoryAndSort(games, {
+    labels: {
+      '1': 'Slots',
+      '3': 'Adventure',
+      '5': 'Fishing',
+      '7': 'Arcade',
+      '8': 'Bingo',
+    },
+  })
 
   useEffect(() => {
     const loadGames = async () => {
