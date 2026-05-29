@@ -13,6 +13,22 @@ import GameCard from '../components/GameCard/GameCard'
 import { useCategoryAndSort } from '../components/CategorySortBar/CategorySortBar'
 import acewinLogo from '../images/acewinlogo.jpg'
 
+// Synthetic lobby tile used when the upstream catalogue is unavailable.
+// gameId=1 is the AceWin lobby — players can still play.
+const LOBBY_FALLBACK = {
+  id: 'acewin-lobby',
+  gameId: 1,
+  slug: 'acewin-lobby',
+  name: 'AceWin Lobby',
+  provider: 'AceWin',
+  image: acewinLogo,
+  portraitImage: acewinLogo,
+  squareImage: acewinLogo,
+  category: 'lobby',
+  isAceWin: true,
+  providerType: 'transfer',
+}
+
 // MYR to transfer into AceWin on launch. Backend caps at 100k. We pick a
 // modest default; could be wired to a deposit modal later.
 const DEFAULT_LAUNCH_AMOUNT = 100
@@ -37,9 +53,16 @@ export default function AceWin() {
       try {
         const result = await getAllAceWinGames()
         console.log('[AceWin] Loaded:', result?.length || 0)
-        if (result && result.length > 0) setGames(result)
+        if (result && result.length > 0) {
+          setGames(result)
+        } else {
+          // Backend catalogue unavailable — surface a lobby tile so the
+          // player can still launch the game directly.
+          setGames([LOBBY_FALLBACK])
+        }
       } catch (e) {
         console.error('[AceWin] Error:', e)
+        setGames([LOBBY_FALLBACK])
       }
       setLoading(false)
     }
