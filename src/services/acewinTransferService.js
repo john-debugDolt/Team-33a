@@ -37,9 +37,21 @@ const resolveAccountId = (accountId) => {
   }
 }
 
-const transformGame = (game) => {
-  const name = game.gameName || game.GameName || game.name || 'AceWin Game'
+// AceWin catalogue returns name as a localized object: {en-US, zh-CN, zh-TW}.
+const pickName = (raw) => {
+  if (!raw) return 'AceWin Game'
+  if (typeof raw === 'string') return raw
+  if (typeof raw === 'object') {
+    return raw['en-US'] || raw['en-us'] || raw.en || Object.values(raw)[0] || 'AceWin Game'
+  }
+  return String(raw)
+}
+
+const transformGame = (game, defaultImage) => {
+  const name = pickName(game.gameName || game.GameName || game.name)
   const gameId = game.gameId ?? game.GameId ?? game.id
+  const categoryId = game.GameCategoryId ?? game.gameCategoryId ?? game.category
+  const image = game.imageUrl || game.ImageUrl || game.image || defaultImage || '/placeholder-game.png'
 
   return {
     id: `acewin-${gameId}`,
@@ -47,13 +59,13 @@ const transformGame = (game) => {
     slug: `acewin-${gameId}`,
     name,
     provider: 'AceWin',
-    image: game.imageUrl || game.ImageUrl || game.image || '/placeholder-game.png',
-    portraitImage: game.imageUrl || game.ImageUrl || '/placeholder-game.png',
-    squareImage: game.imageUrl || game.ImageUrl || '/placeholder-game.png',
-    category: (game.gameType || game.GameType || game.category || 'slot').toString().toLowerCase(),
-    rawCategory: game.gameType ?? game.GameType ?? game.category ?? null,
-    isHot: game.isHot || false,
-    isNew: game.isNew || false,
+    image,
+    portraitImage: image,
+    squareImage: image,
+    category: (game.gameType || game.GameType || categoryId || 'slot').toString().toLowerCase(),
+    rawCategory: categoryId ?? null,
+    isHot: !!game.JP,
+    isNew: false,
     rating: 4.5,
     playCount: Math.floor(Math.random() * 25000) + 5000,
     description: `Play ${name} on AceWin.`,
@@ -68,7 +80,7 @@ const transformGame = (game) => {
   }
 }
 
-export const fetchAceWinGames = async () => {
+export const fetchAceWinGames = async (defaultImage) => {
   try {
     const urls = [`${BASE_URL}/api/acewin-transfer/games`, `/api/acewin-transfer/games`]
     for (const url of urls) {
@@ -78,12 +90,17 @@ export const fetchAceWinGames = async () => {
         const text = await response.text()
         if (!text || text.startsWith('<!')) continue
         const data = JSON.parse(text)
-        // AceWin can wrap in { Data: [...] } or return arrays directly
+        // Backend wraps the upstream envelope. Real games are in data.Data (array).
+        // If upstream fails it returns ErrorCode 9999 with Data:null.
+        if (data?.ErrorCode === 9999 || data?.success === false) {
+          console.warn('[AceWinService] upstream catalogue error:', data?.Message)
+          continue
+        }
         let games = Array.isArray(data)
           ? data
           : (data.Data?.GameList || data.Data || data.games || data.gameList || [])
         if (Array.isArray(games) && games.length > 0) {
-          return { success: true, games: games.map(transformGame) }
+          return { success: true, games: games.map(g => transformGame(g, defaultImage)) }
         }
       } catch (err) {
         console.warn('[AceWinService] games fetch error:', err.message)
@@ -95,11 +112,11 @@ export const fetchAceWinGames = async () => {
   }
 }
 
-export const getAllAceWinGames = async () => {
+export const getAllAceWinGames = async (defaultImage) => {
   if (cachedGames && cacheTimestamp && Date.now() - cacheTimestamp < CACHE_DURATION) {
     return cachedGames
   }
-  const result = await fetchAceWinGames()
+  const result = await fetchAceWinGames(defaultImage)
   if (result.success && result.games.length > 0) {
     cachedGames = result.games
     cacheTimestamp = Date.now()
