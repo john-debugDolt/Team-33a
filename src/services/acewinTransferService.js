@@ -1,0 +1,259 @@
+/**
+ * AceWin (Macross) Transfer Wallet Service
+ * Base: /api/acewin-transfer
+ * Endpoints: /games, /launch, /withdraw, /exit, /balance, /deposit, /health
+ *
+ * Transfer wallet semantics: player chips live on AceWin's side.
+ * /launch optionally deposits, /exit (or /withdraw) returns chips to main wallet.
+ * Backend auto-withdraws after ~20 min as a safety net.
+ */
+
+const BASE_URL = 'https://seamless.team33.mx'
+
+let cachedGames = null
+let cacheTimestamp = null
+const CACHE_DURATION = 5 * 60 * 1000
+
+const fetchWithTimeout = async (url, options = {}, timeout = 20000) => {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeout)
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal })
+    clearTimeout(timeoutId)
+    return response
+  } catch (error) {
+    clearTimeout(timeoutId)
+    throw error
+  }
+}
+
+const resolveAccountId = (accountId) => {
+  if (accountId) return accountId
+  try {
+    const user = JSON.parse(localStorage.getItem('team33_user') || localStorage.getItem('user') || '{}')
+    return user.accountId
+  } catch {
+    return null
+  }
+}
+
+const transformGame = (game) => {
+  const name = game.gameName || game.GameName || game.name || 'AceWin Game'
+  const gameId = game.gameId ?? game.GameId ?? game.id
+
+  return {
+    id: `acewin-${gameId}`,
+    gameId,
+    slug: `acewin-${gameId}`,
+    name,
+    provider: 'AceWin',
+    image: game.imageUrl || game.ImageUrl || game.image || '/placeholder-game.png',
+    portraitImage: game.imageUrl || game.ImageUrl || '/placeholder-game.png',
+    squareImage: game.imageUrl || game.ImageUrl || '/placeholder-game.png',
+    category: (game.gameType || game.GameType || game.category || 'slot').toString().toLowerCase(),
+    rawCategory: game.gameType ?? game.GameType ?? game.category ?? null,
+    isHot: game.isHot || false,
+    isNew: game.isNew || false,
+    rating: 4.5,
+    playCount: Math.floor(Math.random() * 25000) + 5000,
+    description: `Play ${name} on AceWin.`,
+    rtp: 96.5,
+    volatility: 'Medium',
+    minBet: 0.10,
+    maxBet: 100,
+    features: ['Free Spins', 'Wild Symbols'],
+    isAceWin: true,
+    providerType: 'transfer',
+    originalData: game,
+  }
+}
+
+export const fetchAceWinGames = async () => {
+  try {
+    const urls = [`${BASE_URL}/api/acewin-transfer/games`, `/api/acewin-transfer/games`]
+    for (const url of urls) {
+      try {
+        const response = await fetchWithTimeout(url)
+        if (!response.ok) continue
+        const text = await response.text()
+        if (!text || text.startsWith('<!')) continue
+        const data = JSON.parse(text)
+        // AceWin can wrap in { Data: [...] } or return arrays directly
+        let games = Array.isArray(data)
+          ? data
+          : (data.Data?.GameList || data.Data || data.games || data.gameList || [])
+        if (Array.isArray(games) && games.length > 0) {
+          return { success: true, games: games.map(transformGame) }
+        }
+      } catch (err) {
+        console.warn('[AceWinService] games fetch error:', err.message)
+      }
+    }
+    return { success: false, games: [], error: 'No games returned' }
+  } catch (error) {
+    return { success: false, games: [], error: error.message }
+  }
+}
+
+export const getAllAceWinGames = async () => {
+  if (cachedGames && cacheTimestamp && Date.now() - cacheTimestamp < CACHE_DURATION) {
+    return cachedGames
+  }
+  const result = await fetchAceWinGames()
+  if (result.success && result.games.length > 0) {
+    cachedGames = result.games
+    cacheTimestamp = Date.now()
+    return result.games
+  }
+  return []
+}
+
+/**
+ * Launch a game session. Optionally deposits `amount` MYR into AceWin
+ * atomically, then returns a single-use SSO URL (gameUrl).
+ */
+export const launchAceWinGame = async (game, accountId, options = {}) => {
+  try {
+    accountId = resolveAccountId(accountId)
+    if (!accountId) return { success: false, error: 'Please login to play' }
+
+    const params = new URLSearchParams({ accountId })
+    if (options.amount !== undefined && options.amount !== null) {
+      params.set('amount', String(options.amount))
+    }
+    const gameId = game?.gameId ?? options.gameId
+    if (gameId !== undefined && gameId !== null && gameId !== '') {
+      params.set('gameId', String(gameId))
+    }
+    params.set('lang', options.lang || 'en-us')
+
+    const url = `${BASE_URL}/api/acewin-transfer/launch?${params}`
+    const response = await fetchWithTimeout(url, { method: 'POST' })
+    if (!response.ok) {
+      return { success: false, error: `Launch failed (HTTP ${response.status})` }
+    }
+    const data = await response.json()
+    const gameUrl = data.gameUrl || data.url
+    if (data.success && gameUrl) {
+      return { success: true, gameUrl, ...data }
+    }
+    return {
+      success: false,
+      error: data.message || `Launch failed (code ${data.errorCode})`,
+      errorCode: data.errorCode,
+      ...data,
+    }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Withdraw chips from AceWin back to main wallet.
+ * Omit `amount` for withdraw-all (the normal case on exit).
+ */
+export const withdrawAceWin = async (accountId, amount) => {
+  try {
+    accountId = resolveAccountId(accountId)
+    if (!accountId) return { success: false, error: 'No account ID' }
+
+    const params = new URLSearchParams({ accountId })
+    if (amount !== undefined && amount !== null) params.set('amount', String(amount))
+
+    const response = await fetchWithTimeout(
+      `${BASE_URL}/api/acewin-transfer/withdraw?${params}`,
+      { method: 'POST' }
+    )
+    if (!response.ok) return { success: false, error: `Withdraw failed (HTTP ${response.status})` }
+    const data = await response.json()
+    if (data.success && data.ErrorCode === 0) return { success: true, ...data }
+    return { success: false, error: data.Message || `Withdraw failed (code ${data.ErrorCode})`, ...data }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Kick + withdraw-all. Use on explicit exit / logout.
+ */
+export const exitAceWinGame = async (accountId) => {
+  try {
+    accountId = resolveAccountId(accountId)
+    if (!accountId) return { success: false, error: 'No account ID' }
+
+    const response = await fetchWithTimeout(
+      `${BASE_URL}/api/acewin-transfer/exit?accountId=${accountId}`,
+      { method: 'POST' }
+    )
+    if (!response.ok) return { success: false, error: `Exit failed (HTTP ${response.status})` }
+    const data = await response.json()
+    if (data.success && data.ErrorCode === 0) return { success: true, ...data }
+    return { success: false, error: data.Message || `Exit failed (code ${data.ErrorCode})`, ...data }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+}
+
+export const getAceWinBalance = async (accountId) => {
+  try {
+    accountId = resolveAccountId(accountId)
+    if (!accountId) return { success: false, error: 'No account ID' }
+
+    const response = await fetchWithTimeout(
+      `${BASE_URL}/api/acewin-transfer/balance?accountId=${accountId}`
+    )
+    if (!response.ok) return { success: false, error: 'Failed to get balance' }
+    const data = await response.json()
+    if (data.status === '0000') {
+      return {
+        success: true,
+        balance: data.balance ?? 0,
+        memberStatus: data.memberStatus,
+        online: data.online,
+        acewinAccount: data.acewinAccount,
+        ...data,
+      }
+    }
+    return { success: false, error: `Balance fetch failed (${data.status})` }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+}
+
+export const depositToAceWin = async (accountId, amount) => {
+  try {
+    accountId = resolveAccountId(accountId)
+    if (!accountId) return { success: false, error: 'No account ID' }
+    if (!amount || amount <= 0) return { success: false, error: 'Amount required' }
+
+    const params = new URLSearchParams({ accountId, amount: String(amount) })
+    const response = await fetchWithTimeout(
+      `${BASE_URL}/api/acewin-transfer/deposit?${params}`,
+      { method: 'POST' }
+    )
+    if (!response.ok) return { success: false, error: `Deposit failed (HTTP ${response.status})` }
+    const data = await response.json()
+    if (data.success && data.ErrorCode === 0) return { success: true, ...data }
+    return { success: false, error: data.Message || `Deposit failed (code ${data.ErrorCode})`, ...data }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+}
+
+export const clearAceWinCache = () => {
+  cachedGames = null
+  cacheTimestamp = null
+}
+
+export const acewinTransferService = {
+  fetchGames: fetchAceWinGames,
+  getAllGames: getAllAceWinGames,
+  launchGame: launchAceWinGame,
+  exitGame: exitAceWinGame,
+  withdraw: withdrawAceWin,
+  deposit: depositToAceWin,
+  getBalance: getAceWinBalance,
+  clearCache: clearAceWinCache,
+}
+
+export default acewinTransferService
