@@ -8,6 +8,7 @@ import logo from '../images/team33newlogo.png'
 import loginBtnImg from '../images/login new.png'
 import signupBtnImg from '../images/signup new.png'
 import iconHome from '../images/icon-home.svg'
+import iconSports from '../images/icon-sports.svg'
 import iconHistory from '../images/icon-history.svg'
 import iconPromo from '../images/icon-promo.svg'
 import iconLivechat from '../images/icon-livechat.svg'
@@ -28,6 +29,7 @@ import certLogo from '../cert/cert.png'
 
 const navItemsConfig = [
   { key: 'home', path: '/', icon: iconHome },
+  { key: 'sports', path: '/sports', icon: iconSports },
   { key: 'wallet', path: '/wallet', icon: iconWallet },
   { key: 'refer', path: '/refer', icon: iconRefer },
   { key: 'history', path: '/history', icon: iconHistory },
