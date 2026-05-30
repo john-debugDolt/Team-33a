@@ -14,6 +14,7 @@ import { getAllJDBGames } from '../services/jdbTransferService'
 import { getAllFunTaGames } from '../services/funtaGamingService'
 import { getAllDragoonSoftGames } from '../services/dragoonSoftService'
 import { getAllVPowerGames } from '../services/vpowerService'
+import { getAllWin8Games } from '../services/win8Service'
 import { apiClient } from '../services/api'
 import { walletService } from '../services/walletService'
 import { bonusService } from '../services/bonusService'
@@ -159,6 +160,7 @@ export default function Home() {
   const [funtaGames, setFuntaGames] = useState([])
   const [dragoonGames, setDragoonGames] = useState([])
   const [vpowerGames, setVpowerGames] = useState([])
+  const [win8Games, setWin8Games] = useState([])
 
   // Mixed games pool and display state
   const [allMixedGames, setAllMixedGames] = useState([])
@@ -308,7 +310,7 @@ export default function Home() {
     const allGames = [
       ...advantPlayGames, ...uuSlotGames, ...evo888h5Games, ...clotPlayGames,
       ...metaGamingGames, ...wfGamingGames, ...megaH5Games, ...epicWinGames,
-      ...richGamingGames, ...scr888h5Games, ...jdbGames, ...funtaGames, ...dragoonGames, ...vpowerGames
+      ...richGamingGames, ...scr888h5Games, ...jdbGames, ...funtaGames, ...dragoonGames, ...vpowerGames, ...win8Games
     ]
     const hasSeenPromo = sessionStorage.getItem('hasSeenPromo')
     if (!hasSeenPromo && allGames.length > 0) {
@@ -326,14 +328,14 @@ export default function Home() {
       }, 1500)
       return () => clearTimeout(timer)
     }
-  }, [advantPlayGames, uuSlotGames, evo888h5Games, clotPlayGames, metaGamingGames, wfGamingGames, megaH5Games, epicWinGames, richGamingGames, scr888h5Games, jdbGames, funtaGames, dragoonGames, vpowerGames])
+  }, [advantPlayGames, uuSlotGames, evo888h5Games, clotPlayGames, metaGamingGames, wfGamingGames, megaH5Games, epicWinGames, richGamingGames, scr888h5Games, jdbGames, funtaGames, dragoonGames, vpowerGames, win8Games])
 
   // Generate live transactions
   useEffect(() => {
     const allGames = [
       ...advantPlayGames, ...uuSlotGames, ...evo888h5Games, ...clotPlayGames,
       ...metaGamingGames, ...wfGamingGames, ...megaH5Games, ...epicWinGames,
-      ...richGamingGames, ...scr888h5Games, ...jdbGames, ...funtaGames, ...dragoonGames, ...vpowerGames
+      ...richGamingGames, ...scr888h5Games, ...jdbGames, ...funtaGames, ...dragoonGames, ...vpowerGames, ...win8Games
     ]
     // Diverse names from around the world
     const userNames = [
@@ -411,7 +413,7 @@ export default function Home() {
     }, 6000 + Math.random() * 4000)
 
     return () => clearInterval(interval)
-  }, [advantPlayGames, uuSlotGames, evo888h5Games, clotPlayGames, metaGamingGames, wfGamingGames, megaH5Games, epicWinGames, richGamingGames, scr888h5Games, jdbGames, funtaGames, dragoonGames, vpowerGames])
+  }, [advantPlayGames, uuSlotGames, evo888h5Games, clotPlayGames, metaGamingGames, wfGamingGames, megaH5Games, epicWinGames, richGamingGames, scr888h5Games, jdbGames, funtaGames, dragoonGames, vpowerGames, win8Games])
 
   // Load favorites and recently played from localStorage
   useEffect(() => {
@@ -528,6 +530,7 @@ export default function Home() {
       time('FunTa', () => getAllFunTaGames(funtaLogo), (g) => g?.length > 0 && setFuntaGames(g)),
       time('DragoonSoft', () => getAllDragoonSoftGames(dragoonLogo), (g) => g?.length > 0 && setDragoonGames(g)),
       time('VPower', () => getAllVPowerGames(vpowerLogo), (g) => g?.length > 0 && setVpowerGames(g)),
+      time('3win8', getAllWin8Games, (g) => g?.length > 0 && setWin8Games(g)),
     ]
 
     Promise.allSettled(all).then(() => {
@@ -558,7 +561,7 @@ export default function Home() {
     const allProviderGames = [
       advantPlayGames, uuSlotGames, evo888h5Games, clotPlayGames,
       metaGamingGames, wfGamingGames, megaH5Games, epicWinGames,
-      richGamingGames, scr888h5Games, jdbGames, funtaGames, dragoonGames, vpowerGames
+      richGamingGames, scr888h5Games, jdbGames, funtaGames, dragoonGames, vpowerGames, win8Games
     ]
     const totalOriginal = allProviderGames.reduce((sum, games) => sum + games.length, 0)
     if (totalOriginal === 0) return
@@ -578,12 +581,13 @@ export default function Home() {
     const expandedFunta = expandGames(funtaGames, Math.ceil(TOTAL_DISPLAY_COUNT * (funtaGames.length / totalOriginal)), 'funta')
     const expandedDragoon = expandGames(dragoonGames, Math.ceil(TOTAL_DISPLAY_COUNT * (dragoonGames.length / totalOriginal)), 'dragoon')
     const expandedVpower = expandGames(vpowerGames, Math.ceil(TOTAL_DISPLAY_COUNT * (vpowerGames.length / totalOriginal)), 'vpower')
+    const expandedWin8 = expandGames(win8Games, Math.ceil(TOTAL_DISPLAY_COUNT * (win8Games.length / totalOriginal)), 'win8')
 
     // Mix all games and shuffle
     const allExpanded = shuffleArray([
       ...expandedAdvant, ...expandedUU, ...expandedEvo, ...expandedClot,
       ...expandedMeta, ...expandedWF, ...expandedMegaH5, ...expandedEpic,
-      ...expandedRich, ...expandedSCR, ...expandedJDB, ...expandedFunta, ...expandedDragoon, ...expandedVpower
+      ...expandedRich, ...expandedSCR, ...expandedJDB, ...expandedFunta, ...expandedDragoon, ...expandedVpower, ...expandedWin8
     ])
 
     // Take exactly TOTAL_DISPLAY_COUNT games
@@ -593,7 +597,7 @@ export default function Home() {
     setVisibleCount(GAMES_PER_LOAD)
 
     console.log(`[Home] Created ${finalGames.length} mixed games from ${totalOriginal} originals`)
-  }, [advantPlayGames, uuSlotGames, evo888h5Games, clotPlayGames, metaGamingGames, wfGamingGames, megaH5Games, epicWinGames, richGamingGames, scr888h5Games, jdbGames, funtaGames, dragoonGames, vpowerGames])
+  }, [advantPlayGames, uuSlotGames, evo888h5Games, clotPlayGames, metaGamingGames, wfGamingGames, megaH5Games, epicWinGames, richGamingGames, scr888h5Games, jdbGames, funtaGames, dragoonGames, vpowerGames, win8Games])
 
   // Games filtered by the currently selected category chip. The mixed pool
   // can have ~12k entries, so we recompute only when the pool or filter
@@ -861,14 +865,14 @@ export default function Home() {
       )}
 
       {/* Favorites Section */}
-      {favorites.length > 0 && (advantPlayGames.length > 0 || uuSlotGames.length > 0 || evo888h5Games.length > 0 || clotPlayGames.length > 0 || metaGamingGames.length > 0 || wfGamingGames.length > 0 || megaH5Games.length > 0 || epicWinGames.length > 0 || richGamingGames.length > 0 || scr888h5Games.length > 0 || jdbGames.length > 0 || funtaGames.length > 0 || dragoonGames.length > 0 || vpowerGames.length > 0) && (
+      {favorites.length > 0 && (advantPlayGames.length > 0 || uuSlotGames.length > 0 || evo888h5Games.length > 0 || clotPlayGames.length > 0 || metaGamingGames.length > 0 || wfGamingGames.length > 0 || megaH5Games.length > 0 || epicWinGames.length > 0 || richGamingGames.length > 0 || scr888h5Games.length > 0 || jdbGames.length > 0 || funtaGames.length > 0 || dragoonGames.length > 0 || vpowerGames.length > 0 || win8Games.length > 0) && (
         <div className="favorites-section">
           <h3 className="section-title-home">
             <span className="title-icon">❤️</span>
             My Favorites
           </h3>
           <div className="favorites-games-scroll">
-            {[...advantPlayGames, ...uuSlotGames, ...evo888h5Games, ...clotPlayGames, ...metaGamingGames, ...wfGamingGames, ...megaH5Games, ...epicWinGames, ...richGamingGames, ...scr888h5Games, ...jdbGames, ...funtaGames, ...dragoonGames, ...vpowerGames].filter(g => favorites.includes(g.id)).map(game => (
+            {[...advantPlayGames, ...uuSlotGames, ...evo888h5Games, ...clotPlayGames, ...metaGamingGames, ...wfGamingGames, ...megaH5Games, ...epicWinGames, ...richGamingGames, ...scr888h5Games, ...jdbGames, ...funtaGames, ...dragoonGames, ...vpowerGames, ...win8Games].filter(g => favorites.includes(g.id)).map(game => (
               <div
                 key={game.id}
                 className="favorite-game-card"

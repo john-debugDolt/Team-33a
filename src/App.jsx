@@ -47,6 +47,7 @@ const AceWin = lazyWithRetry(() => import('./pages/AceWin'))
 const FunTa = lazyWithRetry(() => import('./pages/FunTa'))
 const DragoonSoft = lazyWithRetry(() => import('./pages/DragoonSoft'))
 const VPower = lazyWithRetry(() => import('./pages/VPower'))
+const Win8 = lazyWithRetry(() => import('./pages/Win8'))
 const Promotions = lazyWithRetry(() => import('./pages/Promotions'))
 const Login = lazyWithRetry(() => import('./pages/Login'))
 const Signup = lazyWithRetry(() => import('./pages/Signup'))
@@ -150,6 +151,7 @@ function App() {
               <Route path="/funta" element={<WithLayout><FunTa /></WithLayout>} />
               <Route path="/dragoon" element={<WithLayout><DragoonSoft /></WithLayout>} />
               <Route path="/vpower" element={<WithLayout><VPower /></WithLayout>} />
+              <Route path="/3win8" element={<WithLayout><Win8 /></WithLayout>} />
               <Route path="/card-game" element={<WithLayout><Slot /></WithLayout>} />
               <Route path="/fishing" element={<WithLayout><Slot /></WithLayout>} />
               <Route path="/esport" element={<WithLayout><Sports /></WithLayout>} />
