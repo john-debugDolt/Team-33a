@@ -13,11 +13,6 @@ const DEFAULT_LAUNCH_AMOUNT = 100
 
 const sportsProviders = [
   { id: 'M8BET', name: 'M8BET', tagline: 'Sports Betting', image: m8betLogo, brandLogo: true, wired: true },
-  { id: 'BTI', name: 'BTI', image: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/provider-banner/sport_BTI.png' },
-  { id: 'SBO', name: 'SBO', image: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/provider-banner/sport_SBO.png' },
-  { id: 'CMD', name: 'CMD', image: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/provider-banner/sport_CMD.png' },
-  { id: '3SING', name: '3SING', image: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/provider-banner/sport_3SING.png' },
-  { id: 'UG', name: 'UG', image: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/provider-banner/sport_UG.png' },
 ]
 
 export default function Sports() {
@@ -25,7 +20,6 @@ export default function Sports() {
   const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
   const { showToast } = useToast()
 
-  const [activeProvider, setActiveProvider] = useState('M8BET')
   const [launching, setLaunching] = useState(null)
   const [embeddedGame, setEmbeddedGame] = useState(null)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
@@ -69,11 +63,7 @@ export default function Sports() {
   }
 
   const handleProviderClick = (provider) => {
-    if (provider.id === 'M8BET') {
-      handleM8BetLaunch()
-    } else {
-      showToast(`${provider.name} coming soon`, 'info')
-    }
+    if (provider.id === 'M8BET') handleM8BetLaunch()
   }
 
   const closeGame = async () => {
@@ -110,19 +100,6 @@ export default function Sports() {
         </div>
 
         <div className="sports-content">
-          {/* Provider Filter Tabs */}
-          <div className="sports-tabs">
-            {sportsProviders.map((provider) => (
-              <button
-                key={provider.id}
-                className={`sports-tab ${activeProvider === provider.id ? 'active' : ''}`}
-                onClick={() => setActiveProvider(provider.id)}
-              >
-                {provider.name}
-              </button>
-            ))}
-          </div>
-
           {/* Provider Cards Grid */}
           <div className="sports-providers-grid">
             {sportsProviders.map((provider) => (
