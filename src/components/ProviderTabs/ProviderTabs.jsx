@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import acewinLogo from '../../images/acewinlogo.jpg'
 import m8betLogo from '../../images/m8betlogo.jpg'
 import funtaLogo from '../../images/funtagaminglogo.jpg'
+import dragoonLogo from '../../images/dragoonsoftlogo.jpg'
 import './ProviderTabs.css'
 
 const PROVIDERS = [
@@ -20,6 +21,7 @@ const PROVIDERS = [
   { id: 'jdb', name: 'JDB', path: '/jdb', logo: 'https://imgs.search.brave.com/YduaC2JMbt9I_sC0tnmPzrYxRj4IT9J-OQvBmWd_wlc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9hc3Nl/dHMuc2xvdHNsYXVu/Y2guY29tLzMwNzI4/L0lzWGYzcWZFYjM4/VkcwYjVwb0JpWXpy/VFIyZmpjNS1tZXRh/U2tSQ1gweHZaMjlm/TXpBd2VETXdNQzVx/Y0djPS0uanBn' },
   { id: 'acewin', name: 'AceWin', path: '/acewin', logo: acewinLogo },
   { id: 'funta', name: 'FunTa', path: '/funta', logo: funtaLogo },
+  { id: 'dragoon', name: 'Dragoon Soft', path: '/dragoon', logo: dragoonLogo },
   { id: 'm8bet', name: 'M8BET', path: '/sports', logo: m8betLogo },
 ]
 
