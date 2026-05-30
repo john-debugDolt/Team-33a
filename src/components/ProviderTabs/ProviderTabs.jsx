@@ -22,6 +22,7 @@ const PROVIDERS = [
   { id: 'acewin', name: 'AceWin', path: '/acewin', logo: acewinLogo },
   { id: 'funta', name: 'FunTa', path: '/funta', logo: funtaLogo },
   { id: 'dragoon', name: 'Dragoon Soft', path: '/dragoon', logo: dragoonLogo },
+  { id: 'vpower', name: 'VPower', path: '/vpower', logo: null },
   { id: 'm8bet', name: 'M8BET', path: '/sports', logo: m8betLogo },
 ]
 
