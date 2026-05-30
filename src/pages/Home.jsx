@@ -29,6 +29,7 @@ import GamePortal from '../components/GamePortal'
 import funtaLogo from '../images/funtagaminglogo.jpg'
 import dragoonLogo from '../images/dragoonsoftlogo.jpg'
 import vpowerLogo from '../images/vpowerlogo.jpg'
+import win8Logo from '../images/win8logo.jpg'
 import bannerImg1 from '../images/banner-team33-1.png'
 import bannerImg2 from '../images/banner-team33-2.png'
 import bannerImg3 from '../images/banner-team33-3.png'
@@ -530,7 +531,7 @@ export default function Home() {
       time('FunTa', () => getAllFunTaGames(funtaLogo), (g) => g?.length > 0 && setFuntaGames(g)),
       time('DragoonSoft', () => getAllDragoonSoftGames(dragoonLogo), (g) => g?.length > 0 && setDragoonGames(g)),
       time('VPower', () => getAllVPowerGames(vpowerLogo), (g) => g?.length > 0 && setVpowerGames(g)),
-      time('3win8', getAllWin8Games, (g) => g?.length > 0 && setWin8Games(g)),
+      time('3win8', () => getAllWin8Games(win8Logo), (g) => g?.length > 0 && setWin8Games(g)),
     ]
 
     Promise.allSettled(all).then(() => {
