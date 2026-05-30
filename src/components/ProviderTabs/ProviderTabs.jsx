@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import acewinLogo from '../../images/acewinlogo.jpg'
+import m8betLogo from '../../images/m8betlogo.jpg'
 import './ProviderTabs.css'
 
 const PROVIDERS = [
@@ -17,6 +18,7 @@ const PROVIDERS = [
   { id: 'scr888h5', name: 'SCR888H5', path: '/scr888h5', logo: 'https://scr-888.com/logo.webp' },
   { id: 'jdb', name: 'JDB', path: '/jdb', logo: 'https://imgs.search.brave.com/YduaC2JMbt9I_sC0tnmPzrYxRj4IT9J-OQvBmWd_wlc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9hc3Nl/dHMuc2xvdHNsYXVu/Y2guY29tLzMwNzI4/L0lzWGYzcWZFYjM4/VkcwYjVwb0JpWXpy/VFIyZmpjNS1tZXRh/U2tSQ1gweHZaMjlm/TXpBd2VETXdNQzVx/Y0djPS0uanBn' },
   { id: 'acewin', name: 'AceWin', path: '/acewin', logo: acewinLogo },
+  { id: 'm8bet', name: 'M8BET', path: '/sports', logo: m8betLogo },
 ]
 
 function ProviderCard({ provider, isActive, onClick }) {
