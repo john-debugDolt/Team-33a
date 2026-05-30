@@ -6,6 +6,7 @@ import funtaLogo from '../../images/funtagaminglogo.jpg'
 import dragoonLogo from '../../images/dragoonsoftlogo.jpg'
 import vpowerLogo from '../../images/vpowerlogo.jpg'
 import allbetLogo from '../../images/allbetlogo.jpg'
+import win8Logo from '../../images/win8logo.jpg'
 import './ProviderTabs.css'
 
 const PROVIDERS = [
@@ -26,7 +27,7 @@ const PROVIDERS = [
   { id: 'dragoon', name: 'Dragoon Soft', path: '/dragoon', logo: dragoonLogo },
   { id: 'vpower', name: 'VPower', path: '/vpower', logo: vpowerLogo },
   { id: 'allbet', name: 'AllBet', path: '/live-casino', logo: allbetLogo },
-  { id: 'win8', name: '3win8', path: '/3win8', logo: null },
+  { id: 'win8', name: '3win8', path: '/3win8', logo: win8Logo },
   { id: 'm8bet', name: 'M8BET', path: '/sports', logo: m8betLogo },
 ]
 

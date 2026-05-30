@@ -12,6 +12,7 @@ import './Slot.css'
 import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
 import GameCard from '../components/GameCard/GameCard'
 import { useCategoryAndSort } from '../components/CategorySortBar/CategorySortBar'
+import win8Logo from '../images/win8logo.jpg'
 
 const DEFAULT_LAUNCH_AMOUNT = 100
 
@@ -36,7 +37,7 @@ export default function Win8() {
       setLoading(true)
       try {
         const [win8Games, jdbGames] = await Promise.all([
-          getAllWin8Games(),
+          getAllWin8Games(win8Logo),
           getAllJDBGames().catch(() => []),
         ])
 
@@ -193,7 +194,7 @@ export default function Win8() {
 
       <div className="slot-content">
         <div className="provider-header">
-          <h1 className="provider-title">3win8</h1>
+          <img src={win8Logo} alt="3win8" className="provider-logo" />
         </div>
 
         <ProviderTabs active="win8" />
