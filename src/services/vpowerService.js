@@ -109,12 +109,14 @@ const resolveAccountId = (accountId) => {
 }
 
 const transformGame = (game, defaultImage) => {
-  const id = game.gameid ?? game.gameId ?? game.id
-  const name = game.name || `VPower Game ${id}`
-  const rawType = (game.type || 'slot').toLowerCase()
-  // Map VPower types to our category vocabulary
+  // Handle both schemas: live API uses TitleCase (GameID, GameName_EN, GameType,
+  // Image1, IsNew); static fallback uses lowercase (gameid, name, type).
+  const id = game.GameID ?? game.gameid ?? game.gameId ?? game.id
+  const name = game.GameName_EN || game.GameName || game.name || (id ? `VPower Game ${id}` : 'VPower Game')
+  const rawType = (game.GameType || game.type || 'slot').toLowerCase()
   const category = rawType === 'fish' ? 'fishing' : rawType === 'slot' ? 'slots' : rawType
-  const image = defaultImage || '/placeholder-game.png'
+  // Live API ships real thumbnails in Image1 — use them when present
+  const image = game.Image1 || game.imageUrl || defaultImage || '/placeholder-game.png'
 
   return {
     id: `vpower-${id}`,
@@ -128,7 +130,7 @@ const transformGame = (game, defaultImage) => {
     category,
     rawCategory: rawType,
     isHot: false,
-    isNew: !!game.isNew,
+    isNew: !!(game.IsNew || game.isNew),
     rating: 4.5,
     playCount: Math.floor(Math.random() * 25000) + 5000,
     description: `Play ${name} on VPower Gaming.`,
@@ -149,6 +151,8 @@ export const fetchVPowerGames = async (defaultImage) => {
     if (response.ok) {
       const data = await response.json()
       if (data?.success && Array.isArray(data.Data)) {
+        // Live schema doesn't have an `enable` flag; presence = enabled.
+        // Old schema had `enable: 0` for disabled — preserve that filter.
         const enabled = data.Data.filter(g => g.enable !== 0)
         if (enabled.length > 0) {
           return { success: true, games: enabled.map(g => transformGame(g, defaultImage)), source: 'live' }
