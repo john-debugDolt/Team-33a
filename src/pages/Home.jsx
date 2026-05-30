@@ -27,6 +27,7 @@ import GameImage, { preloadGameImages } from '../components/GameImage'
 import GamePortal from '../components/GamePortal'
 import funtaLogo from '../images/funtagaminglogo.jpg'
 import dragoonLogo from '../images/dragoonsoftlogo.jpg'
+import vpowerLogo from '../images/vpowerlogo.jpg'
 import bannerImg1 from '../images/banner-team33-1.png'
 import bannerImg2 from '../images/banner-team33-2.png'
 import bannerImg3 from '../images/banner-team33-3.png'
@@ -526,7 +527,7 @@ export default function Home() {
       time('JDB', getAllJDBGames, (g) => g?.length > 0 && setJdbGames(g)),
       time('FunTa', () => getAllFunTaGames(funtaLogo), (g) => g?.length > 0 && setFuntaGames(g)),
       time('DragoonSoft', () => getAllDragoonSoftGames(dragoonLogo), (g) => g?.length > 0 && setDragoonGames(g)),
-      time('VPower', getAllVPowerGames, (g) => g?.length > 0 && setVpowerGames(g)),
+      time('VPower', () => getAllVPowerGames(vpowerLogo), (g) => g?.length > 0 && setVpowerGames(g)),
     ]
 
     Promise.allSettled(all).then(() => {

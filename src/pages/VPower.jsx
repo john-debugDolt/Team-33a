@@ -12,6 +12,7 @@ import './Slot.css'
 import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
 import GameCard from '../components/GameCard/GameCard'
 import { useCategoryAndSort } from '../components/CategorySortBar/CategorySortBar'
+import vpowerLogo from '../images/vpowerlogo.jpg'
 
 const DEFAULT_LAUNCH_AMOUNT = 100
 
@@ -36,7 +37,7 @@ export default function VPower() {
       setLoading(true)
       try {
         const [vpowerGames, jdbGames] = await Promise.all([
-          getAllVPowerGames(),
+          getAllVPowerGames(vpowerLogo),
           getAllJDBGames().catch(() => []),
         ])
 
@@ -187,7 +188,7 @@ export default function VPower() {
 
       <div className="slot-content">
         <div className="provider-header">
-          <h1 className="provider-title">VPower Gaming</h1>
+          <img src={vpowerLogo} alt="VPower Gaming" className="provider-logo" />
         </div>
 
         <ProviderTabs active="vpower" />
