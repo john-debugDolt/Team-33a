@@ -7,6 +7,7 @@ const translations = {
   en: {
     // Navigation
     home: 'HOME',
+    sports: 'SPORTS',
     wallet: 'WALLET',
     refer: 'REFER',
     history: 'HISTORY',
@@ -333,6 +334,7 @@ const translations = {
   zh: {
     // Navigation
     home: '首页',
+    sports: '体育',
     wallet: '钱包',
     refer: '推荐',
     history: '历史',
@@ -659,6 +661,7 @@ const translations = {
   ja: {
     // Navigation
     home: 'ホーム',
+    sports: 'スポーツ',
     wallet: 'ウォレット',
     refer: '紹介',
     history: '履歴',
@@ -985,6 +988,7 @@ const translations = {
   ru: {
     // Navigation
     home: 'ГЛАВНАЯ',
+    sports: 'СПОРТ',
     wallet: 'КОШЕЛЕК',
     refer: 'ДРУЗЬЯ',
     history: 'ИСТОРИЯ',
