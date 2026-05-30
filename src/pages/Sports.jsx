@@ -5,13 +5,14 @@ import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import GamePortal from '../components/GamePortal'
+import m8betLogo from '../images/m8betlogo.jpg'
 import './Sports.css'
 
 // AUD to transfer into M9 on launch. Backend caps at 100k.
 const DEFAULT_LAUNCH_AMOUNT = 100
 
 const sportsProviders = [
-  { id: 'M8BET', name: 'M8BET', image: null, wired: true },
+  { id: 'M8BET', name: 'M8BET', tagline: 'Sports Betting', image: m8betLogo, brandLogo: true, wired: true },
   { id: 'BTI', name: 'BTI', image: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/provider-banner/sport_BTI.png' },
   { id: 'SBO', name: 'SBO', image: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/provider-banner/sport_SBO.png' },
   { id: 'CMD', name: 'CMD', image: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/provider-banner/sport_CMD.png' },
@@ -127,7 +128,7 @@ export default function Sports() {
             {sportsProviders.map((provider) => (
               <div key={provider.id} className="sports-provider-card">
                 <div className="provider-card-inner">
-                  <div className="provider-card-image">
+                  <div className={`provider-card-image ${provider.brandLogo ? 'brand-logo' : ''}`}>
                     {provider.image ? (
                       <img src={provider.image} alt={provider.name} />
                     ) : (
@@ -136,6 +137,9 @@ export default function Sports() {
                   </div>
                   <div className="provider-card-overlay">
                     <span className="provider-name">{provider.name}</span>
+                    {provider.tagline && (
+                      <span className="provider-tagline">{provider.tagline}</span>
+                    )}
                     <button
                       className="play-now-btn"
                       onClick={() => handleProviderClick(provider)}
