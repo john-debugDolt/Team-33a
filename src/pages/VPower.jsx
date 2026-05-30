@@ -46,10 +46,15 @@ export default function VPower() {
           .filter(src => src && src !== '/placeholder-game.png')
 
         let result = vpowerGames
+        // VPower's live API ships real thumbnails (Image1). Keep those.
+        // Only borrow JDB images when the game has no real thumbnail
+        // (i.e. the static fallback list, where image is just the VPower logo).
         if (result && result.length > 0 && imagePool.length > 0) {
-          result = result.map(g => {
-            const idx = Math.abs(Number(g.gameId) || 0) % imagePool.length
-            const img = imagePool[idx]
+          result = result.map((g, i) => {
+            const hasRealThumb = g.image && g.image.startsWith('http')
+            if (hasRealThumb) return g
+            const numKey = String(g.gameId || i).split('').reduce((a, c) => a + c.charCodeAt(0), 0)
+            const img = imagePool[numKey % imagePool.length]
             return { ...g, image: img, portraitImage: img, squareImage: img }
           })
         }
