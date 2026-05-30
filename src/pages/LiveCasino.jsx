@@ -1,11 +1,19 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { launchAllBet, exitAllBet } from '../services/allbetService'
+import { walletService } from '../services/walletService'
+import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
+import GamePortal from '../components/GamePortal'
 import './LiveCasino.css'
+
+const DEFAULT_LAUNCH_AMOUNT = 100
 
 const casinoProviders = [
   { id: 'BG', name: 'BG', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/BG/girl-BG.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/BG/base-title.png' },
   { id: 'SBO', name: 'SBO', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/SBO/girl-SBO.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/SBO/base-title.png' },
   { id: 'DG', name: 'DG', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/DG/girl-DG.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/DG/base-title.png' },
-  { id: 'ALLBET', name: 'ALLBET', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/ALLBET/girl-ALLBET.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/ALLBET/base-title.png' },
+  { id: 'ALLBET', name: 'ALLBET', wired: true, girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/ALLBET/girl-ALLBET.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/ALLBET/base-title.png' },
   { id: 'SEXY', name: 'SEXY', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/SEXY/girl-SEXY.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/SEXY/base-title.png' },
   { id: 'WM', name: 'WM', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/WM/girl-WM.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/WM/base-title.png' },
   { id: 'BBIN', name: 'BBIN', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/BBIN/girl-BBIN.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/BBIN/base-title.png' },
@@ -15,8 +23,83 @@ const casinoProviders = [
 ]
 
 export default function LiveCasino() {
-  const [activeProvider, setActiveProvider] = useState('BG')
+  const navigate = useNavigate()
+  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
+  const { showToast } = useToast()
+
+  const [activeProvider, setActiveProvider] = useState('ALLBET')
+  const [launching, setLaunching] = useState(false)
+  const [embeddedGame, setEmbeddedGame] = useState(null)
+  const [showExitConfirm, setShowExitConfirm] = useState(false)
+
   const currentProvider = casinoProviders.find(p => p.id === activeProvider) || casinoProviders[0]
+
+  const handleAllBetLaunch = async () => {
+    if (!isAuthenticated) {
+      showToast('Please login to play', 'warning')
+      navigate('/login')
+      return
+    }
+    if (launching) return
+
+    setLaunching(true)
+    showToast('Launching AllBet Live Casino...', 'info')
+
+    const mainBalance = Number(user?.balance) || 0
+    const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))
+
+    try {
+      const result = await launchAllBet(user?.accountId, {
+        amount: amount > 0 ? amount : undefined,
+      })
+      if (result.success && result.gameUrl) {
+        setEmbeddedGame({ url: result.gameUrl, name: 'AllBet Live Casino' })
+        showToast('AllBet launched!', 'success')
+      } else {
+        if (result.resultCode === 'LACK_OF_MONEY') {
+          showToast('Insufficient balance. Top up to play.', 'error')
+        } else if (result.resultCode === 'ILLEGAL_STATE') {
+          showToast('Account not initialised — contact support.', 'error')
+        } else {
+          showToast(result.error || 'AllBet temporarily unavailable.', 'error')
+        }
+      }
+    } catch (error) {
+      console.error('[AllBet Launch] error:', error)
+      showToast('Failed to launch AllBet', 'error')
+    } finally {
+      setLaunching(false)
+    }
+  }
+
+  const handlePlayClick = () => {
+    if (currentProvider.id === 'ALLBET') {
+      handleAllBetLaunch()
+    } else {
+      showToast(`${currentProvider.name} coming soon`, 'info')
+    }
+  }
+
+  const closeGame = async () => {
+    if (user?.accountId) {
+      try {
+        await exitAllBet(user.accountId)
+      } catch (error) {
+        console.error('[AllBet] Exit error:', error)
+      }
+      try {
+        const result = await walletService.getBalance(user.accountId)
+        if (result.success && result.balance !== undefined) {
+          updateBalance?.(result.balance)
+        }
+      } catch (error) {
+        console.error('Balance sync error:', error)
+      }
+    }
+    setEmbeddedGame(null)
+    setShowExitConfirm(false)
+    notifyTransactionUpdate?.()
+  }
 
   return (
     <div className="live-casino-page">
@@ -30,8 +113,12 @@ export default function LiveCasino() {
             <div className="casino-logo-display">
               <img src={currentProvider.logo} alt={currentProvider.name} className="casino-logo-img" />
             </div>
-            <button className="casino-play-btn">
-              PLAY <span className="play-icon">▶</span>
+            <button
+              className="casino-play-btn"
+              onClick={handlePlayClick}
+              disabled={launching}
+            >
+              {launching ? 'LAUNCHING…' : <>PLAY <span className="play-icon">▶</span></>}
             </button>
           </div>
 
@@ -68,6 +155,47 @@ export default function LiveCasino() {
           <span>Telegram: @Team33 | Experience the best live casino games!</span>
         </div>
       </div>
+
+      {embeddedGame && (
+        <GamePortal>
+          <div className="game-player-overlay">
+            <div className="game-player-container">
+              <button
+                className="game-player-exit"
+                onClick={() => setShowExitConfirm(true)}
+                title="Exit game"
+              />
+              <div className="game-player-frame">
+                <iframe
+                  src={embeddedGame.url}
+                  title={embeddedGame.name}
+                  allowFullScreen
+                  allow="autoplay; fullscreen; clipboard-write"
+                />
+              </div>
+              {showExitConfirm && (
+                <div className="exit-confirm-overlay">
+                  <div className="exit-confirm-dialog">
+                    <div className="exit-confirm-icon">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 8v4M12 16h.01"/>
+                      </svg>
+                    </div>
+                    <h3>Exit AllBet?</h3>
+                    <p>Are you sure you want to exit the live casino?</p>
+                    <p style={{ fontSize: '12px', color: '#888', marginTop: '8px' }}>Your balance will be transferred back to your main wallet.</p>
+                    <div className="exit-confirm-buttons">
+                      <button className="exit-btn-yes" onClick={closeGame}>Yes, Exit</button>
+                      <button className="exit-btn-no" onClick={() => setShowExitConfirm(false)}>No, Continue</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </GamePortal>
+      )}
     </div>
   )
 }
