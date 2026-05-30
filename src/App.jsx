@@ -44,6 +44,7 @@ const RichGaming = lazyWithRetry(() => import('./pages/RichGaming'))
 const SCR888H5 = lazyWithRetry(() => import('./pages/SCR888H5'))
 const JDB = lazyWithRetry(() => import('./pages/JDB'))
 const AceWin = lazyWithRetry(() => import('./pages/AceWin'))
+const FunTa = lazyWithRetry(() => import('./pages/FunTa'))
 const Promotions = lazyWithRetry(() => import('./pages/Promotions'))
 const Login = lazyWithRetry(() => import('./pages/Login'))
 const Signup = lazyWithRetry(() => import('./pages/Signup'))
@@ -144,6 +145,7 @@ function App() {
               <Route path="/scr888h5" element={<WithLayout><SCR888H5 /></WithLayout>} />
               <Route path="/jdb" element={<WithLayout><JDB /></WithLayout>} />
               <Route path="/acewin" element={<WithLayout><AceWin /></WithLayout>} />
+              <Route path="/funta" element={<WithLayout><FunTa /></WithLayout>} />
               <Route path="/card-game" element={<WithLayout><Slot /></WithLayout>} />
               <Route path="/fishing" element={<WithLayout><Slot /></WithLayout>} />
               <Route path="/esport" element={<WithLayout><Sports /></WithLayout>} />
