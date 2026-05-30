@@ -12,6 +12,7 @@ import './Slot.css'
 import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
 import GameCard from '../components/GameCard/GameCard'
 import { useCategoryAndSort } from '../components/CategorySortBar/CategorySortBar'
+import funtaLogo from '../images/funtagaminglogo.jpg'
 
 // FunTa launch without amount sweeps the main wallet (backend caps at 100k MYR).
 // We pass a small fixed amount so the player doesn't get their whole bank shifted.
@@ -45,7 +46,7 @@ export default function FunTa() {
       try {
         // FunTa's catalogue has no thumbnails — borrow JDB images by GameId.
         const [funtaGames, jdbGames] = await Promise.all([
-          getAllFunTaGames(),
+          getAllFunTaGames(funtaLogo),
           getAllJDBGames().catch(() => []),
         ])
 
@@ -192,7 +193,7 @@ export default function FunTa() {
 
       <div className="slot-content">
         <div className="provider-header">
-          <h1 className="provider-title">FunTa Gaming</h1>
+          <img src={funtaLogo} alt="FunTa Gaming" className="provider-logo" />
         </div>
 
         <ProviderTabs active="funta" />
