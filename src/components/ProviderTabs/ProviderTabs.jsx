@@ -7,6 +7,8 @@ import dragoonLogo from '../../images/dragoonsoftlogo.jpg'
 import vpowerLogo from '../../images/vpowerlogo.jpg'
 import allbetLogo from '../../images/allbetlogo.jpg'
 import win8Logo from '../../images/win8logo.jpg'
+import sexyLogo from '../../images/sexybaccaratlogo.jpg'
+import sv388Logo from '../../images/sv388logo.jpg'
 import './ProviderTabs.css'
 
 const PROVIDERS = [
@@ -28,6 +30,8 @@ const PROVIDERS = [
   { id: 'vpower', name: 'VPower', path: '/vpower', logo: vpowerLogo },
   { id: 'allbet', name: 'AllBet', path: '/live-casino', logo: allbetLogo },
   { id: 'win8', name: '3win8', path: '/3win8', logo: win8Logo },
+  { id: 'sexy', name: 'Sexy Baccarat', path: '/live-casino', logo: sexyLogo },
+  { id: 'sv388', name: 'SV388', path: '/sports', logo: sv388Logo },
   { id: 'm8bet', name: 'M8BET', path: '/sports', logo: m8betLogo },
 ]
 

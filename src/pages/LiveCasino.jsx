@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import GamePortal from '../components/GamePortal'
 import allbetLogo from '../images/allbetlogo.jpg'
+import sexyLogo from '../images/sexybaccaratlogo.jpg'
 import './LiveCasino.css'
 
 const DEFAULT_LAUNCH_AMOUNT = 100
@@ -16,7 +17,7 @@ const casinoProviders = [
   { id: 'SBO', name: 'SBO', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/SBO/girl-SBO.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/SBO/base-title.png' },
   { id: 'DG', name: 'DG', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/DG/girl-DG.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/DG/base-title.png' },
   { id: 'ALLBET', name: 'ALLBET', wired: true, girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/ALLBET/girl-ALLBET.png', logo: allbetLogo },
-  { id: 'SEXY', name: 'SEXY', wired: true, girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/SEXY/girl-SEXY.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/SEXY/base-title.png' },
+  { id: 'SEXY', name: 'SEXY', wired: true, girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/SEXY/girl-SEXY.png', logo: sexyLogo },
   { id: 'WM', name: 'WM', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/WM/girl-WM.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/WM/base-title.png' },
   { id: 'BBIN', name: 'BBIN', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/BBIN/girl-BBIN.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/BBIN/base-title.png' },
   { id: 'OG', name: 'OG', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/OG/girl-OG.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/OG/base-title.png' },
