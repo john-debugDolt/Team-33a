@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { launchAllBet, exitAllBet } from '../services/allbetService'
+import { launchSexyBaccarat, exitSexyBaccarat } from '../services/awcTransferService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -15,7 +16,7 @@ const casinoProviders = [
   { id: 'SBO', name: 'SBO', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/SBO/girl-SBO.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/SBO/base-title.png' },
   { id: 'DG', name: 'DG', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/DG/girl-DG.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/DG/base-title.png' },
   { id: 'ALLBET', name: 'ALLBET', wired: true, girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/ALLBET/girl-ALLBET.png', logo: allbetLogo },
-  { id: 'SEXY', name: 'SEXY', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/SEXY/girl-SEXY.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/SEXY/base-title.png' },
+  { id: 'SEXY', name: 'SEXY', wired: true, girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/SEXY/girl-SEXY.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/SEXY/base-title.png' },
   { id: 'WM', name: 'WM', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/WM/girl-WM.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/WM/base-title.png' },
   { id: 'BBIN', name: 'BBIN', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/BBIN/girl-BBIN.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/BBIN/base-title.png' },
   { id: 'OG', name: 'OG', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/OG/girl-OG.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/OG/base-title.png' },
@@ -32,6 +33,7 @@ export default function LiveCasino() {
   const [launching, setLaunching] = useState(false)
   const [embeddedGame, setEmbeddedGame] = useState(null)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
+  const [activePlatform, setActivePlatform] = useState(null) // 'ALLBET' | 'SEXYBCRT' for exit routing
 
   const currentProvider = casinoProviders.find(p => p.id === activeProvider) || casinoProviders[0]
 
@@ -54,6 +56,7 @@ export default function LiveCasino() {
         amount: amount > 0 ? amount : undefined,
       })
       if (result.success && result.gameUrl) {
+        setActivePlatform('ALLBET')
         setEmbeddedGame({ url: result.gameUrl, name: 'AllBet Live Casino' })
         showToast('AllBet launched!', 'success')
       } else {
@@ -73,9 +76,52 @@ export default function LiveCasino() {
     }
   }
 
+  const handleSexyLaunch = async () => {
+    if (!isAuthenticated) {
+      showToast('Please login to play', 'warning')
+      navigate('/login')
+      return
+    }
+    if (launching) return
+
+    setLaunching(true)
+    showToast('Launching Sexy Baccarat...', 'info')
+
+    const mainBalance = Number(user?.balance) || 0
+    const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))
+
+    try {
+      const result = await launchSexyBaccarat(user?.accountId, {
+        amount: amount > 0 ? amount : 0,
+      })
+      if (result.success && result.gameUrl) {
+        setActivePlatform('SEXYBCRT')
+        setEmbeddedGame({ url: result.gameUrl, name: 'Sexy Baccarat' })
+        showToast('Sexy Baccarat launched!', 'success')
+      } else {
+        if (result.awcStatus === '6006' || result.awcStatus === '1004') {
+          showToast('Insufficient balance. Top up to play.', 'error')
+        } else if (result.awcStatus === '1028') {
+          showToast('Sexy Baccarat busy — please try again.', 'warning')
+        } else if (result.awcStatus === '1054') {
+          showToast('Game temporarily unavailable.', 'error')
+        } else {
+          showToast(result.error || 'Sexy Baccarat temporarily unavailable.', 'error')
+        }
+      }
+    } catch (error) {
+      console.error('[SexyBaccarat Launch] error:', error)
+      showToast('Failed to launch Sexy Baccarat', 'error')
+    } finally {
+      setLaunching(false)
+    }
+  }
+
   const handlePlayClick = () => {
     if (currentProvider.id === 'ALLBET') {
       handleAllBetLaunch()
+    } else if (currentProvider.id === 'SEXY') {
+      handleSexyLaunch()
     } else {
       showToast(`${currentProvider.name} coming soon`, 'info')
     }
@@ -84,9 +130,15 @@ export default function LiveCasino() {
   const closeGame = async () => {
     if (user?.accountId) {
       try {
-        await exitAllBet(user.accountId)
+        // Route /exit to the right provider based on which one was launched.
+        // Both auto-withdraw on idle, but explicit exit gives instant feedback.
+        if (activePlatform === 'SEXYBCRT') {
+          await exitSexyBaccarat(user.accountId)
+        } else {
+          await exitAllBet(user.accountId)
+        }
       } catch (error) {
-        console.error('[AllBet] Exit error:', error)
+        console.error('[LiveCasino] Exit error:', error)
       }
       try {
         const result = await walletService.getBalance(user.accountId)
@@ -99,6 +151,7 @@ export default function LiveCasino() {
     }
     setEmbeddedGame(null)
     setShowExitConfirm(false)
+    setActivePlatform(null)
     notifyTransactionUpdate?.()
   }
 

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { launchM9Game, exitM9Game } from '../services/m9TransferService'
+import { launchSV388, exitSV388 } from '../services/awcTransferService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -13,6 +14,7 @@ const DEFAULT_LAUNCH_AMOUNT = 100
 
 const sportsProviders = [
   { id: 'M8BET', name: 'M8BET', tagline: 'Sports Betting', image: m8betLogo, brandLogo: true, wired: true },
+  { id: 'SV388', name: 'SV388', tagline: 'Live Cockfighting', image: null, brandLogo: true, wired: true },
 ]
 
 export default function Sports() {
@@ -23,6 +25,7 @@ export default function Sports() {
   const [launching, setLaunching] = useState(null)
   const [embeddedGame, setEmbeddedGame] = useState(null)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
+  const [activePlatform, setActivePlatform] = useState(null) // 'M8BET' | 'SV388'
 
   const handleM8BetLaunch = async () => {
     if (!isAuthenticated) {
@@ -43,6 +46,7 @@ export default function Sports() {
         amount: amount > 0 ? amount : undefined,
       })
       if (result.success && result.gameUrl) {
+        setActivePlatform('M8BET')
         setEmbeddedGame({ url: result.gameUrl, name: 'M8BET' })
         showToast('M8BET launched!', 'success')
       } else {
@@ -62,16 +66,62 @@ export default function Sports() {
     }
   }
 
+  const handleSV388Launch = async () => {
+    if (!isAuthenticated) {
+      showToast('Please login to play', 'warning')
+      navigate('/login')
+      return
+    }
+    if (launching === 'SV388') return
+
+    setLaunching('SV388')
+    showToast('Launching SV388...', 'info')
+
+    const mainBalance = Number(user?.balance) || 0
+    const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))
+
+    try {
+      const result = await launchSV388(user?.accountId, {
+        amount: amount > 0 ? amount : 0,
+      })
+      if (result.success && result.gameUrl) {
+        setActivePlatform('SV388')
+        setEmbeddedGame({ url: result.gameUrl, name: 'SV388' })
+        showToast('SV388 launched!', 'success')
+      } else {
+        if (result.awcStatus === '6006' || result.awcStatus === '1004') {
+          showToast('Insufficient balance. Top up to play.', 'error')
+        } else if (result.awcStatus === '1028') {
+          showToast('SV388 busy — please try again.', 'warning')
+        } else if (result.awcStatus === '1054') {
+          showToast('SV388 temporarily unavailable.', 'error')
+        } else {
+          showToast(result.error || 'SV388 temporarily unavailable.', 'error')
+        }
+      }
+    } catch (error) {
+      console.error('[SV388 Launch] error:', error)
+      showToast('Failed to launch SV388', 'error')
+    } finally {
+      setLaunching(null)
+    }
+  }
+
   const handleProviderClick = (provider) => {
     if (provider.id === 'M8BET') handleM8BetLaunch()
+    else if (provider.id === 'SV388') handleSV388Launch()
   }
 
   const closeGame = async () => {
     if (user?.accountId) {
       try {
-        await exitM9Game(user.accountId)
+        if (activePlatform === 'SV388') {
+          await exitSV388(user.accountId)
+        } else {
+          await exitM9Game(user.accountId)
+        }
       } catch (error) {
-        console.error('[M8BET] Exit error:', error)
+        console.error('[Sports] Exit error:', error)
       }
       try {
         const result = await walletService.getBalance(user.accountId)
@@ -84,6 +134,7 @@ export default function Sports() {
     }
     setEmbeddedGame(null)
     setShowExitConfirm(false)
+    setActivePlatform(null)
     notifyTransactionUpdate?.()
   }
 
@@ -166,8 +217,8 @@ export default function Sports() {
                         <path d="M12 8v4M12 16h.01"/>
                       </svg>
                     </div>
-                    <h3>Exit M8BET?</h3>
-                    <p>Are you sure you want to exit the sportsbook?</p>
+                    <h3>Exit {embeddedGame.name}?</h3>
+                    <p>Are you sure you want to exit {embeddedGame.name}?</p>
                     <p style={{ fontSize: '12px', color: '#888', marginTop: '8px' }}>Your balance will be transferred back to your main wallet.</p>
                     <div className="exit-confirm-buttons">
                       <button className="exit-btn-yes" onClick={closeGame}>Yes, Exit</button>
