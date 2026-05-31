@@ -83,11 +83,14 @@ export default function GameImage({ src, alt, className }) {
 
   // Background probe — fetches the real URL using a new Image() with cache-busted URL.
   // Once it succeeds, swap the displayed img to the real src.
+  // Capped at MAX_RETRIES so dead URLs (e.g. JDB CDN 403s) don't loop forever.
+  const MAX_RETRIES = 6
   const scheduleProbe = () => {
     if (!isMountedRef.current || !isValidSrc) return
+    if (retryCountRef.current >= MAX_RETRIES) return
 
     const attempt = retryCountRef.current
-    // Backoff: 1s, 2s, 4s, 8s, capped at 15s, forever
+    // Backoff: 1s, 2s, 4s, 8s, 15s, 15s, then stop
     const delay = Math.min(1000 * Math.pow(2, attempt), 15000)
 
     retryTimeoutRef.current = setTimeout(() => {
