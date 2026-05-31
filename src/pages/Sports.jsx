@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import GamePortal from '../components/GamePortal'
 import m8betLogo from '../images/m8betlogo.jpg'
+import sv388Logo from '../images/sv388logo.jpg'
 import './Sports.css'
 
 // AUD to transfer into M9 on launch. Backend caps at 100k.
@@ -14,7 +15,7 @@ const DEFAULT_LAUNCH_AMOUNT = 100
 
 const sportsProviders = [
   { id: 'M8BET', name: 'M8BET', tagline: 'Sports Betting', image: m8betLogo, brandLogo: true, wired: true },
-  { id: 'SV388', name: 'SV388', tagline: 'Live Cockfighting', image: null, brandLogo: true, wired: true },
+  { id: 'SV388', name: 'SV388', tagline: 'Live Cockfighting', image: sv388Logo, brandLogo: true, wired: true },
 ]
 
 export default function Sports() {
