@@ -159,15 +159,15 @@ export default function JDB() {
     }
     if (launchingGame === game.id) return
 
-    // Geo-check: JDB games are restricted to AU. Non-AU IPs must confirm
-    // they're on a VPN (or cancel).
+    // Geo-check: JDB blocks AU IPs (licensing). AU users must confirm
+    // they're on a VPN (or cancel). Anyone outside AU launches directly.
     const country = await getCountry()
     setDetectedCountry(country)
-    if (country && country !== 'AU') {
+    if (country === 'AU') {
       setPendingVpnGame(game)
       return
     }
-    // AU or unknown — launch directly
+    // Non-AU or unknown — launch directly
     performJDBLaunch(game)
   }
 
@@ -261,9 +261,9 @@ export default function JDB() {
               </svg>
             </div>
             <h3>VPN Required</h3>
-            <p>JDB games are restricted to Australia.</p>
+            <p>JDB games are not available in Australia.</p>
             <p style={{ fontSize: '13px', color: '#666', marginTop: '8px' }}>
-              Your IP appears to be from <strong>{detectedCountry || 'outside Australia'}</strong>. Please connect to a VPN with an Australian IP to play.
+              Your IP appears to be from <strong>{detectedCountry || 'Australia'}</strong>. Please connect to a VPN with a non-Australian IP to play.
             </p>
             <div className="exit-confirm-buttons">
               <button className="exit-btn-no" onClick={cancelVpnLaunch}>Cancel</button>
