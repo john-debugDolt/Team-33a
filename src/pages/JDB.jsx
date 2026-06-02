@@ -24,10 +24,6 @@ export default function JDB() {
   const [selectedGame, setSelectedGame] = useState(null)
   const [embeddedGame, setEmbeddedGame] = useState(null)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
-  // VPN warning gating — JDB is geo-restricted to AU. Non-AU IPs see a
-  // popup before launch so they can connect a VPN or cancel.
-  const [pendingVpnGame, setPendingVpnGame] = useState(null)
-  const [detectedCountry, setDetectedCountry] = useState(null)
 
   const { bar, filteredGames } = useCategoryAndSort(games, { labels: { '0': 'Slots', '7': 'Fishing', '9': 'Arcade', '12': 'Bingo', '18': 'Card', '50': 'Lottery', '140': 'eSports', '141': 'New Slots', '142': 'New Fishing', '200': 'Crash', '201': 'Mini' } })
 
@@ -159,26 +155,14 @@ export default function JDB() {
     }
     if (launchingGame === game.id) return
 
-    // Geo-check: JDB blocks AU IPs (licensing). AU users must confirm
-    // they're on a VPN (or cancel). Anyone outside AU launches directly.
+    // Geo-check: JDB blocks AU IPs (licensing). AU users get redirected to
+    // the VPN-required page; anyone else launches directly.
     const country = await getCountry()
-    setDetectedCountry(country)
     if (country === 'AU') {
-      setPendingVpnGame(game)
+      navigate('/vpn-required')
       return
     }
-    // Non-AU or unknown — launch directly
     performJDBLaunch(game)
-  }
-
-  const confirmVpnAndLaunch = () => {
-    const game = pendingVpnGame
-    setPendingVpnGame(null)
-    if (game) performJDBLaunch(game)
-  }
-
-  const cancelVpnLaunch = () => {
-    setPendingVpnGame(null)
   }
 
   const renderGameCard = (game, index) => (
@@ -249,28 +233,6 @@ export default function JDB() {
           onClose={() => setSelectedGame(null)}
           onPlayGame={(gameData) => setEmbeddedGame(gameData)}
         />
-      )}
-
-      {pendingVpnGame && (
-        <div className="exit-confirm-overlay" onClick={cancelVpnLaunch}>
-          <div className="exit-confirm-dialog" onClick={(e) => e.stopPropagation()}>
-            <div className="exit-confirm-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2">
-                <path d="M12 9v4M12 17h.01"/>
-                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-              </svg>
-            </div>
-            <h3>VPN Required</h3>
-            <p>JDB games are not available in Australia.</p>
-            <p style={{ fontSize: '13px', color: '#666', marginTop: '8px' }}>
-              Your IP appears to be from <strong>{detectedCountry || 'Australia'}</strong>. Please connect to a VPN with a non-Australian IP to play.
-            </p>
-            <div className="exit-confirm-buttons">
-              <button className="exit-btn-no" onClick={cancelVpnLaunch}>Cancel</button>
-              <button className="exit-btn-yes" onClick={confirmVpnAndLaunch}>I'm on a VPN — Continue</button>
-            </div>
-          </div>
-        </div>
       )}
 
       {embeddedGame && (
