@@ -47,6 +47,7 @@ export default function Layout({ children }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [showWelcomePopup, setShowWelcomePopup] = useState(false)
   const [showLangDropdown, setShowLangDropdown] = useState(false)
+  const [walletOpen, setWalletOpen] = useState(false)
 
   // Scroll to top on route change (instant, no animation)
   useEffect(() => {
@@ -90,20 +91,42 @@ export default function Layout({ children }) {
       {/* Main Header */}
       <header className="header">
         <div className="header-content">
-          {/* Hamburger Menu */}
-          <button className={`hamburger-btn ${menuOpen ? 'open' : ''}`} onClick={toggleMenu}>
-            <span className="hamburger-line"></span>
-            <span className="hamburger-line"></span>
-            <span className="hamburger-line"></span>
-          </button>
+          {/* Left cluster: Hamburger + Logo */}
+          <div className="header-left">
+            <button className={`hamburger-btn ${menuOpen ? 'open' : ''}`} onClick={toggleMenu}>
+              <span className="hamburger-line"></span>
+              <span className="hamburger-line"></span>
+              <span className="hamburger-line"></span>
+            </button>
+            <Link to="/" className="logo">
+              <img src={logo} alt="Team33" className="logo-img" />
+            </Link>
+          </div>
 
-          {/* Center - Brand Text */}
-          <span className="header-brand-text">Team 33</span>
-
-          {/* Logo - Right Side */}
-          <Link to="/" className="logo">
-            <img src={logo} alt="Team33" className="logo-img" />
-          </Link>
+          {/* Right: Wallet button (shows balance) */}
+          {isAuthenticated ? (
+            <button
+              className="header-wallet-btn"
+              onClick={() => setWalletOpen(true)}
+              aria-label="Wallet"
+            >
+              <svg className="wallet-btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+                <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
+              </svg>
+              <span className="wallet-btn-amount">${(Number(user?.balance) || 0).toFixed(2)}</span>
+            </button>
+          ) : (
+            <Link to="/login" className="header-wallet-btn header-wallet-btn-guest">
+              <svg className="wallet-btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+                <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
+              </svg>
+              <span className="wallet-btn-amount">Login</span>
+            </Link>
+          )}
         </div>
       </header>
 
@@ -358,6 +381,114 @@ export default function Layout({ children }) {
           <p>&copy; 2025 Team33 {t('allRightsReserved')}.</p>
         </div>
       </footer>
+
+      {/* Wallet Popup */}
+      {walletOpen && isAuthenticated && (
+        <div className="wallet-mask" onClick={() => setWalletOpen(false)}>
+          <div className="wallet-popup" onClick={(e) => e.stopPropagation()}>
+            <button className="wallet-popup-close" onClick={() => setWalletOpen(false)} aria-label="Close">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+
+            <div className="wallet-container">
+              <div className="wallet-top-content">
+                <div className="wallet-icon-user">
+                  {(user?.firstName || user?.username || 'U').charAt(0).toUpperCase()}
+                </div>
+                <div className="wallet-user-detail">
+                  <div className="wallet-user-name">
+                    {`${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.username || 'User'}
+                  </div>
+                  <div className="wallet-info-row">
+                    <span className="wallet-info-label">Username</span>
+                    <span className="wallet-info-sep">:</span>
+                    <span className="wallet-info-value">{user?.username || user?.accountId || '—'}</span>
+                  </div>
+                  <div className="wallet-info-row">
+                    <span className="wallet-info-label">Phone Number</span>
+                    <span className="wallet-info-sep">:</span>
+                    <span className="wallet-info-value">{user?.phoneNumber || user?.phone || '—'}</span>
+                  </div>
+                  <div className="wallet-info-row">
+                    <span className="wallet-info-label">Bank Name</span>
+                    <span className="wallet-info-sep">:</span>
+                    <span className="wallet-info-value">{user?.bankName || '—'}</span>
+                  </div>
+                  <div className="wallet-info-row">
+                    <span className="wallet-info-label">Bank Account Number</span>
+                    <span className="wallet-info-sep">:</span>
+                    <span className="wallet-info-value">{user?.bankAccountNumber || user?.bankAccount || '—'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="wallet-bot-content">
+                <div className="wallet-balance-row">
+                  <div className="wallet-balance-title">Balance<span>:</span></div>
+                  <div className="wallet-balance-pill">
+                    <span className="wallet-balance-amount">${(Number(user?.balance) || 0).toFixed(2)}</span>
+                    <button
+                      className="wallet-refresh-btn"
+                      onClick={() => window.location.reload()}
+                      aria-label="Refresh balance"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="23 4 23 10 17 10"/>
+                        <polyline points="1 20 1 14 7 14"/>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="wallet-actions">
+                  <Link to="/wallet" className="wallet-action-btn" onClick={() => setWalletOpen(false)}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    <span>Deposit</span>
+                  </Link>
+                  <Link to="/wallet" className="wallet-action-btn" onClick={() => setWalletOpen(false)}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="17 8 12 3 7 8"/>
+                      <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <span>Withdraw</span>
+                  </Link>
+                  <Link to="/history" className="wallet-action-btn" onClick={() => setWalletOpen(false)}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" />
+                      <polyline points="10 9 9 9 8 9" />
+                    </svg>
+                    <span>History</span>
+                  </Link>
+                </div>
+
+                <button
+                  type="button"
+                  className="wallet-logout-btn"
+                  onClick={() => { setWalletOpen(false); handleLogout(); }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                  <span>Logout</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Floating Chat Widget */}
       <FloatingChat />
