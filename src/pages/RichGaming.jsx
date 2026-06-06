@@ -31,12 +31,12 @@ export default function RichGaming() {
       setLoading(true)
       try {
         const result = await getAllRichGamingGames()
-        console.log('[RichGaming] Loaded:', result?.length || 0)
+        console.log('[Rich88] Loaded:', result?.length || 0)
         if (result && result.length > 0) {
           setGames(result)
         }
       } catch (e) {
-        console.error('[RichGaming] Error:', e)
+        console.error('[Rich88] Error:', e)
       }
       setLoading(false)
     }
@@ -160,7 +160,7 @@ export default function RichGaming() {
       <div className="marquee">
         <span className="marquee-icon">📢</span>
         <div className="marquee-text">
-          <span>Telegram: @Team33 | RichGaming Games</span>
+          <span>Telegram: @Team33 | Rich88 Games</span>
         </div>
       </div>
 
@@ -168,15 +168,15 @@ export default function RichGaming() {
         <div className="provider-header">
           <img
             src="https://www.richgaming.com/wp-content/uploads/2023/12/rg_logo-2x.png"
-            alt="RichGaming"
+            alt="Rich88"
             className="provider-logo"
           />
         </div>
 
-        <ProviderTabs active="richgaming" />
+        <ProviderTabs active="rich88" />
 
         <div className="games-count">
-          {filteredGames.length} RichGaming games available
+          {filteredGames.length} Rich88 games available
         </div>
 
         {!loading && games.length > 0 && bar}
@@ -191,7 +191,7 @@ export default function RichGaming() {
               <div className="game-category-section richgaming-section">
                 <h2 className="category-title">
                   <span className="category-icon">💎</span>
-                  RichGaming Games
+                  Rich88 Games
                   <span className="category-count">({filteredGames.length})</span>
                 </h2>
                 <div className="slot-games-grid">
@@ -200,7 +200,7 @@ export default function RichGaming() {
               </div>
             ) : (
               <div className="empty-state">
-                <p>No RichGaming games available</p>
+                <p>No Rich88 games available</p>
               </div>
             )}
           </div>

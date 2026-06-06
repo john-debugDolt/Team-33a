@@ -34,7 +34,7 @@ const transformGame = (game) => {
     gameCode: gameCode,
     slug: `richgaming-${gameCode}`,
     name: name,
-    provider: 'RichGaming',
+    provider: 'Rich88',
     image: img,
     portraitImage: img,
     squareImage: img,

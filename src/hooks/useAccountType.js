@@ -59,7 +59,7 @@ export const BONUS_SUPPORTED_PROVIDERS = new Set([
   'megah5',
   'metagaming',
   'scr888h5',
-  'richgaming', // Rich88
+  'rich88',
   'evo888h5',
 ])
 
@@ -69,7 +69,6 @@ export const BONUS_SUPPORTED_PROVIDER_NAMES = new Set([
   'MegaH5',
   'MetaGaming',
   'SCR888H5',
-  'RichGaming',
   'Rich88',
   'EVO888H5',
   'Evo888H5',

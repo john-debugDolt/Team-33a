@@ -170,7 +170,6 @@ export const bonusAliasParam = (providerId) => {
     case 'metagaming':
       return { name: 'account', value: 'freecredit' }
     case 'rich88':
-    case 'richgaming':
       return { name: 'operator', value: 'foc' }
     case 'scr888h5':
       return { name: 'account', value: 'bonus' }
