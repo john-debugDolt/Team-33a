@@ -50,14 +50,37 @@ const newRequestId = () => {
   return 'req-' + Date.now() + '-' + Math.random().toString(36).substring(2, 12)
 }
 
+// Protocol-relative URLs (`//img.qiangmingbao.net/...`) need a protocol prefix.
+const absUrl = (u) => {
+  if (!u || typeof u !== 'string') return null
+  if (u.startsWith('//')) return 'https:' + u
+  return u
+}
+
 const transformGame = (game, defaultImage) => {
-  const id = String(game.Code || game.code || game.GameCode || game.id || '')
-  const name = game.Name || game.GameName || game.name || `Joker Game ${id}`
-  const rawType = String(game.Type || game.GameType || 'slots').toLowerCase()
+  // Per Joker spec, `Code` is the launch identifier (`BookOfSuleimanGW`).
+  // `GameCode`/`GameOCode` are internal tokens — don't use them for /launch.
+  const id = String(game.Code || game.GameCode || game.id || '')
+  // Prefer English localization, fall back to top-level GameName.
+  const enLoc = Array.isArray(game.Localizations)
+    ? game.Localizations.find(l => l.Language === 'en')
+    : null
+  const name = enLoc?.Name || game.GameName || game.Name || `Joker Game ${id}`
+
+  const rawType = String(game.GameType || game.Type || 'slot').toLowerCase()
   const category = ['fish', 'fishing'].includes(rawType) ? 'fishing' :
                    ['table', 'card'].includes(rawType) ? 'card' :
                    rawType === 'arcade' ? 'arcade' : 'slots'
-  const image = game.ImageURL || game.ImageUrl || game.imageUrl || defaultImage || '/placeholder-game.png'
+
+  // Image2 is portrait (better for vertical card grid). Image1 is landscape.
+  const portrait = absUrl(game.Image2 || game.OriginalImage2)
+  const landscape = absUrl(game.Image1 || game.OriginalImage1)
+  const image = portrait || landscape || defaultImage || '/placeholder-game.png'
+
+  // Joker uses comma-separated tags in `Specials` (e.g. "new,recommend").
+  const specials = (game.Specials || '').split(',').map(s => s.trim())
+  const isNew = specials.includes('new')
+  const isHot = specials.includes('recommend') || specials.includes('hot')
 
   return {
     id: `joker-${id}`,
@@ -66,12 +89,13 @@ const transformGame = (game, defaultImage) => {
     name,
     provider: 'Joker',
     image,
-    portraitImage: image,
+    portraitImage: portrait || image,
+    landscapeImage: landscape || image,
     squareImage: image,
     category,
     rawCategory: rawType,
-    isHot: !!game.Hot,
-    isNew: !!game.New,
+    isHot,
+    isNew,
     rating: 4.5,
     playCount: Math.floor(Math.random() * 25000) + 5000,
     description: `Play ${name} on Joker Gaming.`,
@@ -79,9 +103,10 @@ const transformGame = (game, defaultImage) => {
     volatility: 'Medium',
     minBet: 0.10,
     maxBet: 100,
-    features: ['Slots'],
+    features: game.FreeSpin ? ['Free Spins'] : ['Slots'],
     isJoker: true,
     providerType: 'transfer',
+    supportedPlatforms: game.SupportedPlatForms,
     originalData: game,
   }
 }
