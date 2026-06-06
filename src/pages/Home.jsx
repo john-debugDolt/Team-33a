@@ -45,6 +45,7 @@ import './Slot.css' // Import slot section styles
 import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
 import LiveStripes from '../components/LiveStripes/LiveStripes'
 import TopHotStripe from '../components/TopHotStripe/TopHotStripe'
+import useAccountType, { isBonusSupported } from '../hooks/useAccountType'
 
 const BANNER_IMAGES = [bannerImg1, bannerImg2, bannerImg3, bannerImg4, bannerImg5]
 
@@ -152,6 +153,7 @@ export default function Home() {
   const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
   const { showToast } = useToast()
   const { t } = useTranslation()
+  const accountType = useAccountType()
 
   // Separate state for each provider
   const [advantPlayGames, setAdvantPlayGames] = useState([])
@@ -617,9 +619,15 @@ export default function Home() {
   // can have ~12k entries, so we recompute only when the pool or filter
   // changes — not on every render.
   const filteredGames = useMemo(() => {
-    if (selectedCategory === 'all') return allMixedGames
-    return allMixedGames.filter((g) => getDisplayCategory(g) === selectedCategory)
-  }, [allMixedGames, selectedCategory])
+    let pool = allMixedGames
+    // When player has bonus credit, only the 5 multi-operator providers are
+    // playable — hide everyone else from the home grid.
+    if (accountType === 'bonus') {
+      pool = pool.filter((g) => isBonusSupported(g?.provider))
+    }
+    if (selectedCategory === 'all') return pool
+    return pool.filter((g) => getDisplayCategory(g) === selectedCategory)
+  }, [allMixedGames, selectedCategory, accountType])
 
   // Per-category counts for the chip badges. Computed once per pool change so
   // the chips don't have to scan the full pool on each render.
