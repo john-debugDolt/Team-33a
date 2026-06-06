@@ -43,6 +43,20 @@ export default function FloatingChat() {
   const [feedback, setFeedback] = useState('');
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  // Marketing popup card visibility — once user clicks the X it stays hidden
+  // for the session; only the small chat avatar remains.
+  const [popupCardDismissed, setPopupCardDismissed] = useState(() => {
+    try { return sessionStorage.getItem('team33_chat_popup_dismissed') === 'true' } catch { return false }
+  });
+
+  const dismissPopupCard = (e) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    setPopupCardDismissed(true);
+    try { sessionStorage.setItem('team33_chat_popup_dismissed', 'true') } catch { /* ignore */ }
+  };
 
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
@@ -357,37 +371,65 @@ export default function FloatingChat() {
 
   return (
     <>
-      {/* Floating Chat Popup — image card + CTA */}
-      <div
-        className={`floating-chat-popup ${isOpen ? 'hidden' : ''} ${unreadCount > 0 ? 'has-unread' : ''}`}
-        onClick={handleToggleChat}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleToggleChat()}
-        title="Live Support"
-      >
-        <div className="popup-content">
-          <div className="popup-img-wrap">
-            <img loading="lazy" decoding="async" alt="Team33 Live Support" src={chatGirl} />
-            <span className="popup-live-tag">
-              <span className="popup-live-dot"></span>
-              LIVE
-            </span>
-          </div>
-          <div className="popup-desc">
-            <p>Complaint available now live 24 hour. Support BM, EN, CN language</p>
-            <div className="popup-details-btn">
-              <span className="popup-btn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                </svg>
-                Chat Now
+      {/* Marketing popup card — small, dismissible, only when chat is closed and not dismissed */}
+      {!isOpen && !popupCardDismissed && (
+        <div
+          className={`floating-chat-popup ${unreadCount > 0 ? 'has-unread' : ''}`}
+          onClick={() => { dismissPopupCard(); handleToggleChat(); }}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { dismissPopupCard(); handleToggleChat(); } }}
+          title="Live Support"
+        >
+          <button
+            type="button"
+            className="popup-close-x"
+            onClick={dismissPopupCard}
+            aria-label="Dismiss"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+          <div className="popup-content">
+            <div className="popup-img-wrap">
+              <img loading="lazy" decoding="async" alt="Team33 Live Support" src={chatGirl} />
+              <span className="popup-live-tag">
+                <span className="popup-live-dot"></span>
+                LIVE
               </span>
             </div>
+            <div className="popup-desc">
+              <p>24/7 live support — BM, EN, CN</p>
+              <div className="popup-details-btn">
+                <span className="popup-btn">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  Chat Now
+                </span>
+              </div>
+            </div>
           </div>
+          {unreadCount > 0 && <span className="unread-badge">{unreadCount}</span>}
         </div>
-        {unreadCount > 0 && <span className="unread-badge">{unreadCount}</span>}
-      </div>
+      )}
+
+      {/* Small chat avatar — shown when popup is dismissed and chat window closed */}
+      {!isOpen && popupCardDismissed && (
+        <button
+          type="button"
+          className={`floating-chat-avatar ${unreadCount > 0 ? 'has-unread' : ''}`}
+          onClick={handleToggleChat}
+          aria-label="Open live chat"
+          title="Live chat — online"
+        >
+          <img src={chatGirl} alt="Live chat" className="floating-chat-avatar-img" />
+          <span className="floating-chat-avatar-dot" aria-hidden="true"></span>
+          {unreadCount > 0 && <span className="unread-badge">{unreadCount}</span>}
+        </button>
+      )}
 
       {/* Chat Window */}
       {isOpen && (
