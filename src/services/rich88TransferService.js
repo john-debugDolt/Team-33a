@@ -12,6 +12,8 @@
  * default (?operator=normal). Locked-in per player on first launch.
  */
 
+import rich88Logo from '../images/rich88logo.jpg';
+
 const BASE_URL = 'https://seamless.team33.mx';
 
 let cachedGames = null;
@@ -31,7 +33,7 @@ const fetchWithTimeout = async (url, options = {}, timeout = 20000) => {
   }
 };
 
-const FALLBACK_IMAGE = '/providers/clotplay.jpg';
+const FALLBACK_IMAGE = rich88Logo;
 
 const transformGame = (game) => {
   const name = game.game_name_enu || game.game_name_chs || game.game_code || 'Unknown Game';

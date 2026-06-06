@@ -128,57 +128,68 @@ export const getAllEvo888h5Games = async () => {
  */
 export const launchEvo888h5Game = async (accountId, gameId, lang = 'en') => {
   try {
-    // Multi-operator routing — EVO888H5 bonus path is a separate REST surface
-    // (/api/evo888h5-bonus/*) with independent player IDs on EVO's side.
-    // No query-param alias; we route the whole call to the bonus endpoint.
+    // Multi-operator routing — EVO888H5 bonus path is a completely separate
+    // REST surface (/api/evo888h5-bonus-transfer/*), uses POST with a JSON body
+    // (accountId, gameid, language, requestId), and an X-Request-Id header for
+    // idempotency. Normal path stays GET on /api/evo888h5/* with query params.
     const { getAccountType } = await import('./bonusWalletService.js');
     const accountType = await getAccountType(accountId);
-    const apiBase = accountType === 'bonus' ? '/api/evo888h5-bonus' : EVO888H5_API_BASE;
-    const directBase = accountType === 'bonus'
-      ? 'https://evo888h5.seamless.team33.mx/api/evo888h5-bonus'
-      : EVO888H5_DIRECT_URL;
+    const isBonus = accountType === 'bonus';
+    console.log('[EVO888H5/launch] accountType=', accountType, 'accountId=', accountId, 'gameId=', gameId);
+
+    if (isBonus) {
+      const requestId = (crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+      const body = JSON.stringify({ accountId, gameid: String(gameId), language: lang, requestId });
+      const urls = [
+        `/api/evo888h5-bonus-transfer/launch`,
+        `https://seamless.team33.mx/api/evo888h5-bonus-transfer/launch`,
+      ];
+      for (const launchUrl of urls) {
+        try {
+          console.log('[EVO888H5/launch] → POST', launchUrl, 'body=', body);
+          const response = await fetchWithTimeout(launchUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Request-Id': requestId,
+            },
+            body,
+          }, 20000);
+          console.log('[EVO888H5/launch] ← status', response.status, launchUrl);
+          if (!response.ok) continue;
+          const data = await response.json();
+          console.log('[EVO888H5/launch] ← body', data);
+          // Bonus endpoint: { state: "OK", code: 0, url, depositedAmount, depositSessionId }
+          const ok = data.success === true || data.state === 'OK' || data.code === 0;
+          const gameUrl = (data.url || data.gameUrl || data.data?.url)?.trim();
+          if (ok && gameUrl) return gameUrl;
+        } catch (err) {
+          console.log('[EVO888H5/launch] error:', err.message);
+        }
+      }
+      throw new Error('Failed to launch EVO888H5 bonus game');
+    }
+
+    // Normal (real-money) path — GET with query params, original endpoint
     const query = `accountId=${encodeURIComponent(accountId)}&gameId=${encodeURIComponent(gameId)}&lang=${encodeURIComponent(lang)}`;
-
-    // Try proxy first, then direct URL
     const urls = [
-      `${apiBase}/launch?${query}`,
-      `${directBase}/launch?${query}`
+      `${EVO888H5_API_BASE}/launch?${query}`,
+      `${EVO888H5_DIRECT_URL}/launch?${query}`,
     ];
-    console.log('[EVO888H5/launch] accountType=', accountType, 'accountId=', accountId, 'gameId=', gameId, 'apiBase=', apiBase);
-
     for (const launchUrl of urls) {
       try {
         console.log('[EVO888H5/launch] → GET', launchUrl);
-
-        const response = await fetchWithTimeout(launchUrl, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }, 20000);
-
+        const response = await fetchWithTimeout(launchUrl, { method: 'GET', headers: { 'Content-Type': 'application/json' } }, 20000);
         console.log('[EVO888H5/launch] ← status', response.status, launchUrl);
-        if (!response.ok) {
-          console.log('[EVO888H5/launch] response not OK');
-          continue;
-        }
-
+        if (!response.ok) continue;
         const data = await response.json();
         console.log('[EVO888H5/launch] ← body', data);
-
-        // Response format: { success: true, gameUrl: "...", message: "OK" }
-        if (!data.success) {
-          console.log('[EVO888H5] Launch unsuccessful:', data.message);
-          continue;
-        }
-
-        // Trim whitespace from game URL
+        if (!data.success) continue;
         return data.gameUrl?.trim();
       } catch (err) {
-        console.log('[EVO888H5] Error launching from', launchUrl, ':', err.message);
+        console.log('[EVO888H5/launch] error:', err.message);
       }
     }
-
     throw new Error('Failed to launch EVO888H5 game');
   } catch (error) {
     console.error('[EVO888H5] Failed to launch game:', error.message);
