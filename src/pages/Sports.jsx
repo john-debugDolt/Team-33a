@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { launchM9Game, exitM9Game } from '../services/m9TransferService'
 import { launchSV388, exitSV388 } from '../services/awcTransferService'
+import { recordLaunch, clearLaunch, ProviderKey } from '../services/launchTracker'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -49,6 +50,7 @@ export default function Sports() {
         amount: amount > 0 ? amount : undefined,
       })
       if (result.success && result.gameUrl) {
+        recordLaunch(ProviderKey.M8BET, user?.accountId)
         setActivePlatform('M8BET')
         setEmbeddedGame({ url: result.gameUrl, name: 'M8BET' })
         showToast('M8BET launched!', 'success')
@@ -88,6 +90,7 @@ export default function Sports() {
         amount: amount > 0 ? amount : 0,
       })
       if (result.success && result.gameUrl) {
+        recordLaunch(ProviderKey.SV388, user?.accountId)
         setActivePlatform('SV388')
         setEmbeddedGame({ url: result.gameUrl, name: 'SV388' })
         showToast('SV388 launched!', 'success')
@@ -132,8 +135,10 @@ export default function Sports() {
       try {
         if (activePlatform === 'SV388') {
           await exitSV388(user.accountId)
+          clearLaunch(ProviderKey.SV388)
         } else {
           await exitM9Game(user.accountId)
+          clearLaunch(ProviderKey.M8BET)
         }
       } catch (error) {
         console.error('[Sports] Exit error:', error)

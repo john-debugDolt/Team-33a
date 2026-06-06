@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllAceWinGames, exitAceWinGame, launchAceWinGame } from '../services/acewinTransferService'
+import { recordLaunch, clearLaunch, ProviderKey } from '../services/launchTracker'
 import { getAllJDBGames } from '../services/jdbTransferService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
@@ -137,6 +138,7 @@ export default function AceWin() {
     if (user?.accountId) {
       try {
         await exitAceWinGame(user.accountId)
+        clearLaunch(ProviderKey.ACEWIN)
       } catch (error) {
         console.error('[AceWin] Exit error:', error)
       }
@@ -177,6 +179,7 @@ export default function AceWin() {
         amount: amount > 0 ? amount : undefined,
       })
       if (result.success && result.gameUrl) {
+        recordLaunch(ProviderKey.ACEWIN, user?.accountId)
         setEmbeddedGame({ url: result.gameUrl, name: game.name })
         showToast(`${game.name} launched!`, 'success')
       } else {

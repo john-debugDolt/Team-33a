@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllJDBGames, exitJDBGame, launchJDBGame } from '../services/jdbTransferService'
 import { getCountry } from '../services/geoIpService'
+import { recordLaunch, clearLaunch, ProviderKey } from '../services/launchTracker'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -85,6 +86,7 @@ export default function JDB() {
       try {
         console.log('[JDB] Calling exit on game close...')
         await exitJDBGame(user.accountId)
+        clearLaunch(ProviderKey.JDB)
       } catch (error) {
         console.error('[JDB] Exit error:', error)
       }
@@ -118,6 +120,7 @@ export default function JDB() {
       try {
         const result = await launchJDBGame(game, user?.accountId)
         if (result.success && result.gameUrl) {
+          recordLaunch(ProviderKey.JDB, user?.accountId)
           setEmbeddedGame({ url: result.gameUrl, name: game.name })
           showToast(`${game.name} launched!`, 'success')
           success = true

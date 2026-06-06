@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { launchAllBet, exitAllBet } from '../services/allbetService'
 import { launchSexyBaccarat, exitSexyBaccarat } from '../services/awcTransferService'
+import { recordLaunch, clearLaunch, ProviderKey } from '../services/launchTracker'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -59,6 +60,7 @@ export default function LiveCasino() {
         amount: amount > 0 ? amount : undefined,
       })
       if (result.success && result.gameUrl) {
+        recordLaunch(ProviderKey.ALLBET, user?.accountId)
         setActivePlatform('ALLBET')
         setEmbeddedGame({ url: result.gameUrl, name: 'AllBet Live Casino' })
         showToast('AllBet launched!', 'success')
@@ -98,6 +100,7 @@ export default function LiveCasino() {
         amount: amount > 0 ? amount : 0,
       })
       if (result.success && result.gameUrl) {
+        recordLaunch(ProviderKey.SEXYBCRT, user?.accountId)
         setActivePlatform('SEXYBCRT')
         setEmbeddedGame({ url: result.gameUrl, name: 'Sexy Baccarat' })
         showToast('Sexy Baccarat launched!', 'success')
@@ -155,8 +158,10 @@ export default function LiveCasino() {
         // Both auto-withdraw on idle, but explicit exit gives instant feedback.
         if (activePlatform === 'SEXYBCRT') {
           await exitSexyBaccarat(user.accountId)
+          clearLaunch(ProviderKey.SEXYBCRT)
         } else {
           await exitAllBet(user.accountId)
+          clearLaunch(ProviderKey.ALLBET)
         }
       } catch (error) {
         console.error('[LiveCasino] Exit error:', error)

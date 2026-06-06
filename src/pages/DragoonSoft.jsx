@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllDragoonSoftGames, exitDragoonSoftGame, launchDragoonSoftGame } from '../services/dragoonSoftService'
+import { recordLaunch, clearLaunch, ProviderKey } from '../services/launchTracker'
 import { getAllJDBGames } from '../services/jdbTransferService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
@@ -103,6 +104,7 @@ export default function DragoonSoft() {
     if (user?.accountId) {
       try {
         await exitDragoonSoftGame(user.accountId)
+        clearLaunch(ProviderKey.DRAGOONSOFT)
       } catch (error) {
         console.error('[DragoonSoft] Exit error:', error)
       }
@@ -146,6 +148,7 @@ export default function DragoonSoft() {
         amount: amount > 0 ? amount : undefined,
       })
       if (result.success && result.gameUrl) {
+        recordLaunch(ProviderKey.DRAGOONSOFT, user?.accountId)
         setEmbeddedGame({ url: result.gameUrl, name: game.name })
         showToast(`${game.name} launched!`, 'success')
       } else {
