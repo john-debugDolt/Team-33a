@@ -11,6 +11,7 @@ import sexyLogo from '../../images/sexybaccaratlogo.jpg'
 import sv388Logo from '../../images/sv388logo.jpg'
 import pegasusLogo from '../../images/pegasuslogo.jpg'
 import lucky365Logo from '../../images/lucky365logo.jpg'
+import jokerLogo from '../../images/jokerlogo.jpg'
 import './ProviderTabs.css'
 
 const PROVIDERS = [
@@ -34,6 +35,7 @@ const PROVIDERS = [
   { id: 'win8', name: '3win8', path: '/3win8', logo: win8Logo },
   { id: 'pegasus', name: 'Pegasus', path: '/pegasus', logo: pegasusLogo },
   { id: 'lucky365', name: 'Lucky365', path: '/lucky365', logo: lucky365Logo },
+  { id: 'joker', name: 'Joker', path: '/joker', logo: jokerLogo },
   { id: 'sexy', name: 'Sexy Baccarat', path: '/live-casino', logo: sexyLogo },
   { id: 'sv388', name: 'SV388', path: '/sports', logo: sv388Logo },
   { id: 'm8bet', name: 'M8BET', path: '/sports', logo: m8betLogo },

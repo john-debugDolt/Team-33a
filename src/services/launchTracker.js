@@ -22,6 +22,7 @@ import { exitAllBet } from './allbetService'
 import { exitSexyBaccarat, exitSV388 } from './awcTransferService'
 import { exitM9Game } from './m9TransferService'
 import { exitJDBGame } from './jdbTransferService'
+import { exitJokerGame } from './jokerService'
 import { walletService } from './walletService'
 
 const STORAGE_KEY = 'team33_active_launches_v1'
@@ -40,6 +41,7 @@ export const ProviderKey = {
   SV388: 'SV388',
   M8BET: 'M8BET',
   JDB: 'JDB',
+  JOKER: 'JOKER',
 }
 
 const EXIT_MAP = {
@@ -55,6 +57,7 @@ const EXIT_MAP = {
   SV388: exitSV388,
   M8BET: exitM9Game,
   JDB: exitJDBGame,
+  JOKER: exitJokerGame,
 }
 
 const read = () => {

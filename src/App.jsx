@@ -50,6 +50,7 @@ const VPower = lazyWithRetry(() => import('./pages/VPower'))
 const Win8 = lazyWithRetry(() => import('./pages/Win8'))
 const Pegasus = lazyWithRetry(() => import('./pages/Pegasus'))
 const Lucky365 = lazyWithRetry(() => import('./pages/Lucky365'))
+const Joker = lazyWithRetry(() => import('./pages/Joker'))
 const VpnRequired = lazyWithRetry(() => import('./pages/VpnRequired'))
 const Promotions = lazyWithRetry(() => import('./pages/Promotions'))
 const Login = lazyWithRetry(() => import('./pages/Login'))
@@ -157,6 +158,7 @@ function App() {
               <Route path="/3win8" element={<WithLayout><Win8 /></WithLayout>} />
               <Route path="/pegasus" element={<WithLayout><Pegasus /></WithLayout>} />
               <Route path="/lucky365" element={<WithLayout><Lucky365 /></WithLayout>} />
+              <Route path="/joker" element={<WithLayout><Joker /></WithLayout>} />
               <Route path="/vpn-required" element={<WithLayout><VpnRequired /></WithLayout>} />
               <Route path="/card-game" element={<WithLayout><Slot /></WithLayout>} />
               <Route path="/fishing" element={<WithLayout><Slot /></WithLayout>} />
