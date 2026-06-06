@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import useAccountType, { BONUS_SUPPORTED_PROVIDERS } from '../../hooks/useAccountType'
+import { useToast } from '../../context/ToastContext'
 import acewinLogo from '../../images/acewinlogo.jpg'
 import m8betLogo from '../../images/m8betlogo.jpg'
 import funtaLogo from '../../images/funtagaminglogo.jpg'
@@ -41,16 +43,16 @@ const PROVIDERS = [
   { id: 'm8bet', name: 'M8BET', path: '/sports', logo: m8betLogo },
 ]
 
-function ProviderCard({ provider, isActive, onClick }) {
+function ProviderCard({ provider, isActive, locked, onClick }) {
   const [imgFailed, setImgFailed] = useState(false)
   const showLogo = provider.logo && !imgFailed
 
   return (
     <button
-      className={`provider-sponsor-card ${isActive ? 'active' : ''}`}
+      className={`provider-sponsor-card ${isActive ? 'active' : ''} ${locked ? 'locked' : ''}`}
       onClick={onClick}
       aria-label={provider.name}
-      title={provider.name}
+      title={locked ? `${provider.name} — locked during bonus play` : provider.name}
     >
       {provider.id === 'all' ? (
         <div className="provider-sponsor-all">
@@ -67,12 +69,38 @@ function ProviderCard({ provider, isActive, onClick }) {
       ) : (
         <span className="provider-sponsor-name-fallback">{provider.name}</span>
       )}
+      {locked && (
+        <span className="provider-lock-icon" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </span>
+      )}
     </button>
   )
 }
 
 export default function ProviderTabs({ active }) {
   const navigate = useNavigate()
+  const accountType = useAccountType()
+  const { showToast } = useToast()
+  const onBonus = accountType === 'bonus'
+
+  const isLocked = (provider) => {
+    if (!onBonus) return false
+    if (provider.id === 'all') return false
+    return !BONUS_SUPPORTED_PROVIDERS.has(provider.id)
+  }
+
+  const handleClick = (provider) => {
+    if (isLocked(provider)) {
+      showToast?.('Finish your bonus play first — this provider is locked.', 'warning')
+      return
+    }
+    navigate(provider.path)
+  }
+
   return (
     <div className="provider-sponsor-strip">
       {PROVIDERS.map((p) => (
@@ -80,7 +108,8 @@ export default function ProviderTabs({ active }) {
           key={p.id}
           provider={p}
           isActive={active === p.id}
-          onClick={() => navigate(p.path)}
+          locked={isLocked(p)}
+          onClick={() => handleClick(p)}
         />
       ))}
     </div>
