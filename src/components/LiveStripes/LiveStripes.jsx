@@ -34,14 +34,16 @@ const ROULETTE_CARDS = [
 ]
 
 const SPORTS_CARDS = [
-  { id: 'sv388', image: sv388Logo, label: 'SV388', brandLogo: true },
-  { id: 'm8bet', image: m8betLogo, label: 'M8BET', brandLogo: true },
+  // SV388 logo is contained-then-enlarged; no background colour fill.
+  { id: 'sv388', image: sv388Logo, label: 'SV388', variant: 'sv388' },
+  // M8BET sits on the rooking sportsbook background so it looks "sporty".
+  { id: 'm8bet', image: m8betLogo, label: 'M8BET', variant: 'm8bet' },
 ]
 
 function LiveCard({ card, onClick }) {
   return (
     <button
-      className={`live-card ${card.brandLogo ? 'brand-logo' : ''}`}
+      className={`live-card ${card.variant ? `variant-${card.variant}` : ''}`}
       onClick={onClick}
       aria-label={card.label}
     >
@@ -54,21 +56,26 @@ function LiveCard({ card, onClick }) {
   )
 }
 
-function LiveStripe({ title, icon, cards, onCardClick }) {
+function LiveStripe({ title, icon, cards, onCardClick, autoScroll, className = '' }) {
+  // Auto-scroll on mobile uses a duplicated track for seamless looping.
+  const displayCards = autoScroll ? [...cards, ...cards] : cards
+
   return (
-    <div className="live-stripe">
+    <div className={`live-stripe ${className}`}>
       <h3 className="live-stripe-title">
         <span className="live-stripe-icon">{icon}</span>
         {title}
       </h3>
-      <div className="live-stripe-scroll">
-        {cards.map(card => (
-          <LiveCard
-            key={card.id}
-            card={card}
-            onClick={() => onCardClick(card)}
-          />
-        ))}
+      <div className={`live-stripe-scroll ${autoScroll ? 'auto-scroll' : ''}`}>
+        <div className="live-stripe-track">
+          {displayCards.map((card, i) => (
+            <LiveCard
+              key={`${card.id}-${i}`}
+              card={card}
+              onClick={() => onCardClick(card)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -102,19 +109,24 @@ export default function LiveStripes() {
         icon="🃏"
         cards={BACCARAT_CARDS}
         onCardClick={handleBaccaratClick}
+        autoScroll
       />
-      <LiveStripe
-        title="Live Roulette"
-        icon="🎡"
-        cards={ROULETTE_CARDS}
-        onCardClick={handleRouletteClick}
-      />
-      <LiveStripe
-        title="Live Sports"
-        icon="⚽"
-        cards={SPORTS_CARDS}
-        onCardClick={handleSportsClick}
-      />
+      <div className="live-stripes-row">
+        <LiveStripe
+          title="Live Roulette"
+          icon="🎡"
+          cards={ROULETTE_CARDS}
+          onCardClick={handleRouletteClick}
+          autoScroll
+        />
+        <LiveStripe
+          title="Live Sports"
+          icon="⚽"
+          cards={SPORTS_CARDS}
+          onCardClick={handleSportsClick}
+          autoScroll
+        />
+      </div>
     </section>
   )
 }
