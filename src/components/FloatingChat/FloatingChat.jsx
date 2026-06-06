@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { chatService } from '../../services/chatService';
+import chatGirl from '../../images/chatgirl.jpg';
 import './FloatingChat.css';
 
 // Storage keys for persisting chat data
@@ -356,18 +357,37 @@ export default function FloatingChat() {
 
   return (
     <>
-      {/* Floating Chat Button */}
-      <button
-        className={`floating-chat-btn ${isOpen ? 'hidden' : ''} ${unreadCount > 0 ? 'has-unread' : ''}`}
+      {/* Floating Chat Popup — image card + CTA */}
+      <div
+        className={`floating-chat-popup ${isOpen ? 'hidden' : ''} ${unreadCount > 0 ? 'has-unread' : ''}`}
         onClick={handleToggleChat}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleToggleChat()}
         title="Live Support"
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
+        <div className="popup-content">
+          <div className="popup-img-wrap">
+            <img loading="lazy" decoding="async" alt="Team33 Live Support" src={chatGirl} />
+            <span className="popup-live-tag">
+              <span className="popup-live-dot"></span>
+              LIVE
+            </span>
+          </div>
+          <div className="popup-desc">
+            <p>Complaint available now live 24 hour. Support BM, EN, CN language</p>
+            <div className="popup-details-btn">
+              <span className="popup-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                Chat Now
+              </span>
+            </div>
+          </div>
+        </div>
         {unreadCount > 0 && <span className="unread-badge">{unreadCount}</span>}
-        <span className="chat-label">24/7</span>
-      </button>
+      </div>
 
       {/* Chat Window */}
       {isOpen && (
