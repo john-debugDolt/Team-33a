@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { launchAllBet, exitAllBet } from '../services/allbetService'
 import { launchSexyBaccarat, exitSexyBaccarat } from '../services/awcTransferService'
 import { walletService } from '../services/walletService'
@@ -27,6 +27,8 @@ const casinoProviders = [
 
 export default function LiveCasino() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const autoLaunchedRef = useRef(false)
   const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
   const { showToast } = useToast()
 
@@ -127,6 +129,24 @@ export default function LiveCasino() {
       showToast(`${currentProvider.name} coming soon`, 'info')
     }
   }
+
+  // Auto-launch when navigated from Home's live stripes with state hint
+  useEffect(() => {
+    if (autoLaunchedRef.current) return
+    const target = location.state?.autoLaunch
+    if (!target) return
+    autoLaunchedRef.current = true
+    // Clear the state so back/forward doesn't re-trigger
+    navigate(location.pathname, { replace: true, state: {} })
+    if (target === 'SEXYBCRT') {
+      setActiveProvider('SEXY')
+      handleSexyLaunch()
+    } else if (target === 'ALLBET') {
+      setActiveProvider('ALLBET')
+      handleAllBetLaunch()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state?.autoLaunch])
 
   const closeGame = async () => {
     if (user?.accountId) {
