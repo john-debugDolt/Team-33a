@@ -117,6 +117,14 @@ export const launchSCR888H5Game = async (game, accountId) => {
     }
 
     const params = new URLSearchParams({ accountId, gameId: String(gameId) });
+    // Multi-operator routing — bonus alias when bonus_wallet > 0. SCR888H5
+    // pins the alias to the player on first launch (lock-in pattern); pick
+    // the right one up front.
+    const { getAccountType } = await import('./bonusWalletService.js');
+    const accountType = await getAccountType(accountId);
+    if (accountType === 'bonus') {
+      params.set('account', 'bonus');
+    }
     const urls = [`${BASE_URL}/api/scr888h5/launch?${params}`, `/api/scr888h5/launch?${params}`];
 
     for (const url of urls) {

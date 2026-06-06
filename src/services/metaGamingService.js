@@ -125,6 +125,12 @@ export const launchMetaGamingGame = async (gameCode, accountId, lang = 'en-us') 
     if (!accountId) return { success: false, error: 'Please login to play' };
 
     const params = new URLSearchParams({ accountId, gameCode, lang });
+    // Multi-operator routing — bonus operator alias when bonus_wallet > 0
+    const { getAccountType } = await import('./bonusWalletService.js');
+    const accountType = await getAccountType(accountId);
+    if (accountType === 'bonus') {
+      params.set('account', 'freecredit');
+    }
     const urls = [
       `${BASE_URL}/api/metagaming/launch?${params}`,
       `/api/metagaming/launch?${params}`
