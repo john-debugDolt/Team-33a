@@ -41,6 +41,7 @@ import bannerImg5 from '../images/banner-team33-5.png'
 import belowBanner from '../images/new r banner.png'
 import './Slot.css' // Import slot section styles
 import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
+import LiveStripes from '../components/LiveStripes/LiveStripes'
 
 const BANNER_IMAGES = [bannerImg1, bannerImg2, bannerImg3, bannerImg4, bannerImg5]
 
@@ -768,6 +769,9 @@ export default function Home() {
           ))}
         </div>
       </div>
+
+      {/* Live game stripes — Baccarat / Roulette / Sports */}
+      <LiveStripes />
 
       {/* Below Banner */}
       <div className="below-banner">

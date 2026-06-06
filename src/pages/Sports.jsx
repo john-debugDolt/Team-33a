@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { launchM9Game, exitM9Game } from '../services/m9TransferService'
 import { launchSV388, exitSV388 } from '../services/awcTransferService'
 import { walletService } from '../services/walletService'
@@ -20,6 +20,8 @@ const sportsProviders = [
 
 export default function Sports() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const autoLaunchedRef = useRef(false)
   const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
   const { showToast } = useToast()
 
@@ -107,6 +109,18 @@ export default function Sports() {
       setLaunching(null)
     }
   }
+
+  // Auto-launch when navigated from Home's live stripes with state hint
+  useEffect(() => {
+    if (autoLaunchedRef.current) return
+    const target = location.state?.autoLaunch
+    if (!target) return
+    autoLaunchedRef.current = true
+    navigate(location.pathname, { replace: true, state: {} })
+    if (target === 'SV388') handleSV388Launch()
+    else if (target === 'M8BET') handleM8BetLaunch()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state?.autoLaunch])
 
   const handleProviderClick = (provider) => {
     if (provider.id === 'M8BET') handleM8BetLaunch()
