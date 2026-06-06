@@ -770,13 +770,13 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Live game stripes — Baccarat / Roulette / Sports */}
-      <LiveStripes />
-
-      {/* Below Banner */}
+      {/* Below Banner (Choose among the best) */}
       <div className="below-banner">
         <img src={belowBanner} alt="Promo Banner" className="below-banner-image" />
       </div>
+
+      {/* Live game stripes — Baccarat / Roulette / Sports */}
+      <LiveStripes />
 
       {/* Marquee */}
       <div className="marquee-container">

@@ -5,6 +5,24 @@
   gap: 20px;
 }
 
+/* Roulette + Sports row — full width on mobile, side-by-side on laptop+ */
+.live-stripes-row {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+@media (min-width: 1024px) {
+  .live-stripes-row {
+    flex-direction: row;
+    align-items: stretch;
+  }
+  .live-stripes-row > .live-stripe {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
+
 .live-stripe {
   padding: 0 12px;
 }
@@ -26,28 +44,56 @@
 }
 
 .live-stripe-scroll {
+  overflow: hidden;
+  padding: 4px 4px 12px;
+}
+
+.live-stripe-track {
   display: flex;
   gap: 12px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 4px 4px 12px;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: thin;
-  scrollbar-color: var(--accent) transparent;
-  -webkit-overflow-scrolling: touch;
+  width: max-content;
 }
 
-.live-stripe-scroll::-webkit-scrollbar {
-  height: 6px;
+/* Desktop / laptop — manual scroll with snap, no auto-marquee */
+@media (min-width: 769px) {
+  .live-stripe-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) transparent;
+    -webkit-overflow-scrolling: touch;
+  }
+  .live-stripe-scroll::-webkit-scrollbar {
+    height: 6px;
+  }
+  .live-stripe-scroll::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 3px;
+  }
+  .live-stripe-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .live-stripe-scroll .live-card {
+    scroll-snap-align: start;
+  }
 }
 
-.live-stripe-scroll::-webkit-scrollbar-thumb {
-  background: var(--accent);
-  border-radius: 3px;
+/* Mobile — slow auto-scroll marquee (cards are duplicated in JSX) */
+@media (max-width: 768px) {
+  .live-stripe-scroll.auto-scroll .live-stripe-track {
+    animation: stripeMarquee 30s linear infinite;
+    will-change: transform;
+  }
+  .live-stripe-scroll.auto-scroll:hover .live-stripe-track,
+  .live-stripe-scroll.auto-scroll:active .live-stripe-track {
+    animation-play-state: paused;
+  }
 }
 
-.live-stripe-scroll::-webkit-scrollbar-track {
-  background: transparent;
+@keyframes stripeMarquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 /* Card */
@@ -63,7 +109,6 @@
   cursor: pointer;
   padding: 0;
   font-family: inherit;
-  scroll-snap-align: start;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
@@ -90,15 +135,31 @@
   transform: scale(1.05);
 }
 
-/* Brand-logo variant (sports tiles) — contain not cover, branded backdrop */
-.live-card.brand-logo {
-  background: linear-gradient(135deg, #047857 0%, #065f46 55%, #022c22 100%);
+/* SV388 — enlarged logo, dark backdrop, no green */
+.live-card.variant-sv388 {
+  background: radial-gradient(ellipse at center, #1f0a0a 0%, #0a0a0a 100%);
 }
 
-.live-card.brand-logo .live-card-image {
+.live-card.variant-sv388 .live-card-image {
   object-fit: contain;
-  padding: 16%;
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
+  padding: 6%;
+  filter: drop-shadow(0 4px 10px rgba(220, 38, 38, 0.45));
+}
+
+/* M8BET — sportsbook background, logo overlaid */
+.live-card.variant-m8bet {
+  background-image:
+    linear-gradient(135deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.25)),
+    url('https://www.rooking.live/rooking/img/bg-sport2.webp');
+  background-size: cover;
+  background-position: center;
+  background-color: #0a0f0d;
+}
+
+.live-card.variant-m8bet .live-card-image {
+  object-fit: contain;
+  padding: 14%;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.55));
 }
 
 /* Red LIVE tag — top-right */
@@ -143,7 +204,7 @@
   left: 0;
   right: 0;
   padding: 8px 10px 6px;
-  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.8));
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.85));
   display: flex;
   align-items: center;
   z-index: 1;
