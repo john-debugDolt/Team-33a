@@ -44,8 +44,25 @@
 }
 
 .live-stripe-scroll {
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   padding: 4px 4px 12px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) transparent;
+}
+
+.live-stripe-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.live-stripe-scroll::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 3px;
+}
+
+.live-stripe-scroll::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .live-stripe-track {
@@ -54,46 +71,25 @@
   width: max-content;
 }
 
-/* Desktop / laptop — manual scroll with snap, no auto-marquee */
+/* Auto-scroll containers — JS drives scrollLeft, no native scroll snap so
+   we don't jolt the user when they take over. Hide scrollbar for cleanliness
+   since user can still drag/swipe. */
+.live-stripe-scroll.auto-scroll {
+  scrollbar-width: none;
+}
+
+.live-stripe-scroll.auto-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Desktop snap for non-auto stripes only */
 @media (min-width: 769px) {
-  .live-stripe-scroll {
-    overflow-x: auto;
-    overflow-y: hidden;
+  .live-stripe-scroll:not(.auto-scroll) {
     scroll-snap-type: x mandatory;
-    scrollbar-width: thin;
-    scrollbar-color: var(--accent) transparent;
-    -webkit-overflow-scrolling: touch;
   }
-  .live-stripe-scroll::-webkit-scrollbar {
-    height: 6px;
-  }
-  .live-stripe-scroll::-webkit-scrollbar-thumb {
-    background: var(--accent);
-    border-radius: 3px;
-  }
-  .live-stripe-scroll::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .live-stripe-scroll .live-card {
+  .live-stripe-scroll:not(.auto-scroll) .live-card {
     scroll-snap-align: start;
   }
-}
-
-/* Mobile — slow auto-scroll marquee (cards are duplicated in JSX) */
-@media (max-width: 768px) {
-  .live-stripe-scroll.auto-scroll .live-stripe-track {
-    animation: stripeMarquee 30s linear infinite;
-    will-change: transform;
-  }
-  .live-stripe-scroll.auto-scroll:hover .live-stripe-track,
-  .live-stripe-scroll.auto-scroll:active .live-stripe-track {
-    animation-play-state: paused;
-  }
-}
-
-@keyframes stripeMarquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
 }
 
 /* Card */

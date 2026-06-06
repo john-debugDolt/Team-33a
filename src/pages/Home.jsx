@@ -44,6 +44,7 @@ import belowBanner from '../images/new r banner.png'
 import './Slot.css' // Import slot section styles
 import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
 import LiveStripes from '../components/LiveStripes/LiveStripes'
+import TopHotStripe from '../components/TopHotStripe/TopHotStripe'
 
 const BANNER_IMAGES = [bannerImg1, bannerImg2, bannerImg3, bannerImg4, bannerImg5]
 
@@ -779,6 +780,13 @@ export default function Home() {
       <div className="below-banner">
         <img src={belowBanner} alt="Promo Banner" className="below-banner-image" />
       </div>
+
+      {/* Top Hot — random featured games from ClotPlay + UUSlot (real thumbnails) */}
+      <TopHotStripe
+        sourceGames={[...clotPlayGames, ...uuSlotGames]}
+        onPlay={handlePlayNow}
+        count={15}
+      />
 
       {/* Live game stripes — Baccarat / Roulette / Sports */}
       <LiveStripes />

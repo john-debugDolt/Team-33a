@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './LiveStripes.css'
 
@@ -57,8 +58,67 @@ function LiveCard({ card, onClick }) {
 }
 
 function LiveStripe({ title, icon, cards, onCardClick, autoScroll, className = '' }) {
-  // Auto-scroll on mobile uses a duplicated track for seamless looping.
+  // Track duplicated → seamless loop when auto-scrolling
   const displayCards = autoScroll ? [...cards, ...cards] : cards
+  const scrollRef = useRef(null)
+  const pausedRef = useRef(false)
+  const resumeTimerRef = useRef(null)
+
+  // JS-driven auto-scroll: pauses on user interaction, resumes after 2s idle.
+  // Lets the native scrollbar handle user scrolling alongside.
+  useEffect(() => {
+    if (!autoScroll) return
+    const el = scrollRef.current
+    if (!el) return
+
+    const SPEED_PX = 1
+    const TICK_MS = 35
+
+    const tick = () => {
+      if (!pausedRef.current) {
+        el.scrollLeft += SPEED_PX
+        // Seamless loop: reset when first copy is scrolled past
+        if (el.scrollLeft >= el.scrollWidth / 2) {
+          el.scrollLeft -= el.scrollWidth / 2
+        }
+      }
+    }
+    const interval = setInterval(tick, TICK_MS)
+
+    const pause = () => {
+      pausedRef.current = true
+      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current)
+    }
+    const scheduleResume = () => {
+      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current)
+      resumeTimerRef.current = setTimeout(() => {
+        pausedRef.current = false
+      }, 2000)
+    }
+
+    const onPointerDown = () => pause()
+    const onPointerUp = () => scheduleResume()
+    const onWheel = () => {
+      pause()
+      scheduleResume()
+    }
+
+    el.addEventListener('pointerdown', onPointerDown)
+    el.addEventListener('pointerup', onPointerUp)
+    el.addEventListener('pointercancel', onPointerUp)
+    el.addEventListener('pointerleave', onPointerUp)
+    el.addEventListener('wheel', onWheel, { passive: true })
+
+    return () => {
+      clearInterval(interval)
+      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current)
+      el.removeEventListener('pointerdown', onPointerDown)
+      el.removeEventListener('pointerup', onPointerUp)
+      el.removeEventListener('pointercancel', onPointerUp)
+      el.removeEventListener('pointerleave', onPointerUp)
+      el.removeEventListener('wheel', onWheel)
+    }
+  }, [autoScroll])
 
   return (
     <div className={`live-stripe ${className}`}>
@@ -66,7 +126,10 @@ function LiveStripe({ title, icon, cards, onCardClick, autoScroll, className = '
         <span className="live-stripe-icon">{icon}</span>
         {title}
       </h3>
-      <div className={`live-stripe-scroll ${autoScroll ? 'auto-scroll' : ''}`}>
+      <div
+        ref={scrollRef}
+        className={`live-stripe-scroll ${autoScroll ? 'auto-scroll' : ''}`}
+      >
         <div className="live-stripe-track">
           {displayCards.map((card, i) => (
             <LiveCard
