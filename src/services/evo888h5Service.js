@@ -128,10 +128,21 @@ export const getAllEvo888h5Games = async () => {
  */
 export const launchEvo888h5Game = async (accountId, gameId, lang = 'en') => {
   try {
+    // Multi-operator routing — EVO888H5 bonus path is a separate REST surface
+    // (/api/evo888h5-bonus/*) with independent player IDs on EVO's side.
+    // No query-param alias; we route the whole call to the bonus endpoint.
+    const { getAccountType } = await import('./bonusWalletService.js');
+    const accountType = await getAccountType(accountId);
+    const apiBase = accountType === 'bonus' ? '/api/evo888h5-bonus' : EVO888H5_API_BASE;
+    const directBase = accountType === 'bonus'
+      ? 'https://evo888h5.seamless.team33.mx/api/evo888h5-bonus'
+      : EVO888H5_DIRECT_URL;
+    const query = `accountId=${encodeURIComponent(accountId)}&gameId=${encodeURIComponent(gameId)}&lang=${encodeURIComponent(lang)}`;
+
     // Try proxy first, then direct URL
     const urls = [
-      `${EVO888H5_API_BASE}/launch?accountId=${encodeURIComponent(accountId)}&gameId=${encodeURIComponent(gameId)}&lang=${encodeURIComponent(lang)}`,
-      `${EVO888H5_DIRECT_URL}/launch?accountId=${encodeURIComponent(accountId)}&gameId=${encodeURIComponent(gameId)}&lang=${encodeURIComponent(lang)}`
+      `${apiBase}/launch?${query}`,
+      `${directBase}/launch?${query}`
     ];
 
     for (const launchUrl of urls) {

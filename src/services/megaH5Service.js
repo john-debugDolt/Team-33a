@@ -116,6 +116,13 @@ export const launchMegaH5Game = async (game, accountId, lang = 'en-us') => {
     }
 
     const params = new URLSearchParams({ accountId, gameCode: String(gameCode), lang });
+    // Multi-operator routing — when bonus_wallet > 0, pass the bonus alias
+    // so the launch is booked against the bonus operator (freecredit).
+    const { getAccountType } = await import('./bonusWalletService.js');
+    const accountType = await getAccountType(accountId);
+    if (accountType === 'bonus') {
+      params.set('account', 'freecredit');
+    }
     const urls = [`/api/megah5/launch?${params}`, `${BASE_URL}/api/megah5/launch?${params}`];
 
     for (const url of urls) {
