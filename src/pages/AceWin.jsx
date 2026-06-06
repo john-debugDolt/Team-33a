@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllAceWinGames, exitAceWinGame, launchAceWinGame } from '../services/acewinTransferService'
-import { recordLaunch, clearLaunch, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
 import { getAllJDBGames } from '../services/jdbTransferService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
@@ -170,7 +170,12 @@ export default function AceWin() {
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
 
-    // Cap the deposit to whatever the player actually has so we don't 6006
+    // Sweep any stranded session from a prior provider (incl. another tab)
+    // before depositing into this one, then record THIS launch immediately
+    // so even a tab-close mid-RPC leaves a record to sweep later.
+    await sweepAllReturns(updateBalance)
+    recordLaunch(ProviderKey.ACEWIN, user?.accountId)
+
     const mainBalance = Number(user?.balance) || 0
     const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))
 
@@ -179,10 +184,11 @@ export default function AceWin() {
         amount: amount > 0 ? amount : undefined,
       })
       if (result.success && result.gameUrl) {
-        recordLaunch(ProviderKey.ACEWIN, user?.accountId)
         setEmbeddedGame({ url: result.gameUrl, name: game.name })
         showToast(`${game.name} launched!`, 'success')
       } else {
+        // Pre-emptive record was wrong — clear it
+        clearLaunch(ProviderKey.ACEWIN)
         if (result.errorCode === 6006) {
           showToast('Insufficient balance. Top up to play.', 'error')
         } else if (result.errorCode === 17) {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllDragoonSoftGames, exitDragoonSoftGame, launchDragoonSoftGame } from '../services/dragoonSoftService'
-import { recordLaunch, clearLaunch, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
 import { getAllJDBGames } from '../services/jdbTransferService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
@@ -140,6 +140,9 @@ export default function DragoonSoft() {
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
 
+    await sweepAllReturns(updateBalance)
+    recordLaunch(ProviderKey.DRAGOONSOFT, user?.accountId)
+
     const mainBalance = Number(user?.balance) || 0
     const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))
 
@@ -148,10 +151,10 @@ export default function DragoonSoft() {
         amount: amount > 0 ? amount : undefined,
       })
       if (result.success && result.gameUrl) {
-        recordLaunch(ProviderKey.DRAGOONSOFT, user?.accountId)
         setEmbeddedGame({ url: result.gameUrl, name: game.name })
         showToast(`${game.name} launched!`, 'success')
       } else {
+        clearLaunch(ProviderKey.DRAGOONSOFT)
         if (result.dsCode === 1010) {
           showToast('Insufficient balance. Top up to play.', 'error')
         } else if (result.dsCode === 1005 || result.dsCode === 10) {

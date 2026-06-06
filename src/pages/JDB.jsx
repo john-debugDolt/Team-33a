@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllJDBGames, exitJDBGame, launchJDBGame } from '../services/jdbTransferService'
 import { getCountry } from '../services/geoIpService'
-import { recordLaunch, clearLaunch, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -111,6 +111,9 @@ export default function JDB() {
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
 
+    await sweepAllReturns(updateBalance)
+    recordLaunch(ProviderKey.JDB, user?.accountId)
+
     const maxRetries = 15
     let attempt = 0
     let success = false
@@ -120,7 +123,6 @@ export default function JDB() {
       try {
         const result = await launchJDBGame(game, user?.accountId)
         if (result.success && result.gameUrl) {
-          recordLaunch(ProviderKey.JDB, user?.accountId)
           setEmbeddedGame({ url: result.gameUrl, name: game.name })
           showToast(`${game.name} launched!`, 'success')
           success = true
@@ -144,6 +146,7 @@ export default function JDB() {
 
     if (!success) {
       console.error('[Game Launch] All retries failed')
+      clearLaunch(ProviderKey.JDB)
     }
     setLaunchingGame(null)
   }

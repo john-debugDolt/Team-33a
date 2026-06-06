@@ -98,53 +98,54 @@ export const getActiveLaunches = () => read()
  * Records are cleared regardless of success — failures fall back to the
  * backend's 20-min auto-withdraw timer.
  */
-let sweepInFlight = false
+let sweepPromise = null
 export const sweepAllReturns = async (onBalanceRefresh) => {
-  if (sweepInFlight) return
+  // Re-entrant: callers joining a running sweep wait for the same promise.
+  if (sweepPromise) return sweepPromise
   const active = read()
   const providers = Object.keys(active)
   if (providers.length === 0) return
 
-  sweepInFlight = true
-  console.log('[LaunchTracker] sweeping returns:', providers)
-
-  let anySwept = false
-  for (const provider of providers) {
-    const exitFn = EXIT_MAP[provider]
-    const entry = active[provider]
-    const accountId = entry?.accountId
-    if (!exitFn || !accountId) {
-      clearLaunch(provider)
-      continue
-    }
-    try {
-      const result = await exitFn(accountId)
-      console.log(`[LaunchTracker] ${provider} exit:`, result?.success ? 'OK' : (result?.error || 'no-op'))
-      anySwept = true
-    } catch (err) {
-      console.warn(`[LaunchTracker] ${provider} exit threw:`, err?.message)
-    } finally {
-      clearLaunch(provider)
-    }
-  }
-
-  // After sweeping, refresh the player's main-wallet balance so the UI reflects
-  // funds that just came back.
-  if (anySwept) {
-    try {
-      const accountId = providers
-        .map(p => active[p]?.accountId)
-        .find(Boolean)
-      if (accountId) {
-        const res = await walletService.getBalance(accountId)
-        if (res?.success && typeof res.balance === 'number' && typeof onBalanceRefresh === 'function') {
-          onBalanceRefresh(res.balance)
-        }
+  sweepPromise = (async () => {
+    console.log('[LaunchTracker] sweeping returns:', providers)
+    let anySwept = false
+    for (const provider of providers) {
+      const exitFn = EXIT_MAP[provider]
+      const entry = active[provider]
+      const accountId = entry?.accountId
+      if (!exitFn || !accountId) {
+        clearLaunch(provider)
+        continue
       }
-    } catch { /* ignore */ }
-  }
+      try {
+        const result = await exitFn(accountId)
+        console.log(`[LaunchTracker] ${provider} exit:`, result?.success ? 'OK' : (result?.error || 'no-op'))
+        anySwept = true
+      } catch (err) {
+        console.warn(`[LaunchTracker] ${provider} exit threw:`, err?.message)
+      } finally {
+        clearLaunch(provider)
+      }
+    }
 
-  sweepInFlight = false
+    if (anySwept) {
+      try {
+        const accountId = providers.map(p => active[p]?.accountId).find(Boolean)
+        if (accountId) {
+          const res = await walletService.getBalance(accountId)
+          if (res?.success && typeof res.balance === 'number' && typeof onBalanceRefresh === 'function') {
+            onBalanceRefresh(res.balance)
+          }
+        }
+      } catch { /* ignore */ }
+    }
+  })()
+
+  try {
+    await sweepPromise
+  } finally {
+    sweepPromise = null
+  }
 }
 
 export default {
