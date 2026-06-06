@@ -438,6 +438,18 @@ export default function Layout({ children }) {
                     <span className="wallet-info-sep">:</span>
                     <span className="wallet-info-value">{walletAccount?.bankAccountNumber || user?.bankAccountNumber || user?.bankAccount || '—'}</span>
                   </div>
+                  <div className="wallet-info-row">
+                    <span className="wallet-info-label">Account Created</span>
+                    <span className="wallet-info-sep">:</span>
+                    <span className="wallet-info-value">
+                      {walletAccount?.createdAt
+                        ? new Date(walletAccount.createdAt).toLocaleString('en-GB', {
+                            day: '2-digit', month: 'short', year: 'numeric',
+                            hour: '2-digit', minute: '2-digit'
+                          })
+                        : '—'}
+                    </span>
+                  </div>
                 </div>
               </div>
 
