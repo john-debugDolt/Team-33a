@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import useAccountType from '../../hooks/useAccountType'
+import { useToast } from '../../context/ToastContext'
 import './LiveStripes.css'
 
 // Sexy Baccarat cards — all launch the SEXYBCRT platform via LiveCasino
@@ -41,23 +43,32 @@ const SPORTS_CARDS = [
   { id: 'm8bet', image: m8betLogo, label: 'M8BET', variant: 'm8bet' },
 ]
 
-function LiveCard({ card, onClick }) {
+function LiveCard({ card, onClick, locked }) {
   return (
     <button
-      className={`live-card ${card.variant ? `variant-${card.variant}` : ''}`}
+      className={`live-card ${card.variant ? `variant-${card.variant}` : ''} ${locked ? 'locked' : ''}`}
       onClick={onClick}
-      aria-label={card.label}
+      aria-label={locked ? `${card.label} — locked during bonus play` : card.label}
+      title={locked ? `${card.label} — locked during bonus play` : card.label}
     >
       <img src={card.image} alt={card.label} className="live-card-image" />
       <span className="live-card-tag">LIVE</span>
       <div className="live-card-overlay">
         <span className="live-card-label">{card.label}</span>
       </div>
+      {locked && (
+        <span className="live-card-lock" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </span>
+      )}
     </button>
   )
 }
 
-function LiveStripe({ title, icon, cards, onCardClick, autoScroll, className = '' }) {
+function LiveStripe({ title, icon, cards, onCardClick, autoScroll, className = '', locked = false }) {
   // Track duplicated → seamless loop when auto-scrolling
   const displayCards = autoScroll ? [...cards, ...cards] : cards
   const scrollRef = useRef(null)
@@ -136,6 +147,7 @@ function LiveStripe({ title, icon, cards, onCardClick, autoScroll, className = '
               key={`${card.id}-${i}`}
               card={card}
               onClick={() => onCardClick(card)}
+              locked={locked}
             />
           ))}
         </div>
@@ -146,18 +158,34 @@ function LiveStripe({ title, icon, cards, onCardClick, autoScroll, className = '
 
 export default function LiveStripes() {
   const navigate = useNavigate()
+  const accountType = useAccountType()
+  const { showToast } = useToast()
+  // None of the live providers (AllBet, SEXYBCRT, SV388, M8BET) support the
+  // bonus operator, so the entire section locks when bonus_wallet > 0.
+  const locked = accountType === 'bonus'
+
+  const blockIfLocked = () => {
+    if (locked) {
+      showToast?.('Finish your bonus play first — live games are locked.', 'warning')
+      return true
+    }
+    return false
+  }
 
   const handleBaccaratClick = () => {
+    if (blockIfLocked()) return
     // SEXYBCRT lives in LiveCasino; auto-launch via location state.
     navigate('/live-casino', { state: { autoLaunch: 'SEXYBCRT' } })
   }
 
   const handleRouletteClick = () => {
+    if (blockIfLocked()) return
     // AllBet hub in LiveCasino.
     navigate('/live-casino', { state: { autoLaunch: 'ALLBET' } })
   }
 
   const handleSportsClick = (card) => {
+    if (blockIfLocked()) return
     if (card.id === 'sv388') {
       navigate('/sports', { state: { autoLaunch: 'SV388' } })
     } else if (card.id === 'm8bet') {
@@ -173,6 +201,7 @@ export default function LiveStripes() {
         cards={BACCARAT_CARDS}
         onCardClick={handleBaccaratClick}
         autoScroll
+        locked={locked}
       />
       <div className="live-stripes-row">
         <LiveStripe
@@ -181,6 +210,7 @@ export default function LiveStripes() {
           cards={ROULETTE_CARDS}
           onCardClick={handleRouletteClick}
           autoScroll
+          locked={locked}
         />
         <LiveStripe
           title="Live Sports"
@@ -188,6 +218,7 @@ export default function LiveStripes() {
           cards={SPORTS_CARDS}
           onCardClick={handleSportsClick}
           autoScroll
+          locked={locked}
         />
       </div>
     </section>

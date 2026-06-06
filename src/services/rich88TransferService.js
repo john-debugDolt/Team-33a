@@ -151,6 +151,13 @@ export const launchRich88Game = async (game, accountId, lang = 'en-US') => {
         console.log('[Rich88/launch] ← body', data);
         const gameUrl = (data?.data?.url || data?.url || data?.gameUrl)?.trim();
         if (data.code === 0 && gameUrl) {
+          // Transfer wallet — record so the visibility sweep calls /exit on
+          // return. /exit reads live Rich88 freeBalance and credits it back
+          // to the correct pool (main or bonus_wallet) based on persisted alias.
+          try {
+            const { recordLaunch, ProviderKey } = await import('./launchTracker.js');
+            recordLaunch(ProviderKey.RICH88, accountId, { operator: accountType === 'bonus' ? 'foc' : 'normal' });
+          } catch (e) { console.log('[Rich88/launch] record failed:', e?.message); }
           return { success: true, gameUrl, ...data };
         }
         if (data.code && data.code !== 0) {
@@ -178,17 +185,41 @@ export const getRich88Balance = async (accountId) => {
   }
 };
 
-export const exitRich88 = async (accountId) => {
+/**
+ * POST /api/rich88-transfer/exit?accountId=
+ * Cancels auto-withdraw, kicks player, reads Rich88's live freeBalance, and
+ * sweeps it back into the right pool (wallets.balance for normal, bonus_wallet
+ * for foc) based on the player's persisted operatorAlias.
+ */
+export const exitRich88Game = async (accountId) => {
   try {
-    const response = await fetchWithTimeout(
-      `${BASE_URL}/api/rich88-transfer/exit?accountId=${accountId}`,
-      { method: 'POST' }
-    );
-    return await response.json().catch(() => ({ success: response.ok }));
+    if (!accountId) return { success: false, error: 'Missing accountId' };
+    const urls = [
+      `${BASE_URL}/api/rich88-transfer/exit?accountId=${encodeURIComponent(accountId)}`,
+      `/api/rich88-transfer/exit?accountId=${encodeURIComponent(accountId)}`,
+    ];
+    console.log('[Rich88/exit] accountId=', accountId);
+    for (const url of urls) {
+      try {
+        console.log('[Rich88/exit] → POST', url);
+        const response = await fetchWithTimeout(url, { method: 'POST' });
+        console.log('[Rich88/exit] ← status', response.status);
+        const data = await response.json().catch(() => null);
+        console.log('[Rich88/exit] ← body', data);
+        if (response.ok) {
+          return { success: data?.code === 0 || data?.success === true || true, ...(data || {}) };
+        }
+      } catch (err) {
+        console.log('[Rich88/exit] error:', err.message);
+      }
+    }
+    return { success: false, error: 'Exit failed' };
   } catch (error) {
     return { success: false, error: error.message };
   }
 };
+// Back-compat alias.
+export const exitRich88 = exitRich88Game;
 
 export const clearRich88Cache = () => { cachedGames = null; cacheTimestamp = null; };
 

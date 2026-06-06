@@ -24,6 +24,7 @@ import { exitM9Game } from './m9TransferService'
 import { exitJDBGame } from './jdbTransferService'
 import { exitJokerGame } from './jokerService'
 import { withdrawEvo888h5Bonus } from './evo888h5Service'
+import { exitRich88Game } from './rich88TransferService'
 import { walletService } from './walletService'
 
 const STORAGE_KEY = 'team33_active_launches_v1'
@@ -44,6 +45,7 @@ export const ProviderKey = {
   JDB: 'JDB',
   JOKER: 'JOKER',
   EVO888H5_BONUS: 'EVO888H5_BONUS',
+  RICH88: 'RICH88',
 }
 
 const EXIT_MAP = {
@@ -63,6 +65,10 @@ const EXIT_MAP = {
   // EVO bonus carries the deposited amount in the recorded entry; the
   // withdraw call signs it back out of EVO into the bonus_wallet ledger.
   EVO888H5_BONUS: (accountId, entry) => withdrawEvo888h5Bonus(accountId, entry?.amount),
+  // Rich88 /exit reads live freeBalance and routes credit to the right pool
+  // (main or bonus) based on the persisted operatorAlias. Works for both
+  // normal and foc modes — no amount needed.
+  RICH88: exitRich88Game,
 }
 
 const read = () => {
