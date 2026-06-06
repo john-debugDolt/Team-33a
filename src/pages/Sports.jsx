@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { launchM9Game, exitM9Game } from '../services/m9TransferService'
 import { launchSV388, exitSV388 } from '../services/awcTransferService'
-import { recordLaunch, clearLaunch, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -42,6 +42,9 @@ export default function Sports() {
     setLaunching('M8BET')
     showToast('Launching M8BET...', 'info')
 
+    await sweepAllReturns(updateBalance)
+    recordLaunch(ProviderKey.M8BET, user?.accountId)
+
     const mainBalance = Number(user?.balance) || 0
     const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))
 
@@ -50,11 +53,11 @@ export default function Sports() {
         amount: amount > 0 ? amount : undefined,
       })
       if (result.success && result.gameUrl) {
-        recordLaunch(ProviderKey.M8BET, user?.accountId)
         setActivePlatform('M8BET')
         setEmbeddedGame({ url: result.gameUrl, name: 'M8BET' })
         showToast('M8BET launched!', 'success')
       } else {
+        clearLaunch(ProviderKey.M8BET)
         if (result.errcode === -100) {
           showToast(result.error || 'Insufficient balance — top up to play', 'error')
         } else if (result.errcode === -1) {
@@ -82,6 +85,9 @@ export default function Sports() {
     setLaunching('SV388')
     showToast('Launching SV388...', 'info')
 
+    await sweepAllReturns(updateBalance)
+    recordLaunch(ProviderKey.SV388, user?.accountId)
+
     const mainBalance = Number(user?.balance) || 0
     const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))
 
@@ -90,11 +96,11 @@ export default function Sports() {
         amount: amount > 0 ? amount : 0,
       })
       if (result.success && result.gameUrl) {
-        recordLaunch(ProviderKey.SV388, user?.accountId)
         setActivePlatform('SV388')
         setEmbeddedGame({ url: result.gameUrl, name: 'SV388' })
         showToast('SV388 launched!', 'success')
       } else {
+        clearLaunch(ProviderKey.SV388)
         if (result.awcStatus === '6006' || result.awcStatus === '1004') {
           showToast('Insufficient balance. Top up to play.', 'error')
         } else if (result.awcStatus === '1028') {

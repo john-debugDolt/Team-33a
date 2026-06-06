@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { launchAllBet, exitAllBet } from '../services/allbetService'
 import { launchSexyBaccarat, exitSexyBaccarat } from '../services/awcTransferService'
-import { recordLaunch, clearLaunch, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -52,6 +52,9 @@ export default function LiveCasino() {
     setLaunching(true)
     showToast('Launching AllBet Live Casino...', 'info')
 
+    await sweepAllReturns(updateBalance)
+    recordLaunch(ProviderKey.ALLBET, user?.accountId)
+
     const mainBalance = Number(user?.balance) || 0
     const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))
 
@@ -60,11 +63,11 @@ export default function LiveCasino() {
         amount: amount > 0 ? amount : undefined,
       })
       if (result.success && result.gameUrl) {
-        recordLaunch(ProviderKey.ALLBET, user?.accountId)
         setActivePlatform('ALLBET')
         setEmbeddedGame({ url: result.gameUrl, name: 'AllBet Live Casino' })
         showToast('AllBet launched!', 'success')
       } else {
+        clearLaunch(ProviderKey.ALLBET)
         if (result.resultCode === 'LACK_OF_MONEY') {
           showToast('Insufficient balance. Top up to play.', 'error')
         } else if (result.resultCode === 'ILLEGAL_STATE') {
@@ -92,6 +95,9 @@ export default function LiveCasino() {
     setLaunching(true)
     showToast('Launching Sexy Baccarat...', 'info')
 
+    await sweepAllReturns(updateBalance)
+    recordLaunch(ProviderKey.SEXYBCRT, user?.accountId)
+
     const mainBalance = Number(user?.balance) || 0
     const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))
 
@@ -100,11 +106,11 @@ export default function LiveCasino() {
         amount: amount > 0 ? amount : 0,
       })
       if (result.success && result.gameUrl) {
-        recordLaunch(ProviderKey.SEXYBCRT, user?.accountId)
         setActivePlatform('SEXYBCRT')
         setEmbeddedGame({ url: result.gameUrl, name: 'Sexy Baccarat' })
         showToast('Sexy Baccarat launched!', 'success')
       } else {
+        clearLaunch(ProviderKey.SEXYBCRT)
         if (result.awcStatus === '6006' || result.awcStatus === '1004') {
           showToast('Insufficient balance. Top up to play.', 'error')
         } else if (result.awcStatus === '1028') {

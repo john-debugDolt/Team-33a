@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllFunTaGames, exitFunTaGame, launchFunTaGame } from '../services/funtaGamingService'
-import { recordLaunch, clearLaunch, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
 import { getAllJDBGames } from '../services/jdbTransferService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
@@ -143,6 +143,9 @@ export default function FunTa() {
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
 
+    await sweepAllReturns(updateBalance)
+    recordLaunch(ProviderKey.FUNTA, user?.accountId)
+
     const mainBalance = Number(user?.balance) || 0
     const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))
 
@@ -151,10 +154,10 @@ export default function FunTa() {
         amount: amount > 0 ? amount : undefined,
       })
       if (result.success && result.gameUrl) {
-        recordLaunch(ProviderKey.FUNTA, user?.accountId)
         setEmbeddedGame({ url: result.gameUrl, name: game.name })
         showToast(`${game.name} launched!`, 'success')
       } else {
+        clearLaunch(ProviderKey.FUNTA)
         if (result.insufficientBalance || result.errorCode === '05-029') {
           showToast('Insufficient balance. Top up to play.', 'error')
         } else if (result.userDisabled) {

@@ -54,20 +54,36 @@ export default function Layout({ children }) {
   const [walletAccount, setWalletAccount] = useState(null)
 
   // Sweep any stranded transfer-wallet sessions whenever the user is back
-  // on team33 (app mount + tab regains focus). Backend's 20-min timer is
-  // the fallback, but explicit /exit gives instant balance refresh.
+  // on team33: app mount, tab regains focus, route change, or another tab
+  // signals a new session. Backend's 20-min timer is the final fallback.
   useEffect(() => {
     if (!isAuthenticated) return
     sweepAllReturns(updateBalance)
     const onVis = () => {
       if (!document.hidden) sweepAllReturns(updateBalance)
     }
+    const onFocus = () => sweepAllReturns(updateBalance)
+    // Cross-tab: when another tab adds/changes the launch record,
+    // this tab triggers a sweep too.
+    const onStorage = (e) => {
+      if (e.key === 'team33_active_launches_v1') sweepAllReturns(updateBalance)
+    }
     document.addEventListener('visibilitychange', onVis)
-    window.addEventListener('focus', () => sweepAllReturns(updateBalance))
+    window.addEventListener('focus', onFocus)
+    window.addEventListener('storage', onStorage)
     return () => {
       document.removeEventListener('visibilitychange', onVis)
+      window.removeEventListener('focus', onFocus)
+      window.removeEventListener('storage', onStorage)
     }
   }, [isAuthenticated, updateBalance])
+
+  // Also sweep on every route change — handles multi-tab navigation
+  // where visibilitychange doesn't fire (both tabs already visible).
+  useEffect(() => {
+    if (!isAuthenticated) return
+    sweepAllReturns(updateBalance)
+  }, [location.pathname, isAuthenticated, updateBalance])
 
   // Fetch the full account record when the wallet popup opens so we have
   // server-truth phoneNumber, bank details (when backend adds them), etc.

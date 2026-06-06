@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllLucky365Games, exitLucky365Game, launchLucky365Game } from '../services/lucky365Service'
-import { recordLaunch, clearLaunch, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
 import { getAllJDBGames } from '../services/jdbTransferService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
@@ -140,6 +140,9 @@ export default function Lucky365() {
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
 
+    await sweepAllReturns(updateBalance)
+    recordLaunch(ProviderKey.LUCKY365, user?.accountId)
+
     const mainBalance = Number(user?.balance) || 0
     const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))
 
@@ -148,10 +151,10 @@ export default function Lucky365() {
         amount: amount > 0 ? amount : undefined,
       })
       if (result.success && result.gameUrl) {
-        recordLaunch(ProviderKey.LUCKY365, user?.accountId)
         setEmbeddedGame({ url: result.gameUrl, name: game.name })
         showToast(`${game.name} launched!`, 'success')
       } else {
+        clearLaunch(ProviderKey.LUCKY365)
         if (result.code === 'F6006') {
           showToast('Insufficient balance. Top up to play.', 'error')
         } else if (result.code === 'F7502') {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllWin8Games, exitWin8Game, launchWin8Game } from '../services/win8Service'
-import { recordLaunch, clearLaunch, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
 import { getAllJDBGames } from '../services/jdbTransferService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
@@ -141,6 +141,9 @@ export default function Win8() {
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
 
+    await sweepAllReturns(updateBalance)
+    recordLaunch(ProviderKey.WIN8, user?.accountId)
+
     const mainBalance = Number(user?.balance) || 0
     const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))
 
@@ -150,10 +153,10 @@ export default function Win8() {
         gameSupport: 'h5',
       })
       if (result.success && result.gameUrl) {
-        recordLaunch(ProviderKey.WIN8, user?.accountId)
         setEmbeddedGame({ url: result.gameUrl, name: game.name })
         showToast(`${game.name} launched!`, 'success')
       } else {
+        clearLaunch(ProviderKey.WIN8)
         if (result.errorCode === 'INSUFFICIENT_USER_FUND') {
           showToast('Insufficient balance. Top up to play.', 'error')
         } else if (result.errorCode === 'USER_STATUS_SUSPEND') {

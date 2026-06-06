@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllPegasusGames, exitPegasusGame, launchPegasusGame } from '../services/pegasusService'
-import { recordLaunch, clearLaunch, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -118,6 +118,9 @@ export default function Pegasus() {
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
 
+    await sweepAllReturns(updateBalance)
+    recordLaunch(ProviderKey.PEGASUS, user?.accountId)
+
     const mainBalance = Number(user?.balance) || 0
     const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))
 
@@ -126,10 +129,10 @@ export default function Pegasus() {
         amount: amount > 0 ? amount : undefined,
       })
       if (result.success && result.gameUrl) {
-        recordLaunch(ProviderKey.PEGASUS, user?.accountId)
         setEmbeddedGame({ url: result.gameUrl, name: game.name })
         showToast(`${game.name} launched!`, 'success')
       } else {
+        clearLaunch(ProviderKey.PEGASUS)
         if (result.code === 403599) {
           showToast('Pegasus provider unavailable — contact support.', 'error')
         } else if (result.code === 403601) {
