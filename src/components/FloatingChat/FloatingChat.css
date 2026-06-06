@@ -1,8 +1,8 @@
-/* Floating Chat Popup — compact card with image + CTA, bottom-left */
+/* Floating Chat Popup — compact card with image + CTA, bottom-right */
 .floating-chat-popup {
   position: fixed;
   bottom: 90px;
-  left: 16px;
+  right: 16px;
   width: 180px;
   border-radius: 14px;
   background: linear-gradient(180deg, var(--bg-elevated, #1a241f), var(--bg-card, #141c18));
@@ -98,6 +98,37 @@
   height: 40%;
   background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.45));
   pointer-events: none;
+}
+
+/* Animated wave — sits at the bottom of the image area, replaces the empty placeholder */
+.popup-wave {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 28px;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.popup-wave svg {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+  animation: chatWaveSlide 4s linear infinite;
+}
+
+.popup-wave svg.wave-back {
+  animation: chatWaveSlide 6s linear infinite;
+  opacity: 0.5;
+}
+
+@keyframes chatWaveSlide {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 .popup-live-tag {
@@ -213,7 +244,7 @@
   .floating-chat-popup {
     width: 160px;
     bottom: 80px;
-    left: 12px;
+    right: 12px;
   }
   .popup-img-wrap { height: 86px; }
   .popup-desc { padding: 8px 10px 10px; gap: 6px; }
@@ -225,7 +256,7 @@
 .floating-chat-avatar {
   position: fixed;
   bottom: 90px;
-  left: 16px;
+  right: 16px;
   width: 52px;
   height: 52px;
   border-radius: 50%;
@@ -238,6 +269,38 @@
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45), 0 0 0 2px rgba(0, 0, 0, 0.35);
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
   animation: chatPopupIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Splash / ripple effect — two concentric pulsing rings */
+.floating-chat-avatar::before,
+.floating-chat-avatar::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  border: 2px solid rgba(16, 185, 129, 0.6);
+  pointer-events: none;
+  animation: chatAvatarRipple 2s ease-out infinite;
+}
+
+.floating-chat-avatar::after {
+  animation-delay: 1s;
+}
+
+@keyframes chatAvatarRipple {
+  0% {
+    transform: scale(1);
+    opacity: 0.85;
+    border-color: rgba(16, 185, 129, 0.7);
+  }
+  100% {
+    transform: scale(1.85);
+    opacity: 0;
+    border-color: rgba(16, 185, 129, 0);
+  }
 }
 
 .floating-chat-avatar:hover {
@@ -289,7 +352,7 @@
 @media (max-width: 480px) {
   .floating-chat-avatar {
     bottom: 80px;
-    left: 12px;
+    right: 12px;
     width: 46px;
     height: 46px;
   }
@@ -907,11 +970,11 @@
 
   .floating-chat-popup {
     bottom: 80px;
-    left: 12px;
+    right: 12px;
   }
   .floating-chat-avatar {
     bottom: 80px;
-    left: 12px;
+    right: 12px;
   }
 }
 
@@ -919,10 +982,10 @@
 @media (max-width: 768px) {
   .floating-chat-popup {
     bottom: 85px;
-    left: 16px;
+    right: 16px;
   }
   .floating-chat-avatar {
     bottom: 85px;
-    left: 16px;
+    right: 16px;
   }
 }

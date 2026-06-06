@@ -399,6 +399,16 @@ export default function FloatingChat() {
                 <span className="popup-live-dot"></span>
                 LIVE
               </span>
+              <div className="popup-wave" aria-hidden="true">
+                <svg className="wave-back" viewBox="0 0 1200 40" preserveAspectRatio="none">
+                  <path d="M0 20 Q150 0 300 20 T600 20 T900 20 T1200 20 L1200 40 L0 40 Z" fill="rgba(16, 185, 129, 0.45)" />
+                  <path d="M0 20 Q150 0 300 20 T600 20 T900 20 T1200 20 L1200 40 L0 40 Z" fill="rgba(16, 185, 129, 0.45)" transform="translate(1200 0)" />
+                </svg>
+                <svg viewBox="0 0 1200 40" preserveAspectRatio="none">
+                  <path d="M0 25 Q150 5 300 25 T600 25 T900 25 T1200 25 L1200 40 L0 40 Z" fill="rgba(5, 150, 105, 0.85)" />
+                  <path d="M0 25 Q150 5 300 25 T600 25 T900 25 T1200 25 L1200 40 L0 40 Z" fill="rgba(5, 150, 105, 0.85)" transform="translate(1200 0)" />
+                </svg>
+              </div>
             </div>
             <div className="popup-desc">
               <p>24/7 live support — BM, EN, CN</p>
