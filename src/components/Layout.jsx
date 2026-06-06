@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useTranslation } from '../context/TranslationContext'
 import { accountService } from '../services/accountService'
+import { sweepAllReturns } from '../services/launchTracker'
 import FloatingChat from './FloatingChat/FloatingChat'
 import logo from '../images/team33newlogo.png'
 import loginBtnImg from '../images/login new.png'
@@ -42,7 +43,7 @@ const navItemsConfig = [
 export default function Layout({ children }) {
   const location = useLocation()
   const navigate = useNavigate()
-  const { user, isAuthenticated, logout } = useAuth()
+  const { user, isAuthenticated, logout, updateBalance } = useAuth()
   const { showToast } = useToast()
   const { currentLanguage, languages, t, changeLanguage } = useTranslation()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -51,6 +52,22 @@ export default function Layout({ children }) {
   const [walletOpen, setWalletOpen] = useState(false)
   // Fresh account details fetched on popup open — has phoneNumber etc.
   const [walletAccount, setWalletAccount] = useState(null)
+
+  // Sweep any stranded transfer-wallet sessions whenever the user is back
+  // on team33 (app mount + tab regains focus). Backend's 20-min timer is
+  // the fallback, but explicit /exit gives instant balance refresh.
+  useEffect(() => {
+    if (!isAuthenticated) return
+    sweepAllReturns(updateBalance)
+    const onVis = () => {
+      if (!document.hidden) sweepAllReturns(updateBalance)
+    }
+    document.addEventListener('visibilitychange', onVis)
+    window.addEventListener('focus', () => sweepAllReturns(updateBalance))
+    return () => {
+      document.removeEventListener('visibilitychange', onVis)
+    }
+  }, [isAuthenticated, updateBalance])
 
   // Fetch the full account record when the wallet popup opens so we have
   // server-truth phoneNumber, bank details (when backend adds them), etc.

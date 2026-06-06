@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllVPowerGames, exitVPowerGame, launchVPowerGame } from '../services/vpowerService'
+import { recordLaunch, clearLaunch, ProviderKey } from '../services/launchTracker'
 import { getAllJDBGames } from '../services/jdbTransferService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
@@ -105,6 +106,7 @@ export default function VPower() {
     if (user?.accountId) {
       try {
         const result = await exitVPowerGame(user.accountId)
+        clearLaunch(ProviderKey.VPOWER)
         // Per VPower spec post 2026-05-30 fix: success:false means funds still at VPower.
         // Reconciler will sweep them; let the user know.
         if (!result.success) {
@@ -149,6 +151,7 @@ export default function VPower() {
         amount: amount > 0 ? amount : undefined,
       })
       if (result.success && result.gameUrl) {
+        recordLaunch(ProviderKey.VPOWER, user?.accountId)
         setEmbeddedGame({ url: result.gameUrl, name: game.name })
         showToast(`${game.name} launched!`, 'success')
       } else {

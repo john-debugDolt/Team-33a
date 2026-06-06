@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllPegasusGames, exitPegasusGame, launchPegasusGame } from '../services/pegasusService'
+import { recordLaunch, clearLaunch, ProviderKey } from '../services/launchTracker'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -82,6 +83,7 @@ export default function Pegasus() {
     if (user?.accountId) {
       try {
         const result = await exitPegasusGame(user.accountId)
+        clearLaunch(ProviderKey.PEGASUS)
         if (result.reconciling) {
           showToast('Cash-out is being processed — refresh in a moment.', 'warning')
         }
@@ -124,6 +126,7 @@ export default function Pegasus() {
         amount: amount > 0 ? amount : undefined,
       })
       if (result.success && result.gameUrl) {
+        recordLaunch(ProviderKey.PEGASUS, user?.accountId)
         setEmbeddedGame({ url: result.gameUrl, name: game.name })
         showToast(`${game.name} launched!`, 'success')
       } else {
