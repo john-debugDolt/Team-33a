@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getAllEvo888h5Games } from '../services/evo888h5Service'
-import { gameService } from '../services/gameService'
+import { getAllEvo888h5Games, launchEvo888h5Game } from '../services/evo888h5Service'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -117,9 +116,14 @@ export default function Evo888h5() {
     while (attempt < maxRetries && !success) {
       attempt++
       try {
-        const result = await gameService.requestGameUrl(game.id, user?.accountId)
-        if (result.success && result.gameUrl) {
-          setEmbeddedGame({ url: result.gameUrl, name: game.name })
+        let gameUrl
+        try {
+          gameUrl = await launchEvo888h5Game(user?.accountId, game.gameId)
+        } catch (err) {
+          gameUrl = null
+        }
+        if (gameUrl) {
+          setEmbeddedGame({ url: gameUrl, name: game.name })
           showToast(`${game.name} launched!`, 'success')
           success = true
         } else {

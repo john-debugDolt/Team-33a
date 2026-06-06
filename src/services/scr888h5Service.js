@@ -126,12 +126,16 @@ export const launchSCR888H5Game = async (game, accountId) => {
       params.set('account', 'bonus');
     }
     const urls = [`${BASE_URL}/api/scr888h5/launch?${params}`, `/api/scr888h5/launch?${params}`];
+    console.log('[SCR888H5/launch] accountType=', accountType, 'accountId=', accountId, 'gameId=', gameId);
 
     for (const url of urls) {
       try {
+        console.log('[SCR888H5/launch] → GET', url);
         const response = await fetchWithTimeout(url);
+        console.log('[SCR888H5/launch] ← status', response.status, url);
         if (!response.ok) continue;
         const data = await response.json();
+        console.log('[SCR888H5/launch] ← body', data);
         if (data.success && data.gameUrl) {
           return { success: true, gameUrl: data.gameUrl.trim(), ...data };
         }

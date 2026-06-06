@@ -43,12 +43,14 @@ export const getBonusBalance = async (accountId, { force = false } = {}) => {
     return cachedBalance.balance
   }
   try {
-    const response = await fetchWithTimeout(
-      `${BASE_URL}/api/bonus-wallet/${accountId}/balance`
-    )
+    const url = `${BASE_URL}/api/bonus-wallet/${accountId}/balance`
+    console.log('[BonusWallet/balance] → GET', url)
+    const response = await fetchWithTimeout(url)
+    console.log('[BonusWallet/balance] ← status', response.status)
     if (!response.ok) return 0
     const data = await response.json()
     const balance = Number(data?.balance) || 0
+    console.log('[BonusWallet/balance] ← body', data, '→ accountType:', balance > 0 ? 'bonus' : 'normal')
     cachedBalance = { accountId, balance }
     cacheTimestamp = Date.now()
     // Mirror to localStorage so the wallet popup / other consumers can read

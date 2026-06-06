@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getAllMetaGamingGames } from '../services/metaGamingService'
-import { gameService } from '../services/gameService'
+import { getAllMetaGamingGames, launchMetaGamingGame } from '../services/metaGamingService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -115,13 +114,13 @@ export default function MetaGaming() {
     while (attempt < maxRetries && !success) {
       attempt++
       try {
-        const result = await gameService.requestGameUrl(game.id, user?.accountId)
+        const result = await launchMetaGamingGame(game.gameCode || game.gameId, user?.accountId)
         if (result.success && result.gameUrl) {
           setEmbeddedGame({ url: result.gameUrl, name: game.name })
           showToast(`${game.name} launched!`, 'success')
           success = true
         } else {
-          console.log(`[Game Launch] Attempt ${attempt} failed, retrying...`)
+          console.log(`[Game Launch] Attempt ${attempt} failed:`, result.error)
           if (attempt < maxRetries) {
             await new Promise(resolve => setTimeout(resolve, 1000))
           }

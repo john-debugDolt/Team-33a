@@ -133,12 +133,16 @@ export const launchRichGamingGame = async (game, accountId, device) => {
 
     const params = new URLSearchParams({ accountId, gameCode: String(gameCode), device: String(device) });
     const urls = [`${BASE_URL}/api/richgaming/launch?${params}`, `/api/richgaming/launch?${params}`];
+    console.log('[RichGaming/launch] accountId=', accountId, 'gameCode=', gameCode, 'device=', device);
 
     for (const url of urls) {
       try {
+        console.log('[RichGaming/launch] → GET', url);
         const response = await fetchWithTimeout(url);
+        console.log('[RichGaming/launch] ← status', response.status, url);
         if (!response.ok) continue;
         const data = await response.json();
+        console.log('[RichGaming/launch] ← body', data);
 
         // Apidoc: { status: true, code: 0, url: "..." } on success, { status: false, code, message } on error
         if (data.status === true && data.url) {

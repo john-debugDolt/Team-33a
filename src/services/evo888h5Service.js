@@ -144,10 +144,11 @@ export const launchEvo888h5Game = async (accountId, gameId, lang = 'en') => {
       `${apiBase}/launch?${query}`,
       `${directBase}/launch?${query}`
     ];
+    console.log('[EVO888H5/launch] accountType=', accountType, 'accountId=', accountId, 'gameId=', gameId, 'apiBase=', apiBase);
 
     for (const launchUrl of urls) {
       try {
-        console.log('[EVO888H5] Launching game:', { accountId, gameId, lang, launchUrl });
+        console.log('[EVO888H5/launch] → GET', launchUrl);
 
         const response = await fetchWithTimeout(launchUrl, {
           method: 'GET',
@@ -156,13 +157,14 @@ export const launchEvo888h5Game = async (accountId, gameId, lang = 'en') => {
           }
         }, 20000);
 
+        console.log('[EVO888H5/launch] ← status', response.status, launchUrl);
         if (!response.ok) {
-          console.log('[EVO888H5] Launch response not OK:', response.status);
+          console.log('[EVO888H5/launch] response not OK');
           continue;
         }
 
         const data = await response.json();
-        console.log('[EVO888H5] Launch response:', data);
+        console.log('[EVO888H5/launch] ← body', data);
 
         // Response format: { success: true, gameUrl: "...", message: "OK" }
         if (!data.success) {

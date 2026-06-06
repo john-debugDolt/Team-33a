@@ -135,13 +135,17 @@ export const launchMetaGamingGame = async (gameCode, accountId, lang = 'en-us') 
       `${BASE_URL}/api/metagaming/launch?${params}`,
       `/api/metagaming/launch?${params}`
     ];
+    console.log('[MetaGaming/launch] accountType=', accountType, 'accountId=', accountId, 'gameCode=', gameCode);
 
     for (const url of urls) {
       try {
+        console.log('[MetaGaming/launch] → GET', url);
         const response = await fetchWithTimeout(url);
+        console.log('[MetaGaming/launch] ← status', response.status, url);
         if (!response.ok) continue;
 
         const data = await response.json();
+        console.log('[MetaGaming/launch] ← body', data);
         const gameUrl = (data.gameUrl || data.url || data.launchUrl)?.trim();
 
         if (gameUrl) {

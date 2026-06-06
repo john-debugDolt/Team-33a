@@ -137,12 +137,16 @@ export const launchRich88Game = async (game, accountId, lang = 'en-US') => {
       `${BASE_URL}/api/rich88-transfer/launch?${params}`,
       `/api/rich88-transfer/launch?${params}`,
     ];
+    console.log('[Rich88/launch] accountType=', accountType, 'accountId=', accountId, 'gameCode=', gameCode);
 
     for (const url of urls) {
       try {
+        console.log('[Rich88/launch] → POST', url);
         const response = await fetchWithTimeout(url, { method: 'POST' });
+        console.log('[Rich88/launch] ← status', response.status, url);
         if (!response.ok) continue;
         const data = await response.json();
+        console.log('[Rich88/launch] ← body', data);
         const gameUrl = (data?.data?.url || data?.url || data?.gameUrl)?.trim();
         if (data.code === 0 && gameUrl) {
           return { success: true, gameUrl, ...data };

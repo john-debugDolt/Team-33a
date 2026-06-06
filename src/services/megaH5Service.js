@@ -124,13 +124,16 @@ export const launchMegaH5Game = async (game, accountId, lang = 'en-us') => {
       params.set('account', 'freecredit');
     }
     const urls = [`/api/megah5/launch?${params}`, `${BASE_URL}/api/megah5/launch?${params}`];
+    console.log('[MegaH5/launch] accountType=', accountType, 'accountId=', accountId, 'gameCode=', gameCode);
 
     for (const url of urls) {
       try {
-        // GET verified working against live API; avoids CORS preflight overhead
+        console.log('[MegaH5/launch] → GET', url);
         const response = await fetchWithTimeout(url);
+        console.log('[MegaH5/launch] ← status', response.status, url);
         if (!response.ok) continue;
         const data = await response.json();
+        console.log('[MegaH5/launch] ← body', data);
         // Apidoc: { success: true, gameUrl: "...", message: "OK" }
         if (data.success && data.gameUrl) {
           return { success: true, gameUrl: data.gameUrl.trim(), ...data };
