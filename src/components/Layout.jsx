@@ -53,6 +53,25 @@ export default function Layout({ children }) {
   // Fresh account details fetched on popup open — has phoneNumber etc.
   const [walletAccount, setWalletAccount] = useState(null)
 
+  // Fetch & store the account type ("bonus" / etc.) in localStorage so other
+  // parts of the app (and analytics) can read it without re-fetching.
+  useEffect(() => {
+    if (!isAuthenticated || !user?.accountId) return
+    let cancelled = false
+    accountService.getAccountType(user.accountId).then((res) => {
+      if (cancelled || !res?.success || !res.type) return
+      try {
+        localStorage.setItem('team33_account_type', res.type)
+        localStorage.setItem(
+          'team33_account_type_meta',
+          JSON.stringify({ type: res.type, accountId: res.accountId, fetchedAt: Date.now() })
+        )
+        console.log('[Layout] account-type:', res.type)
+      } catch { /* ignore quota / private mode */ }
+    }).catch(() => { /* ignore */ })
+    return () => { cancelled = true }
+  }, [isAuthenticated, user?.accountId])
+
   // Sweep any stranded transfer-wallet sessions whenever the user is back
   // on team33: app mount, tab regains focus, route change, or another tab
   // signals a new session. Backend's 20-min timer is the final fallback.

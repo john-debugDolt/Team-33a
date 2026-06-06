@@ -209,6 +209,24 @@ class AccountService {
   }
 
   /**
+   * Get account type ("bonus" / etc.)
+   * GET /api/accounts/{accountId}/account-type
+   */
+  async getAccountType(accountId) {
+    try {
+      const response = await fetch(`${API_BASE}/api/accounts/${accountId}/account-type`);
+      if (!response.ok) {
+        return { success: false, error: `HTTP ${response.status}` };
+      }
+      const data = await response.json();
+      return { success: true, type: data?.type ?? null, accountId: data?.accountId };
+    } catch (error) {
+      console.warn('[AccountService] getAccountType error:', error?.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
    * Get wallet balance
    * GET /api/accounts/{accountId}/balance
    */
