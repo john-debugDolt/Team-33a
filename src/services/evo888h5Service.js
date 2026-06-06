@@ -162,7 +162,18 @@ export const launchEvo888h5Game = async (accountId, gameId, lang = 'en') => {
           // Bonus endpoint: { state: "OK", code: 0, url, depositedAmount, depositSessionId }
           const ok = data.success === true || data.state === 'OK' || data.code === 0;
           const gameUrl = (data.url || data.gameUrl || data.data?.url)?.trim();
-          if (ok && gameUrl) return gameUrl;
+          if (ok && gameUrl) {
+            // Transfer wallet — record the deposited amount so on return we
+            // sweep a withdraw back to the bonus ledger.
+            try {
+              const { recordLaunch, ProviderKey } = await import('./launchTracker.js');
+              recordLaunch(ProviderKey.EVO888H5_BONUS, accountId, {
+                amount: data.depositedAmount,
+                sessionId: data.depositSessionId,
+              });
+            } catch (e) { console.log('[EVO888H5/launch] record failed:', e?.message); }
+            return gameUrl;
+          }
         } catch (err) {
           console.log('[EVO888H5/launch] error:', err.message);
         }
@@ -197,8 +208,50 @@ export const launchEvo888h5Game = async (accountId, gameId, lang = 'en') => {
   }
 };
 
+/**
+ * Withdraw EVO bonus session back to the bonus ledger.
+ * POST /api/evo888h5-bonus-transfer/withdraw?accountId=&amount=&requestId=
+ * Response: { state: "CONFIRMED" | "RECONCILING" | "FAILED", code, message,
+ *             sessionId, direction:"WITHDRAW", amount }
+ * Amount is rounded to a whole integer (EVO only takes integers).
+ */
+export const withdrawEvo888h5Bonus = async (accountId, amount) => {
+  try {
+    if (!accountId || amount == null) return { success: false, error: 'Missing accountId or amount' };
+    const requestId = (crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    const intAmount = Math.max(0, Math.round(Number(amount)));
+    const params = new URLSearchParams({ accountId, amount: String(intAmount), requestId });
+    const urls = [
+      `/api/evo888h5-bonus-transfer/withdraw?${params}`,
+      `https://seamless.team33.mx/api/evo888h5-bonus-transfer/withdraw?${params}`,
+    ];
+    console.log('[EVO888H5/withdraw] accountId=', accountId, 'amount=', intAmount);
+    for (const url of urls) {
+      try {
+        console.log('[EVO888H5/withdraw] → POST', url);
+        const response = await fetchWithTimeout(url, {
+          method: 'POST',
+          headers: { 'X-Request-Id': requestId },
+        }, 20000);
+        console.log('[EVO888H5/withdraw] ← status', response.status);
+        if (!response.ok) continue;
+        const data = await response.json();
+        console.log('[EVO888H5/withdraw] ← body', data);
+        const ok = data.state === 'CONFIRMED' || data.state === 'RECONCILING';
+        return { success: ok, state: data.state, ...data };
+      } catch (err) {
+        console.log('[EVO888H5/withdraw] error:', err.message);
+      }
+    }
+    return { success: false, error: 'Withdraw failed' };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
 export default {
   fetchEvo888h5Games,
   getAllEvo888h5Games,
-  launchEvo888h5Game
+  launchEvo888h5Game,
+  withdrawEvo888h5Bonus,
 };

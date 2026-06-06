@@ -23,6 +23,7 @@ import { exitSexyBaccarat, exitSV388 } from './awcTransferService'
 import { exitM9Game } from './m9TransferService'
 import { exitJDBGame } from './jdbTransferService'
 import { exitJokerGame } from './jokerService'
+import { withdrawEvo888h5Bonus } from './evo888h5Service'
 import { walletService } from './walletService'
 
 const STORAGE_KEY = 'team33_active_launches_v1'
@@ -42,6 +43,7 @@ export const ProviderKey = {
   M8BET: 'M8BET',
   JDB: 'JDB',
   JOKER: 'JOKER',
+  EVO888H5_BONUS: 'EVO888H5_BONUS',
 }
 
 const EXIT_MAP = {
@@ -58,6 +60,9 @@ const EXIT_MAP = {
   M8BET: exitM9Game,
   JDB: exitJDBGame,
   JOKER: exitJokerGame,
+  // EVO bonus carries the deposited amount in the recorded entry; the
+  // withdraw call signs it back out of EVO into the bonus_wallet ledger.
+  EVO888H5_BONUS: (accountId, entry) => withdrawEvo888h5Bonus(accountId, entry?.amount),
 }
 
 const read = () => {
@@ -76,12 +81,12 @@ const write = (obj) => {
   }
 }
 
-export const recordLaunch = (provider, accountId) => {
+export const recordLaunch = (provider, accountId, extra = {}) => {
   if (!provider || !accountId) return
   const cur = read()
-  cur[provider] = { accountId, launchedAt: Date.now() }
+  cur[provider] = { accountId, launchedAt: Date.now(), ...extra }
   write(cur)
-  console.log('[LaunchTracker] recorded:', provider)
+  console.log('[LaunchTracker] recorded:', provider, extra)
 }
 
 export const clearLaunch = (provider) => {
@@ -121,7 +126,7 @@ export const sweepAllReturns = async (onBalanceRefresh) => {
         continue
       }
       try {
-        const result = await exitFn(accountId)
+        const result = await exitFn(accountId, entry)
         console.log(`[LaunchTracker] ${provider} exit:`, result?.success ? 'OK' : (result?.error || 'no-op'))
         anySwept = true
       } catch (err) {
