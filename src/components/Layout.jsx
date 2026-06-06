@@ -4,7 +4,10 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useTranslation } from '../context/TranslationContext'
 import { accountService } from '../services/accountService'
+import { walletService } from '../services/walletService'
 import { sweepAllReturns } from '../services/launchTracker'
+import { clearBonus } from '../services/bonusWalletService'
+import useAccountType from '../hooks/useAccountType'
 import FloatingChat from './FloatingChat/FloatingChat'
 import logo from '../images/team33newlogo.png'
 import loginBtnImg from '../images/login new.png'
@@ -52,6 +55,35 @@ export default function Layout({ children }) {
   const [walletOpen, setWalletOpen] = useState(false)
   // Fresh account details fetched on popup open — has phoneNumber etc.
   const [walletAccount, setWalletAccount] = useState(null)
+  const [clearingBonus, setClearingBonus] = useState(false)
+  const accountType = useAccountType()
+
+  const handleClearBalance = async () => {
+    if (!user?.accountId || clearingBonus) return
+    if (!window.confirm('Clear your bonus balance? This will forfeit your bonus credit and unlock your real wallet.')) {
+      return
+    }
+    setClearingBonus(true)
+    try {
+      const result = await clearBonus(user.accountId, { description: 'user hit clear-balance' })
+      if (result?.success) {
+        showToast(t('clearBalanceSuccess') || 'Bonus balance cleared.', 'success')
+        // Refresh main-wallet balance — now unlocked
+        try {
+          const w = await walletService.getBalance(user.accountId)
+          if (w?.success && w.balance !== undefined) updateBalance?.(w.balance)
+        } catch { /* ignore */ }
+      } else if (result?.status === 404) {
+        showToast('Clear balance is not yet available.', 'warning')
+      } else {
+        showToast(result?.error || 'Failed to clear balance.', 'error')
+      }
+    } catch (err) {
+      showToast(err?.message || 'Failed to clear balance.', 'error')
+    } finally {
+      setClearingBonus(false)
+    }
+  }
 
   // Fetch & store the account type ("bonus" / etc.) in localStorage so other
   // parts of the app (and analytics) can read it without re-fetching.
@@ -550,6 +582,22 @@ export default function Layout({ children }) {
                     </svg>
                     <span>History</span>
                   </Link>
+                  {accountType === 'bonus' && (
+                    <button
+                      type="button"
+                      className="wallet-action-btn wallet-clear-btn"
+                      onClick={handleClearBalance}
+                      disabled={clearingBonus}
+                      aria-label="Clear bonus balance"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                      </svg>
+                      <span>{clearingBonus ? 'Clearing…' : 'Clear Balance'}</span>
+                    </button>
+                  )}
                 </div>
 
                 <button

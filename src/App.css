@@ -11796,3 +11796,20 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
   .wallet-user-name { font-size: 16px; }
   .wallet-action-btn { padding: 12px 6px; font-size: 11.5px; }
 }
+
+/* Clear Balance — shown only when accountType is "bonus" */
+.wallet-action-btn.wallet-clear-btn {
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.06);
+}
+.wallet-action-btn.wallet-clear-btn svg { color: #ef4444; }
+.wallet-action-btn.wallet-clear-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.55);
+  color: #fecaca;
+}
+.wallet-action-btn.wallet-clear-btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
