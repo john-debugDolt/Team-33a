@@ -2765,7 +2765,7 @@ body::before {
   }
 
   .logo-img {
-    height: 36px;
+    height: 48px;
   }
 
   /* Smaller brand text on mobile */
@@ -3106,7 +3106,7 @@ body::before {
   }
 
   .logo-img {
-    height: 36px;
+    height: 48px;
   }
 
   .header {
@@ -7539,7 +7539,7 @@ button, a, .game-card, .provider-btn, .page-btn, .dot, .carousel-btn, .badge {
   }
 
   .logo-img {
-    height: 28px !important;
+    height: 40px !important;
   }
 
   /* Bottom Navigation - professional compact sizing */
