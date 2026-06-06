@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useTranslation } from '../context/TranslationContext'
+import { accountService } from '../services/accountService'
 import FloatingChat from './FloatingChat/FloatingChat'
 import logo from '../images/team33newlogo.png'
 import loginBtnImg from '../images/login new.png'
@@ -48,6 +49,21 @@ export default function Layout({ children }) {
   const [showWelcomePopup, setShowWelcomePopup] = useState(false)
   const [showLangDropdown, setShowLangDropdown] = useState(false)
   const [walletOpen, setWalletOpen] = useState(false)
+  // Fresh account details fetched on popup open — has phoneNumber etc.
+  const [walletAccount, setWalletAccount] = useState(null)
+
+  // Fetch the full account record when the wallet popup opens so we have
+  // server-truth phoneNumber, bank details (when backend adds them), etc.
+  useEffect(() => {
+    if (!walletOpen || !user?.accountId) return
+    let cancelled = false
+    accountService.getAccount(user.accountId).then((res) => {
+      if (!cancelled && res?.success && res.account) {
+        setWalletAccount(res.account)
+      }
+    }).catch(() => { /* ignore */ })
+    return () => { cancelled = true }
+  }, [walletOpen, user?.accountId])
 
   // Scroll to top on route change (instant, no animation)
   useEffect(() => {
@@ -400,7 +416,7 @@ export default function Layout({ children }) {
                 </div>
                 <div className="wallet-user-detail">
                   <div className="wallet-user-name">
-                    {`${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.username || 'User'}
+                    {`${walletAccount?.firstName || user?.firstName || ''} ${walletAccount?.lastName || user?.lastName || ''}`.trim() || user?.username || 'User'}
                   </div>
                   <div className="wallet-info-row">
                     <span className="wallet-info-label">Username</span>
@@ -410,17 +426,17 @@ export default function Layout({ children }) {
                   <div className="wallet-info-row">
                     <span className="wallet-info-label">Phone Number</span>
                     <span className="wallet-info-sep">:</span>
-                    <span className="wallet-info-value">{user?.phoneNumber || user?.phone || '—'}</span>
+                    <span className="wallet-info-value">{walletAccount?.phoneNumber || user?.phoneNumber || user?.phone || '—'}</span>
                   </div>
                   <div className="wallet-info-row">
                     <span className="wallet-info-label">Bank Name</span>
                     <span className="wallet-info-sep">:</span>
-                    <span className="wallet-info-value">{user?.bankName || '—'}</span>
+                    <span className="wallet-info-value">{walletAccount?.bankName || user?.bankName || '—'}</span>
                   </div>
                   <div className="wallet-info-row">
                     <span className="wallet-info-label">Bank Account Number</span>
                     <span className="wallet-info-sep">:</span>
-                    <span className="wallet-info-value">{user?.bankAccountNumber || user?.bankAccount || '—'}</span>
+                    <span className="wallet-info-value">{walletAccount?.bankAccountNumber || user?.bankAccountNumber || user?.bankAccount || '—'}</span>
                   </div>
                 </div>
               </div>
