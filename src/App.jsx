@@ -41,6 +41,7 @@ const WFGaming = lazyWithRetry(() => import('./pages/WFGaming'))
 const MegaH5 = lazyWithRetry(() => import('./pages/MegaH5'))
 const EpicWin = lazyWithRetry(() => import('./pages/EpicWin'))
 const RichGaming = lazyWithRetry(() => import('./pages/RichGaming'))
+const Rich88 = lazyWithRetry(() => import('./pages/Rich88'))
 const SCR888H5 = lazyWithRetry(() => import('./pages/SCR888H5'))
 const JDB = lazyWithRetry(() => import('./pages/JDB'))
 const AceWin = lazyWithRetry(() => import('./pages/AceWin'))
@@ -149,6 +150,7 @@ function App() {
               <Route path="/megah5" element={<WithLayout><MegaH5 /></WithLayout>} />
               <Route path="/epicwin" element={<WithLayout><EpicWin /></WithLayout>} />
               <Route path="/richgaming" element={<WithLayout><RichGaming /></WithLayout>} />
+              <Route path="/rich88" element={<WithLayout><Rich88 /></WithLayout>} />
               <Route path="/scr888h5" element={<WithLayout><SCR888H5 /></WithLayout>} />
               <Route path="/jdb" element={<WithLayout><JDB /></WithLayout>} />
               <Route path="/acewin" element={<WithLayout><AceWin /></WithLayout>} />

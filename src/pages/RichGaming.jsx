@@ -11,7 +11,6 @@ import './Slot.css'
 import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
 import GameCard from '../components/GameCard/GameCard'
 import { useCategoryAndSort } from '../components/CategorySortBar/CategorySortBar'
-import rich88Logo from '../images/rich88logo.jpg'
 
 export default function RichGaming() {
   const navigate = useNavigate()
@@ -32,12 +31,12 @@ export default function RichGaming() {
       setLoading(true)
       try {
         const result = await getAllRichGamingGames()
-        console.log('[Rich88] Loaded:', result?.length || 0)
+        console.log('[RichGaming] Loaded:', result?.length || 0)
         if (result && result.length > 0) {
           setGames(result)
         }
       } catch (e) {
-        console.error('[Rich88] Error:', e)
+        console.error('[RichGaming] Error:', e)
       }
       setLoading(false)
     }
@@ -161,23 +160,23 @@ export default function RichGaming() {
       <div className="marquee">
         <span className="marquee-icon">📢</span>
         <div className="marquee-text">
-          <span>Telegram: @Team33 | Rich88 Games</span>
+          <span>Telegram: @Team33 | RichGaming Games</span>
         </div>
       </div>
 
       <div className="slot-content">
         <div className="provider-header">
           <img
-            src={rich88Logo}
-            alt="Rich88"
+            src="https://www.richgaming.com/wp-content/uploads/2023/12/rg_logo-2x.png"
+            alt="RichGaming"
             className="provider-logo"
           />
         </div>
 
-        <ProviderTabs active="rich88" />
+        <ProviderTabs active="richgaming" />
 
         <div className="games-count">
-          {filteredGames.length} Rich88 games available
+          {filteredGames.length} RichGaming games available
         </div>
 
         {!loading && games.length > 0 && bar}
@@ -192,7 +191,7 @@ export default function RichGaming() {
               <div className="game-category-section richgaming-section">
                 <h2 className="category-title">
                   <span className="category-icon">💎</span>
-                  Rich88 Games
+                  RichGaming Games
                   <span className="category-count">({filteredGames.length})</span>
                 </h2>
                 <div className="slot-games-grid">
@@ -201,7 +200,7 @@ export default function RichGaming() {
               </div>
             ) : (
               <div className="empty-state">
-                <p>No Rich88 games available</p>
+                <p>No RichGaming games available</p>
               </div>
             )}
           </div>

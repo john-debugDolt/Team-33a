@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getAllMetaGamingGames } from '../services/metaGamingService'
-import { gameService } from '../services/gameService'
+import { getAllRich88Games, launchRich88Game } from '../services/rich88TransferService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -12,8 +11,9 @@ import './Slot.css'
 import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
 import GameCard from '../components/GameCard/GameCard'
 import { useCategoryAndSort } from '../components/CategorySortBar/CategorySortBar'
+import rich88Logo from '../images/rich88logo.jpg'
 
-export default function MetaGaming() {
+export default function Rich88() {
   const navigate = useNavigate()
   const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
   const { showToast } = useToast()
@@ -25,19 +25,16 @@ export default function MetaGaming() {
   const [embeddedGame, setEmbeddedGame] = useState(null)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
 
-  const { bar, filteredGames } = useCategoryAndSort(games, { labels: { '1': 'Slots', '2': 'Card', '3': 'Other', '5': 'Crash' } })
+  const { bar, filteredGames } = useCategoryAndSort(games, { labels: { '1': 'Slots' } })
 
   useEffect(() => {
     const loadGames = async () => {
       setLoading(true)
       try {
-        const result = await getAllMetaGamingGames()
-        console.log('[MetaGaming] Loaded:', result?.length || 0)
-        if (result && result.length > 0) {
-          setGames(result)
-        }
+        const result = await getAllRich88Games()
+        if (result && result.length > 0) setGames(result)
       } catch (e) {
-        console.error('[MetaGaming] Error:', e)
+        console.error('[Rich88] Error:', e)
       }
       setLoading(false)
     }
@@ -49,31 +46,22 @@ export default function MetaGaming() {
       if (user?.accountId) {
         try {
           const result = await walletService.getBalance(user.accountId)
-          if (result.success && result.balance !== undefined) {
-            updateBalance?.(result.balance)
-          }
+          if (result.success && result.balance !== undefined) updateBalance?.(result.balance)
         } catch (error) {
           console.error('Failed to sync balance:', error)
         }
       }
     }
-
-    if (!embeddedGame && user?.accountId) {
-      syncBalance()
-    }
-
+    if (!embeddedGame && user?.accountId) syncBalance()
     const handleGameMessage = (event) => {
       const data = event.data
-      if (data?.type === 'BALANCE_UPDATE' && data.balance !== undefined) {
-        updateBalance?.(data.balance)
-      }
+      if (data?.type === 'BALANCE_UPDATE' && data.balance !== undefined) updateBalance?.(data.balance)
       if (data?.type === 'GAME_EXIT') {
         syncBalance()
         setEmbeddedGame(null)
         notifyTransactionUpdate?.()
       }
     }
-
     window.addEventListener('message', handleGameMessage)
     return () => window.removeEventListener('message', handleGameMessage)
   }, [embeddedGame, user?.accountId, updateBalance, notifyTransactionUpdate])
@@ -82,12 +70,8 @@ export default function MetaGaming() {
     if (user?.accountId) {
       try {
         const result = await walletService.getBalance(user.accountId)
-        if (result.success && result.balance !== undefined) {
-          updateBalance?.(result.balance)
-        }
-      } catch (error) {
-        console.error('Balance sync error:', error)
-      }
+        if (result.success && result.balance !== undefined) updateBalance?.(result.balance)
+      } catch (error) { console.error('Balance sync error:', error) }
     }
     setEmbeddedGame(null)
     setShowExitConfirm(false)
@@ -96,48 +80,38 @@ export default function MetaGaming() {
 
   const handlePlayNow = async (game, e) => {
     if (e) e.stopPropagation()
-
     if (!isAuthenticated) {
       showToast('Please login to play', 'warning')
       navigate('/login')
       return
     }
-
     if (launchingGame === game.id) return
-
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
 
-    const maxRetries = 15
+    const maxRetries = 10
     let attempt = 0
     let success = false
-
     while (attempt < maxRetries && !success) {
       attempt++
       try {
-        const result = await gameService.requestGameUrl(game.id, user?.accountId)
+        const result = await launchRich88Game(game, user?.accountId)
         if (result.success && result.gameUrl) {
           setEmbeddedGame({ url: result.gameUrl, name: game.name })
           showToast(`${game.name} launched!`, 'success')
           success = true
         } else {
-          console.log(`[Game Launch] Attempt ${attempt} failed, retrying...`)
-          if (attempt < maxRetries) {
-            await new Promise(resolve => setTimeout(resolve, 1000))
+          if (result.code === 10001) {
+            showToast(result.error || 'Game code not supported', 'error')
+            break
           }
+          if (attempt < maxRetries) await new Promise(r => setTimeout(r, 1000))
         }
       } catch (error) {
-        console.error(`[Game Launch] Attempt ${attempt} error:`, error)
-        if (attempt < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 1000))
-        }
+        console.error(`[Rich88 launch] Attempt ${attempt} error:`, error)
+        if (attempt < maxRetries) await new Promise(r => setTimeout(r, 1000))
       }
     }
-
-    if (!success) {
-      console.error('[Game Launch] All retries failed')
-    }
-
     setLaunchingGame(null)
   }
 
@@ -156,38 +130,30 @@ export default function MetaGaming() {
       <div className="marquee">
         <span className="marquee-icon">📢</span>
         <div className="marquee-text">
-          <span>Telegram: @Team33 | MetaGaming Games</span>
+          <span>Telegram: @Team33 | Rich88 Games</span>
         </div>
       </div>
 
       <div className="slot-content">
         <div className="provider-header">
-          <img
-            src="https://mg.btech4896.com/static/media/loading-logo.8501962f8392b4a44ed7.png"
-            alt="MetaGaming"
-            className="provider-logo"
-          />
+          <img src={rich88Logo} alt="Rich88" className="provider-logo" />
         </div>
 
-        <ProviderTabs active="metagaming" />
+        <ProviderTabs active="rich88" />
 
-        <div className="games-count">
-          {filteredGames.length} MetaGaming games available
-        </div>
+        <div className="games-count">{filteredGames.length} Rich88 games available</div>
 
         {!loading && games.length > 0 && bar}
 
         {loading ? (
-          <div className="loading-wrapper">
-            <LoadingSpinner />
-          </div>
+          <div className="loading-wrapper"><LoadingSpinner /></div>
         ) : (
           <div className="slot-games-layout">
             {filteredGames.length > 0 ? (
-              <div className="game-category-section metagaming-section">
+              <div className="game-category-section rich88-section">
                 <h2 className="category-title">
-                  <span className="category-icon">🎮</span>
-                  MetaGaming Games
+                  <span className="category-icon">💎</span>
+                  Rich88 Games
                   <span className="category-count">({filteredGames.length})</span>
                 </h2>
                 <div className="slot-games-grid">
@@ -196,7 +162,7 @@ export default function MetaGaming() {
               </div>
             ) : (
               <div className="empty-state">
-                <p>No MetaGaming games available</p>
+                <p>No Rich88 games available</p>
               </div>
             )}
           </div>

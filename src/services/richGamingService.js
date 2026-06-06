@@ -34,7 +34,7 @@ const transformGame = (game) => {
     gameCode: gameCode,
     slug: `richgaming-${gameCode}`,
     name: name,
-    provider: 'Rich88',
+    provider: 'RichGaming',
     image: img,
     portraitImage: img,
     squareImage: img,
@@ -132,13 +132,6 @@ export const launchRichGamingGame = async (game, accountId, device) => {
     }
 
     const params = new URLSearchParams({ accountId, gameCode: String(gameCode), device: String(device) });
-    // Multi-operator routing — Rich88 uses ?operator=foc (Free Of Charge)
-    // for the bonus operator. Lock-in pattern per player.
-    const { getAccountType } = await import('./bonusWalletService.js');
-    const accountType = await getAccountType(accountId);
-    if (accountType === 'bonus') {
-      params.set('operator', 'foc');
-    }
     const urls = [`${BASE_URL}/api/richgaming/launch?${params}`, `/api/richgaming/launch?${params}`];
 
     for (const url of urls) {

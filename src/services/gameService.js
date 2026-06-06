@@ -750,10 +750,17 @@ export const gameService = {
       return await launchSCR888H5Game(game, accountId);
     }
 
-    // Rich88 (Seamless Wallet) — launch takes game object, sends gameCode
-    if (game.isRichGaming || game.provider === 'Rich88' || game.provider === 'RichGaming') {
-      console.log('[GameService] Launching Rich88 game:', game.gameCode || game.gameId, 'accountId:', accountId);
+    // RichGaming (Seamless Wallet) — launch takes game object, sends gameCode
+    if (game.isRichGaming || game.provider === 'RichGaming') {
+      console.log('[GameService] Launching RichGaming game:', game.gameCode || game.gameId, 'accountId:', accountId);
       return await launchRichGamingGame(game, accountId);
+    }
+
+    // Rich88 (Transfer Wallet, multi-operator) — POST /api/rich88-transfer/launch
+    if (game.isRich88 || game.provider === 'Rich88') {
+      console.log('[GameService] Launching Rich88 game:', game.gameCode || game.gameId, 'accountId:', accountId);
+      const { launchRich88Game } = await import('./rich88TransferService.js');
+      return await launchRich88Game(game, accountId);
     }
 
     // JDB (Transfer Wallet) — launch takes game object (needs gType + mType)

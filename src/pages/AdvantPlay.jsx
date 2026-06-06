@@ -119,7 +119,7 @@ export default function AdvantPlay() {
     while (attempt < maxRetries && !success) {
       attempt++
       try {
-        const result = await gameService.requestGameUrl(game.id, user?.id)
+        const result = await gameService.requestGameUrl(game.id, user?.accountId)
         if (result.success && result.gameUrl) {
           setEmbeddedGame({ url: result.gameUrl, name: game.name })
           showToast(`${game.name} launched!`, 'success')

@@ -28,7 +28,7 @@ export default function GameDetailModal({ game, onClose, onPlayGame }) {
     showToast(`Launching ${game.name}...`, 'info');
 
     try {
-      const result = await gameService.requestGameUrl(game.id, user?.id);
+      const result = await gameService.requestGameUrl(game.id, user?.accountId);
 
       if (result.success && result.gameUrl) {
         // Use embedded player if callback provided, otherwise open new tab
