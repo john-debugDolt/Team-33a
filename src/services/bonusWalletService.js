@@ -77,6 +77,39 @@ export const getAccountType = async (accountId, opts) => {
   return balance > 0 ? 'bonus' : 'normal'
 }
 
+/**
+ * Single-balance source for the UI.
+ *
+ * Returns `{ success, balance, currency, accountType }` regardless of pool —
+ * caller doesn't need to know which one is being read. When bonus_wallet > 0
+ * we surface that as THE balance (real wallet is server-locked). Otherwise
+ * we surface the real wallet.
+ *
+ * Used by walletService.getBalance to keep all existing consumers consistent.
+ */
+export const getDisplayBalance = async (accountId) => {
+  if (!accountId) return { success: false, balance: 0, currency: 'MYR', accountType: 'normal' }
+  // Reuses the 5s cache, so this is one network call in practice.
+  const bonusBalance = await getBonusBalance(accountId)
+  if (bonusBalance > 0) {
+    return { success: true, balance: bonusBalance, currency: 'MYR', accountType: 'bonus' }
+  }
+  // Fall through to real wallet via accountService.
+  try {
+    const { accountService } = await import('./accountService.js')
+    const res = await accountService.getBalance(accountId)
+    return {
+      success: !!res?.success,
+      balance: res?.balance ?? 0,
+      currency: res?.currency || 'AUD',
+      accountType: 'normal',
+    }
+  } catch (error) {
+    console.warn('[BonusWallet] real balance fall-through failed:', error?.message)
+    return { success: false, balance: 0, currency: 'MYR', accountType: 'normal' }
+  }
+}
+
 export const clearBonusWalletCache = () => {
   cachedBalance = null
   cacheTimestamp = null

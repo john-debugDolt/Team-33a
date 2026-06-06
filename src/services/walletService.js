@@ -8,16 +8,32 @@
  */
 
 import { accountService } from './accountService';
+import { getDisplayBalance } from './bonusWalletService';
 
 // API base - call accounts.team33.mx directly
 const API_BASE = 'https://accounts.team33.mx';
 
 class WalletService {
   /**
-   * Get wallet balance
-   * Uses accountService which has JWT auth
+   * Get the single balance the UI should display.
+   *
+   * Account-type-aware:
+   *   - bonus_wallet > 0  →  shows bonus balance (real wallet is server-locked)
+   *   - bonus_wallet == 0 →  shows real wallet balance
+   *
+   * Every existing caller (header wallet pill, wallet popup, provider page
+   * sync effects) gets the right number automatically. Response shape stays
+   * `{ success, balance, currency, accountType }`.
    */
   async getBalance(accountId) {
+    return getDisplayBalance(accountId);
+  }
+
+  /**
+   * Real-money wallet only. For internal flows that need to know the cash
+   * pool specifically (e.g. for top-up calculations).
+   */
+  async getRealBalance(accountId) {
     return accountService.getBalance(accountId);
   }
 
