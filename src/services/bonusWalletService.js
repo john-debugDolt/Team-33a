@@ -116,6 +116,51 @@ export const clearBonusWalletCache = () => {
 }
 
 /**
+ * Clear the player's bonus_wallet (zeros it). After this returns success,
+ * the real wallet auto-unlocks server-side because bonus_wallet.balance === 0.
+ *
+ * Endpoint: POST https://accounts.team33.mx/api/wallets/{accountId}/clear-bonus
+ *   ?referenceId=<required>
+ *   &description=<optional>
+ *
+ * Per backend, referenceId is used for idempotency. We append a timestamp
+ * so each click registers as a distinct operation.
+ */
+export const clearBonus = async (accountId, { description = '' } = {}) => {
+  if (!accountId) return { success: false, error: 'No account ID' }
+  try {
+    const referenceId = `user-hit-clear-balance-${Date.now()}`
+    const params = new URLSearchParams({ referenceId })
+    if (description) params.set('description', description)
+    const response = await fetch(
+      `https://accounts.team33.mx/api/wallets/${accountId}/clear-bonus?${params}`,
+      { method: 'POST' }
+    )
+    const data = await response.json().catch(() => null)
+    if (!response.ok) {
+      return {
+        success: false,
+        error: data?.error || data?.message || `Clear failed (HTTP ${response.status})`,
+        status: response.status,
+        ...(data || {}),
+      }
+    }
+    // Invalidate cache so the next balance read goes to the wire.
+    clearBonusWalletCache()
+    try {
+      localStorage.setItem('team33_bonus_balance', '0')
+      localStorage.setItem(
+        'team33_bonus_meta',
+        JSON.stringify({ accountId, balance: 0, fetchedAt: Date.now() })
+      )
+    } catch { /* ignore */ }
+    return { success: true, ...(data || {}) }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+}
+
+/**
  * Operator alias param to add to the launch URL, per provider.
  * Returns null when accountType is 'normal' (use provider's default operator).
  */
@@ -140,7 +185,9 @@ export const bonusAliasParam = (providerId) => {
 export const bonusWalletService = {
   getBonusBalance,
   getAccountType,
+  getDisplayBalance,
   bonusAliasParam,
+  clearBonus,
   clearCache: clearBonusWalletCache,
 }
 
