@@ -789,9 +789,9 @@ export default function Home() {
         <img src={belowBanner} alt="Promo Banner" className="below-banner-image" />
       </div>
 
-      {/* Top Hot — random featured games from ClotPlay + UUSlot (real thumbnails) */}
+      {/* Top Hot — random featured games from ClotPlay + UUSlot + Rich88 (real thumbnails) */}
       <TopHotStripe
-        sourceGames={[...clotPlayGames, ...uuSlotGames]}
+        sourceGames={[...clotPlayGames, ...uuSlotGames, ...richGamingGames]}
         onPlay={handlePlayNow}
         count={15}
       />

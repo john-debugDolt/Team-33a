@@ -11,6 +11,7 @@ import './Slot.css'
 import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
 import GameCard from '../components/GameCard/GameCard'
 import { useCategoryAndSort } from '../components/CategorySortBar/CategorySortBar'
+import rich88Logo from '../images/rich88logo.jpg'
 
 export default function RichGaming() {
   const navigate = useNavigate()
@@ -167,7 +168,7 @@ export default function RichGaming() {
       <div className="slot-content">
         <div className="provider-header">
           <img
-            src="https://www.richgaming.com/wp-content/uploads/2023/12/rg_logo-2x.png"
+            src={rich88Logo}
             alt="Rich88"
             className="provider-logo"
           />
