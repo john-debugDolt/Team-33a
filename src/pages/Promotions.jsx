@@ -3,6 +3,7 @@ import { useTranslation } from '../context/TranslationContext'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import bonusService from '../services/bonusService'
+import { getActiveCheckinBonus, claimCheckinBonus } from '../services/checkinBonusService'
 import { ButtonSpinner } from '../components/LoadingSpinner/LoadingSpinner'
 import './Promotions.css'
 
@@ -12,43 +13,67 @@ import banner2 from '../images/New banner 2.png'
 import banner3 from '../images/New banner 3.png'
 import treasureGif from '../images/buried-treasure.gif'
 
-const CHECKIN_DAYS = 7
-const CHECKIN_AMOUNT = 10
-const CHECKIN_STORAGE_KEY = 'team33_checkin_state_v1'
+// Backend-driven daily check-in stripe.
+//
+// Reads /api/checkin-bonus?accountId=… to learn the campaign shape (days,
+// dailyAmount, displayName) and this player's progress (daysClaimed,
+// nextDayIndex, claimedToday). Claim hits POST /api/checkin-bonus/claim
+// which credits the player's bonus_wallet server-side.
+//
+// 404 from the GET means no active campaign — the stripe stays hidden.
+function CheckinStripe({ accountId, isAuthenticated, onClaimSuccess, onUnauthClaim, showToast }) {
+  const [campaign, setCampaign] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [claiming, setClaiming] = useState(false)
 
-const readCheckinState = () => {
-  try { return JSON.parse(localStorage.getItem(CHECKIN_STORAGE_KEY) || '{}') }
-  catch { return {} }
-}
+  const refresh = async () => {
+    const result = await getActiveCheckinBonus(accountId)
+    setLoading(false)
+    if (result.status === 'ok') setCampaign(result.data)
+    else setCampaign(null)
+  }
 
-const writeCheckinState = (state) => {
-  try { localStorage.setItem(CHECKIN_STORAGE_KEY, JSON.stringify(state)) }
-  catch { /* ignore */ }
-}
+  useEffect(() => {
+    refresh()
+    // We re-fetch when the active account changes so the per-player progress
+    // updates if the user logs in/out without leaving the page.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountId])
 
-// Daily check-in: tracks which days the user already claimed and the day
-// number they are currently on (1..7). Claiming is one-per-day, advances by
-// 1 each calendar day after the previous claim, and wraps back to day 1
-// after day 7 is claimed.
-function CheckinStripe({ onClaim }) {
-  const [state, setState] = useState(readCheckinState)
+  // No active campaign or still loading the first time — render nothing.
+  if (loading || !campaign) return null
 
-  const today = new Date().toISOString().slice(0, 10)
-  const currentDay = Math.min(Math.max(1, state.currentDay || 1), CHECKIN_DAYS)
-  const claimedToday = state.lastClaimedDate === today
+  const days = campaign.days || 0
+  const dailyAmount = Number(campaign.dailyAmount) || 0
+  const daysClaimed = campaign.daysClaimed ?? 0
+  const nextDayIndex = campaign.nextDayIndex // null when campaign complete
+  const claimedToday = !!campaign.claimedToday
+  const isComplete = nextDayIndex == null
 
-  const handleClaim = () => {
-    if (claimedToday) return
-    const next = currentDay >= CHECKIN_DAYS ? 1 : currentDay + 1
-    const updated = {
-      currentDay: next,
-      lastClaimedDay: currentDay,
-      lastClaimedDate: today,
-      totalClaimed: (state.totalClaimed || 0) + 1,
+  const handleClaim = async () => {
+    if (!isAuthenticated || !accountId) {
+      onUnauthClaim?.()
+      return
     }
-    setState(updated)
-    writeCheckinState(updated)
-    onClaim?.(currentDay, CHECKIN_AMOUNT)
+    if (claiming || claimedToday || isComplete) return
+    setClaiming(true)
+    const result = await claimCheckinBonus(accountId)
+    setClaiming(false)
+
+    if (result.status === 'ok') {
+      const credited = Number(result.data?.amount) || dailyAmount
+      showToast?.(`Day ${result.data?.dayIndex} reward: $${credited.toFixed(2)} credited to your bonus wallet`, 'success')
+      onClaimSuccess?.()
+      refresh()
+    } else if (result.status === 'already' || result.status === 'complete') {
+      showToast?.(result.message, 'warning')
+      refresh()
+    } else if (result.status === 'none') {
+      showToast?.(result.message || 'Daily check-in is not currently available.', 'warning')
+      setCampaign(null)
+    } else {
+      showToast?.(result.message || "Couldn't claim — please try again.", 'error')
+    }
   }
 
   return (
@@ -56,17 +81,23 @@ function CheckinStripe({ onClaim }) {
       <div className="checkin-header">
         <h3 className="checkin-title">
           <span className="checkin-icon">🎁</span>
-          7-Day Check-in Bonus
+          {campaign.displayName || `${days}-Day Check-in Bonus`}
         </h3>
-        <span className="checkin-sub">Claim ${CHECKIN_AMOUNT} every day for 7 days</span>
+        <span className="checkin-sub">
+          {campaign.description || `Claim $${dailyAmount.toFixed(2)} every day for ${days} days`}
+        </span>
       </div>
       <div className="checkin-cards">
-        {Array.from({ length: CHECKIN_DAYS }).map((_, idx) => {
+        {Array.from({ length: days }).map((_, idx) => {
           const day = idx + 1
-          const isToday = day === currentDay
-          const isPast = day < currentDay
-          const isFuture = day > currentDay
-          const isClaimable = isToday && !claimedToday
+          const isPast = day <= daysClaimed
+          const isToday = !isComplete && day === nextDayIndex
+          const isFuture = !isPast && !isToday
+          const isClaimable = isToday && !claimedToday && !claiming
+          let ctaLabel
+          if (isPast) ctaLabel = 'Claimed'
+          else if (isToday) ctaLabel = claiming ? 'Claiming…' : (claimedToday ? 'Done today' : 'Claim')
+          else ctaLabel = 'Locked'
           return (
             <button
               key={day}
@@ -82,10 +113,8 @@ function CheckinStripe({ onClaim }) {
               </div>
               <div className="checkin-card-body">
                 <span className="checkin-day-label">Day {day}</span>
-                <span className="checkin-amount">${CHECKIN_AMOUNT}</span>
-                <span className="checkin-cta">
-                  {isPast ? 'Claimed' : isToday ? (claimedToday ? 'Done today' : 'Claim') : 'Locked'}
-                </span>
+                <span className="checkin-amount">${dailyAmount.toFixed(0)}</span>
+                <span className="checkin-cta">{ctaLabel}</span>
               </div>
             </button>
           )
@@ -225,7 +254,17 @@ export default function Promotions() {
           </div>
 
           <CheckinStripe
-            onClaim={(day, amount) => showToast(`Day ${day} reward: $${amount} added to bonus wallet`, 'success')}
+            accountId={user?.accountId}
+            isAuthenticated={isAuthenticated}
+            showToast={showToast}
+            onUnauthClaim={() => showToast('Please log in to claim your daily bonus', 'warning')}
+            onClaimSuccess={() => {
+              // Refresh wallet popups / bonus-wallet listeners by nudging the
+              // localStorage mirror that bonusWalletService writes to.
+              try {
+                window.dispatchEvent(new StorageEvent('storage', { key: 'team33_bonus_balance' }))
+              } catch { /* ignore */ }
+            }}
           />
 
           {/* Content */}
