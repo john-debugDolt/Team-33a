@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllLucky365Games, exitLucky365Game, launchLucky365Game } from '../services/lucky365Service'
 import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
-import { getAllJDBGames } from '../services/jdbTransferService'
+import { getAllClotPlayGames } from '../services/gameService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -37,17 +37,17 @@ export default function Lucky365() {
     const loadGames = async () => {
       setLoading(true)
       try {
-        const [luckyGames, jdbGames] = await Promise.all([
+        const [luckyGames, imageDonorGames] = await Promise.all([
           getAllLucky365Games(lucky365Logo),
-          getAllJDBGames().catch(() => []),
+          getAllClotPlayGames().catch(() => []),
         ])
 
-        const imagePool = (jdbGames || [])
+        const imagePool = (imageDonorGames || [])
           .map(g => g.image)
           .filter(src => src && src !== '/placeholder-game.png')
 
         let result = luckyGames
-        // Lucky365 catalogue has no thumbnails — borrow JDB images by
+        // Lucky365 catalogue has no thumbnails — borrow ClotPlay images by
         // deterministic gameCode hash so the cards aren't all the same logo.
         if (result && result.length > 0 && imagePool.length > 0) {
           result = result.map((g) => {

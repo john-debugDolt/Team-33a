@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllDragoonSoftGames, exitDragoonSoftGame, launchDragoonSoftGame } from '../services/dragoonSoftService'
 import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
-import { getAllJDBGames } from '../services/jdbTransferService'
+import { getAllClotPlayGames } from '../services/gameService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -38,12 +38,12 @@ export default function DragoonSoft() {
     const loadGames = async () => {
       setLoading(true)
       try {
-        const [dragoonGames, jdbGames] = await Promise.all([
+        const [dragoonGames, imageDonorGames] = await Promise.all([
           getAllDragoonSoftGames(dragoonLogo),
-          getAllJDBGames().catch(() => []),
+          getAllClotPlayGames().catch(() => []),
         ])
 
-        const imagePool = (jdbGames || [])
+        const imagePool = (imageDonorGames || [])
           .map(g => g.image)
           .filter(src => src && src !== '/placeholder-game.png')
 

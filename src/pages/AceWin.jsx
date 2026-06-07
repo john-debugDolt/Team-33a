@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllAceWinGames, exitAceWinGame, launchAceWinGame } from '../services/acewinTransferService'
 import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
-import { getAllJDBGames } from '../services/jdbTransferService'
+import { getAllClotPlayGames } from '../services/gameService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -61,16 +61,16 @@ export default function AceWin() {
     const loadGames = async () => {
       setLoading(true)
       try {
-        // AceWin's catalogue ships no thumbnails. Borrow images from JDB
+        // AceWin's catalogue ships no thumbnails. Borrow images from ClotPlay
         // (which has hundreds of real game images) and assign them
         // deterministically by GameId so each AceWin game keeps the same
         // image across renders.
-        const [acewinGames, jdbGames] = await Promise.all([
+        const [acewinGames, imageDonorGames] = await Promise.all([
           getAllAceWinGames(acewinLogo),
-          getAllJDBGames().catch(() => []),
+          getAllClotPlayGames().catch(() => []),
         ])
 
-        const imagePool = (jdbGames || [])
+        const imagePool = (imageDonorGames || [])
           .map(g => g.image)
           .filter(src => src && src !== '/placeholder-game.png')
 

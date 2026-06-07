@@ -10,7 +10,6 @@ import { getAllMegaH5Games, launchMegaH5Game } from './megaH5Service';
 import { getAllEpicWinGames, launchEpicWinGame } from './epicWinService';
 import { getAllRichGamingGames, launchRichGamingGame } from './richGamingService';
 import { getAllSCR888H5Games, launchSCR888H5Game } from './scr888h5Service';
-import { getAllJDBGames, launchJDBGame } from './jdbTransferService';
 
 // Get headers for API calls (no auth token needed for user frontend)
 const getHeaders = () => {
@@ -130,7 +129,7 @@ export const getAllClotPlayGames = async () => {
 };
 
 // Track which providers failed so we can retry them
-let failedProviders = { clotPlay: false, advantPlay: false, uuSlot: false, evo888h5: false, metaGaming: false, wfGaming: false, megaH5: false, epicWin: false, richGaming: false, scr888h5: false, jdb: false };
+let failedProviders = { clotPlay: false, advantPlay: false, uuSlot: false, evo888h5: false, metaGaming: false, wfGaming: false, megaH5: false, epicWin: false, richGaming: false, scr888h5: false };
 let isRetrying = false;
 
 // Listeners for game updates (so UI can refresh when more games load)
@@ -214,7 +213,6 @@ const retryFailedProviders = async () => {
     { key: 'epicWin', fetcher: getAllEpicWinGames },
     { key: 'richGaming', fetcher: getAllRichGamingGames },
     { key: 'scr888h5', fetcher: getAllSCR888H5Games },
-    { key: 'jdb', fetcher: getAllJDBGames },
   ];
   additionalRetries.forEach(({ key, fetcher }) => {
     if (failedProviders[key]) {
@@ -277,7 +275,6 @@ export const getAllCombinedGames = async () => {
     getAllEpicWinGames(),    // 7 - EpicWin
     getAllRichGamingGames(), // 8 - RichGaming
     getAllSCR888H5Games(),   // 9 - SCR888H5
-    getAllJDBGames(),        // 10 - JDB
   ]);
 
   // Map of index to provider key for tracking failures
@@ -292,7 +289,6 @@ export const getAllCombinedGames = async () => {
     { key: 'epicWin', label: 'EpicWin' },
     { key: 'richGaming', label: 'RichGaming' },
     { key: 'scr888h5', label: 'SCR888H5' },
-    { key: 'jdb', label: 'JDB' },
   ];
 
   // Extract games from each provider, track failures, and log results
@@ -761,12 +757,6 @@ export const gameService = {
       console.log('[GameService] Launching Rich88 game:', game.gameCode || game.gameId, 'accountId:', accountId);
       const { launchRich88Game } = await import('./rich88TransferService.js');
       return await launchRich88Game(game, accountId);
-    }
-
-    // JDB (Transfer Wallet) — launch takes game object (needs gType + mType)
-    if (game.isJDB || game.provider === 'JDB') {
-      console.log('[GameService] Launching JDB game:', game.mType, game.gType, 'accountId:', accountId);
-      return await launchJDBGame(game, accountId);
     }
 
     // MetaGaming (Seamless Wallet) — launch takes gameCode string

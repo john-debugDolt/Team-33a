@@ -43,7 +43,6 @@ const EpicWin = lazyWithRetry(() => import('./pages/EpicWin'))
 const RichGaming = lazyWithRetry(() => import('./pages/RichGaming'))
 const Rich88 = lazyWithRetry(() => import('./pages/Rich88'))
 const SCR888H5 = lazyWithRetry(() => import('./pages/SCR888H5'))
-const JDB = lazyWithRetry(() => import('./pages/JDB'))
 const AceWin = lazyWithRetry(() => import('./pages/AceWin'))
 const FunTa = lazyWithRetry(() => import('./pages/FunTa'))
 const DragoonSoft = lazyWithRetry(() => import('./pages/DragoonSoft'))
@@ -52,7 +51,6 @@ const Win8 = lazyWithRetry(() => import('./pages/Win8'))
 const Pegasus = lazyWithRetry(() => import('./pages/Pegasus'))
 const Lucky365 = lazyWithRetry(() => import('./pages/Lucky365'))
 const Joker = lazyWithRetry(() => import('./pages/Joker'))
-const VpnRequired = lazyWithRetry(() => import('./pages/VpnRequired'))
 const Promotions = lazyWithRetry(() => import('./pages/Promotions'))
 const Login = lazyWithRetry(() => import('./pages/Login'))
 const Signup = lazyWithRetry(() => import('./pages/Signup'))
@@ -152,7 +150,6 @@ function App() {
               <Route path="/richgaming" element={<WithLayout><RichGaming /></WithLayout>} />
               <Route path="/rich88" element={<WithLayout><Rich88 /></WithLayout>} />
               <Route path="/scr888h5" element={<WithLayout><SCR888H5 /></WithLayout>} />
-              <Route path="/jdb" element={<WithLayout><JDB /></WithLayout>} />
               <Route path="/acewin" element={<WithLayout><AceWin /></WithLayout>} />
               <Route path="/funta" element={<WithLayout><FunTa /></WithLayout>} />
               <Route path="/dragoon" element={<WithLayout><DragoonSoft /></WithLayout>} />
@@ -161,7 +158,6 @@ function App() {
               <Route path="/pegasus" element={<WithLayout><Pegasus /></WithLayout>} />
               <Route path="/lucky365" element={<WithLayout><Lucky365 /></WithLayout>} />
               <Route path="/joker" element={<WithLayout><Joker /></WithLayout>} />
-              <Route path="/vpn-required" element={<WithLayout><VpnRequired /></WithLayout>} />
               <Route path="/card-game" element={<WithLayout><Slot /></WithLayout>} />
               <Route path="/fishing" element={<WithLayout><Slot /></WithLayout>} />
               <Route path="/esport" element={<WithLayout><Sports /></WithLayout>} />

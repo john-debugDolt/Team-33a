@@ -10,7 +10,6 @@ export const providers = [
   { id: 'FACHAI', name: 'FA CHAI', logo: 'https://www.gamesapi.net/uploads/1718339720.webp' },
   { id: 'SG', name: 'Spade Gaming', logo: 'https://www.gamesapi.net/uploads/1718339820.webp' },
   { id: 'CQ9', name: 'CQ9', logo: 'https://www.gamesapi.net/uploads/1718339700.webp' },
-  { id: 'JDB', name: 'JDB', logo: 'https://www.gamesapi.net/uploads/1718339740.webp' },
   { id: 'RICH88', name: 'RICH88', logo: 'https://www.gamesapi.net/uploads/1718339760.webp' },
   { id: 'BNG', name: 'BNG', logo: 'https://www.gamesapi.net/uploads/1718339680.webp' },
   { id: 'YGG', name: 'Yggdrasil', logo: 'https://www.gamesapi.net/uploads/1718339840.webp' },

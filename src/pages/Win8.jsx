@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllWin8Games, exitWin8Game, launchWin8Game } from '../services/win8Service'
 import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
-import { getAllJDBGames } from '../services/jdbTransferService'
+import { getAllClotPlayGames } from '../services/gameService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -37,18 +37,18 @@ export default function Win8() {
     const loadGames = async () => {
       setLoading(true)
       try {
-        const [win8Games, jdbGames] = await Promise.all([
+        const [win8Games, imageDonorGames] = await Promise.all([
           getAllWin8Games(win8Logo),
-          getAllJDBGames().catch(() => []),
+          getAllClotPlayGames().catch(() => []),
         ])
 
-        const imagePool = (jdbGames || [])
+        const imagePool = (imageDonorGames || [])
           .map(g => g.image)
           .filter(src => src && src !== '/placeholder-game.png')
 
         let result = win8Games
         // 3win8 ships real thumbnails in game_image_url. Keep those when
-        // present; only borrow JDB images for games without one.
+        // present; only borrow ClotPlay images for games without one.
         if (result && result.length > 0 && imagePool.length > 0) {
           result = result.map((g, i) => {
             const hasRealThumb = g.image && g.image.startsWith('http')

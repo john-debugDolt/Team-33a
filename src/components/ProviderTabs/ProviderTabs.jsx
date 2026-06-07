@@ -30,7 +30,6 @@ const PROVIDERS = [
   { id: 'richgaming', name: 'RichGaming', path: '/richgaming', logo: 'https://www.richgaming.com/wp-content/uploads/2023/12/rg_logo-2x.png' },
   { id: 'rich88', name: 'Rich88', path: '/rich88', logo: rich88Logo },
   { id: 'scr888h5', name: 'SCR888H5', path: '/scr888h5', logo: 'https://scr-888.com/logo.webp' },
-  { id: 'jdb', name: 'JDB', path: '/jdb', logo: 'https://imgs.search.brave.com/YduaC2JMbt9I_sC0tnmPzrYxRj4IT9J-OQvBmWd_wlc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9hc3Nl/dHMuc2xvdHNsYXVu/Y2guY29tLzMwNzI4/L0lzWGYzcWZFYjM4/VkcwYjVwb0JpWXpy/VFIyZmpjNS1tZXRh/U2tSQ1gweHZaMjlm/TXpBd2VETXdNQzVx/Y0djPS0uanBn' },
   { id: 'acewin', name: 'AceWin', path: '/acewin', logo: acewinLogo },
   { id: 'funta', name: 'FunTa', path: '/funta', logo: funtaLogo },
   { id: 'dragoon', name: 'Dragoon Soft', path: '/dragoon', logo: dragoonLogo },

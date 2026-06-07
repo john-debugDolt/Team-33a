@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllFunTaGames, exitFunTaGame, launchFunTaGame } from '../services/funtaGamingService'
 import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
-import { getAllJDBGames } from '../services/jdbTransferService'
+import { getAllClotPlayGames } from '../services/gameService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -45,13 +45,13 @@ export default function FunTa() {
     const loadGames = async () => {
       setLoading(true)
       try {
-        // FunTa's catalogue has no thumbnails — borrow JDB images by GameId.
-        const [funtaGames, jdbGames] = await Promise.all([
+        // FunTa's catalogue has no thumbnails — borrow ClotPlay images by GameId.
+        const [funtaGames, imageDonorGames] = await Promise.all([
           getAllFunTaGames(funtaLogo),
-          getAllJDBGames().catch(() => []),
+          getAllClotPlayGames().catch(() => []),
         ])
 
-        const imagePool = (jdbGames || [])
+        const imagePool = (imageDonorGames || [])
           .map(g => g.image)
           .filter(src => src && src !== '/placeholder-game.png')
 

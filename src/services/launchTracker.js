@@ -21,7 +21,6 @@ import { exitLucky365Game } from './lucky365Service'
 import { exitAllBet } from './allbetService'
 import { exitSexyBaccarat, exitSV388 } from './awcTransferService'
 import { exitM9Game } from './m9TransferService'
-import { exitJDBGame } from './jdbTransferService'
 import { exitJokerGame } from './jokerService'
 import { withdrawEvo888h5Bonus } from './evo888h5Service'
 import { exitRich88Game } from './rich88TransferService'
@@ -42,7 +41,6 @@ export const ProviderKey = {
   SEXYBCRT: 'SEXYBCRT',
   SV388: 'SV388',
   M8BET: 'M8BET',
-  JDB: 'JDB',
   JOKER: 'JOKER',
   EVO888H5_BONUS: 'EVO888H5_BONUS',
   RICH88: 'RICH88',
@@ -60,7 +58,6 @@ const EXIT_MAP = {
   SEXYBCRT: exitSexyBaccarat,
   SV388: exitSV388,
   M8BET: exitM9Game,
-  JDB: exitJDBGame,
   JOKER: exitJokerGame,
   // EVO bonus carries the deposited amount in the recorded entry; the
   // withdraw call signs it back out of EVO into the bonus_wallet ledger.
