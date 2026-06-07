@@ -46,7 +46,7 @@ const titleCase = (raw) => {
  *   - filteredGames: the games array with filter + sort applied
  *
  * Options:
- *   - labels: map from rawCategory string -> human label (e.g. JDB gType ids)
+ *   - labels: map from rawCategory string -> human label (e.g. gType ids)
  *   - groupBy: 'rawCategory' (default) or a custom function (game) => string
  *   - hideIfSingle: bool, hide the chip row if only one category exists
  *   - title: optional heading shown to the left of the controls

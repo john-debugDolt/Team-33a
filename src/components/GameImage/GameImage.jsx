@@ -83,7 +83,7 @@ export default function GameImage({ src, alt, className }) {
 
   // Background probe — fetches the real URL using a new Image() with cache-busted URL.
   // Once it succeeds, swap the displayed img to the real src.
-  // Capped at MAX_RETRIES so dead URLs (e.g. JDB CDN 403s) don't loop forever.
+  // Capped at MAX_RETRIES so dead URLs (e.g. dead CDN 403s) don't loop forever.
   const MAX_RETRIES = 6
   const scheduleProbe = () => {
     if (!isMountedRef.current || !isValidSrc) return

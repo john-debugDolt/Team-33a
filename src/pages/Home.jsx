@@ -76,14 +76,9 @@ const CATEGORIES = [
 ]
 
 // Normalize each game's upstream category into one of the canonical filter
-// buckets above. Mapping derived from live raw-category samples:
-//   - 'slot'/'Slots'/'slot_game' (everywhere); numeric '1'/'0'/'141' (JDB,
-//     MetaGaming, MegaH5, WFGaming, EpicWin all use these for slots)
-//   - 'fishing'/'Fishing'; JDB gType '7'/'142'
-//   - 'crash'/'crash_game'; JDB '200'; MetaGaming '5' (crash games)
-//   - 'card'/'table'; JDB '18'; MetaGaming '2'
-//   - 'live'/'live_casino'
-//   - 'arcade'/'mini'; JDB '9'
+// buckets above. Mapping derived from live raw-category samples — numeric
+// ids ('1','0','141','7','142','200','18','5','9') come from MetaGaming,
+// MegaH5, WFGaming, EpicWin and other providers that pass gType-style codes.
 const getDisplayCategory = (game) => {
   const raw = (game?.rawCategory ?? game?.category ?? '').toString().toLowerCase().trim()
   if (!raw || raw === '-') return 'other'
