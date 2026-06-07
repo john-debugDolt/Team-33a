@@ -582,22 +582,20 @@ export default function Layout({ children }) {
                     </svg>
                     <span>History</span>
                   </Link>
-                  {accountType === 'bonus' && (
-                    <button
-                      type="button"
-                      className="wallet-action-btn wallet-clear-btn"
-                      onClick={handleClearBalance}
-                      disabled={clearingBonus}
-                      aria-label="Clear bonus balance"
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10"/>
-                        <line x1="15" y1="9" x2="9" y2="15"/>
-                        <line x1="9" y1="9" x2="15" y2="15"/>
-                      </svg>
-                      <span>{clearingBonus ? 'Clearing…' : 'Clear Balance'}</span>
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    className="wallet-action-btn wallet-clear-btn"
+                    onClick={handleClearBalance}
+                    disabled={clearingBonus}
+                    aria-label="Clear wallet balance"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="15" y1="9" x2="9" y2="15"/>
+                      <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                    <span>{clearingBonus ? 'Clearing…' : 'Clear Wallet'}</span>
+                  </button>
                 </div>
 
                 <button
