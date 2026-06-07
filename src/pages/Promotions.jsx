@@ -77,7 +77,7 @@ function CheckinStripe({ onClaim }) {
               aria-label={`Day ${day} reward`}
             >
               <div className="checkin-card-media">
-                <img src={treasureGif} alt="" loading="lazy" />
+                <img src={treasureGif} alt={`Day ${day} reward`} decoding="async" />
                 {isPast && <span className="checkin-check">✓</span>}
               </div>
               <div className="checkin-card-body">

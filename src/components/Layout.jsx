@@ -33,8 +33,9 @@ import licenseLogo from '../license/license.png'
 import certLogo from '../cert/cert.png'
 
 // First 5 entries render in the mobile bottom-nav; the full list renders in
-// the side drawer. Wallet sits at position 6 so it stays in the drawer but
-// is replaced in the bottom-nav by Promo.
+// the desktop top nav. Wallet sits at index 5 so it appears on the desktop
+// nav but is excluded from the mobile bottom-nav slice; on mobile it gets a
+// dedicated row in the side drawer above the Download App link.
 const navItemsConfig = [
   { key: 'home', path: '/', icon: iconHome },
   { key: 'sports', path: '/sports', icon: iconSports },
@@ -352,6 +353,16 @@ export default function Layout({ children }) {
               </div>
             )}
           </div>
+
+          {/* Wallet — dedicated drawer entry, sits above Download App */}
+          <Link
+            className={`sidebar-nav-item sidebar-wallet-item ${location.pathname === '/wallet' ? 'active' : ''}`}
+            to="/wallet"
+            onClick={closeMenu}
+          >
+            <img src={iconWallet} alt="" className="sidebar-nav-icon" />
+            <span>{t('wallet') || 'Wallet'}</span>
+          </Link>
 
           {/* Download App */}
           <Link
