@@ -133,6 +133,7 @@ function App() {
               <Route path="/signup" element={<WithLayout><Signup /></WithLayout>} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/terms" element={<Terms />} />
+              <Route path="/terms-and-conditions" element={<Terms />} />
 
               {/* Main Routes - With Layout */}
               <Route path="/" element={<WithLayout><Home /></WithLayout>} />

@@ -9,146 +9,212 @@ export default function Terms() {
           ← Back to Home
         </Link>
 
-        <h1>Terms & Conditions</h1>
-        <p className="last-updated">Last updated: January 2025</p>
+        <h1>Team33 Terms &amp; Conditions</h1>
+        <p className="last-updated">Last updated: June 2026</p>
 
         <div className="terms-content">
           <section>
-            <h2>1. Introduction</h2>
             <p>
-              Welcome to Team33. These Terms and Conditions govern your use of our website and services.
-              By accessing or using our platform, you agree to be bound by these terms. If you disagree
-              with any part of these terms, you may not access the service.
+              Welcome to Team33. By signing up, depositing, or playing on our platform
+              you agree to the following terms. Please read them carefully — they set
+              out what you can expect from us and what we expect from you.
             </p>
           </section>
 
           <section>
-            <h2>2. Eligibility</h2>
-            <p>To use our services, you must:</p>
+            <h2>1. About These Terms</h2>
+            <p>
+              These terms govern your use of Team33's services, including the website,
+              mobile apps, games, and customer support channels. Continued use of the
+              platform means you accept these rules and any updates we publish. If we
+              find that a player has broken them, we may suspend or close the account.
+            </p>
+          </section>
+
+          <section>
+            <h2>2. Eligibility and Account Sign-up</h2>
+            <h3>a. Age and jurisdiction</h3>
+            <p>
+              You must be at least 18 years old — or the legal gambling age in your
+              country, whichever is higher. We may ask for proof of age at any time and
+              will hold an account until you supply it.
+            </p>
+            <h3>b. How to register</h3>
             <ul>
-              <li>Be at least 18 years of age or the legal gambling age in your jurisdiction</li>
-              <li>Have the legal capacity to enter into a binding agreement</li>
-              <li>Not be a resident of any jurisdiction where online gambling is prohibited</li>
-              <li>Provide accurate and complete registration information</li>
+              <li><strong>Sign up:</strong> tap the Sign Up button on the home page.</li>
+              <li><strong>Your details:</strong> enter accurate name, contact and address information.</li>
+              <li><strong>Phone verification:</strong> confirm your mobile with the one-time code we send by SMS.</li>
+              <li><strong>Ready to play:</strong> once verified, your account is activated.</li>
+            </ul>
+            <p>
+              Keep your login confidential. If you spot activity you don't recognise,
+              tell our support team straight away.
+            </p>
+            <h3>c. One account per player</h3>
+            <p>
+              Each person may only hold one Team33 account. Duplicate accounts are not
+              permitted and any we identify will be closed.
+            </p>
+          </section>
+
+          <section>
+            <h2>3. Deposits and Withdrawals</h2>
+            <h3>a. Deposit limits</h3>
+            <p>
+              Minimum and maximum deposit amounts vary by payment method. Up-to-date
+              details live on the Deposit page in your wallet.
+            </p>
+            <h3>b. Withdrawing your winnings</h3>
+            <ul>
+              <li><strong>Clear any wagering:</strong> finish the wagering requirements attached to a bonus before cashing out.</li>
+              <li><strong>Verify your identity:</strong> complete our Know Your Customer (KYC) checks.</li>
+              <li><strong>Request the payout:</strong> head to the Withdraw section, pick a method, and enter the amount.</li>
+            </ul>
+            <h3>c. KYC checks</h3>
+            <ul>
+              <li><strong>Documents we ask for:</strong> a valid photo ID, proof of address, and anything else our compliance team flags.</li>
+              <li><strong>Turnaround:</strong> usually within 24 hours; longer if the documents are unclear or incomplete.</li>
+            </ul>
+            <h3>d. Processing times</h3>
+            <ul>
+              <li><strong>Deposits:</strong> credited instantly in most cases; a few methods can take longer.</li>
+              <li><strong>Withdrawals:</strong> typically settled within 5 minutes. Payouts above AUD 10,000 may need a little extra checking time.</li>
             </ul>
           </section>
 
           <section>
-            <h2>3. Account Registration</h2>
+            <h2>4. Bonuses and Wagering</h2>
+            <h3>a. Welcome bonus eligibility</h3>
             <p>
-              You are responsible for maintaining the confidentiality of your account credentials
-              and for all activities that occur under your account. You must immediately notify us
-              of any unauthorized use of your account.
+              New, verified players qualify for the welcome bonus. The full list of
+              current offers and their conditions sits on the Promotions page.
             </p>
+            <h3>b. Wagering requirements</h3>
+            <p>
+              Every bonus carries a wagering requirement — the amount you must bet
+              before bonus-related winnings can be withdrawn. As an example, a AUD 30
+              bonus at 10× wagering means AUD 300 of bets first.
+            </p>
+            <h3>c. Bonus abuse</h3>
+            <p>
+              Stacking bonuses through duplicate accounts, abusing risk-free patterns,
+              or exploiting promotion mechanics is not allowed. We may void bonuses,
+              reclaim winnings, and close the account where abuse is detected.
+            </p>
+          </section>
+
+          <section>
+            <h2>5. Fair Play and Responsible Gambling</h2>
+            <h3>a. Fair play and anti-fraud</h3>
+            <p>
+              Players are expected to play fairly. Collusion, automated tools, bots,
+              and any attempt to exploit a game or our systems are prohibited and will
+              cost both the winnings and the account.
+            </p>
+            <h3>b. Responsible gambling tools</h3>
             <ul>
-              <li>Only one account per person is permitted</li>
-              <li>Account information must be accurate and up-to-date</li>
-              <li>Sharing accounts is strictly prohibited</li>
-              <li>We reserve the right to suspend or terminate accounts at our discretion</li>
+              <li><strong>Self-exclusion:</strong> pause or block your own access, temporarily or permanently.</li>
+              <li><strong>Deposit limits:</strong> set daily, weekly, or monthly caps.</li>
+              <li><strong>Reality checks:</strong> get reminders about how long you have been playing.</li>
+            </ul>
+            <p>
+              Our support team is available 24/7 if you need help configuring any of
+              these or want to talk through your play habits.
+            </p>
+          </section>
+
+          <section>
+            <h2>6. Account Security</h2>
+            <h3>a. Passwords</h3>
+            <p>
+              Use a unique, strong password, change it regularly, and never share it
+              with anyone. Take extra care on shared or public devices.
+            </p>
+            <h3>b. If you suspect a breach</h3>
+            <ul>
+              <li><strong>Reset:</strong> change your password immediately.</li>
+              <li><strong>Tell us:</strong> contact support so we can lock things down and review activity.</li>
             </ul>
           </section>
 
           <section>
-            <h2>4. Deposits and Withdrawals</h2>
+            <h2>7. Restricted Countries</h2>
             <p>
-              All deposits and withdrawals are subject to our payment processing policies:
+              Team33 isn't available in every jurisdiction. It's your responsibility to
+              know your local laws before signing up. Accounts opened from a restricted
+              region may be closed and balances handled in line with applicable law.
+            </p>
+          </section>
+
+          <section>
+            <h2>8. Account Suspension and Closure</h2>
+            <p>
+              We may suspend or close an account if a player:
             </p>
             <ul>
-              <li>Minimum deposit: $10</li>
-              <li>Minimum withdrawal: $20</li>
-              <li>Withdrawals are processed within 24-48 hours</li>
-              <li>We may require identity verification before processing withdrawals</li>
-              <li>All transactions are final and non-refundable</li>
+              <li>Breaks any part of these terms.</li>
+              <li>Engages in fraud or other illegal activity.</li>
+              <li>Provides false or misleading information when registering or verifying.</li>
             </ul>
+            <p>
+              Affected players are notified by email at the address on file.
+            </p>
           </section>
 
           <section>
-            <h2>5. Bonuses and Promotions</h2>
+            <h2>9. Privacy</h2>
             <p>
-              All bonuses and promotions are subject to specific terms and conditions:
+              We collect and process personal data in line with our Privacy Policy and
+              applicable law. Your information is used to deliver and improve the
+              service and isn't shared with third parties unless legally required.
+            </p>
+          </section>
+
+          <section>
+            <h2>10. Intellectual Property</h2>
+            <p>
+              All content on Team33 — text, images, logos, code — belongs to Team33 or
+              our licensors and is protected by intellectual-property law. Copying,
+              redistributing, or reusing it without permission isn't allowed.
+            </p>
+          </section>
+
+          <section>
+            <h2>11. Disclaimer</h2>
+            <p>
+              We work hard to keep the platform secure and reliable, but we can't
+              guarantee uninterrupted, error-free service. Team33 is not liable for:
             </p>
             <ul>
-              <li>Wagering requirements must be met before withdrawal</li>
-              <li>Bonuses may expire if not used within the specified period</li>
-              <li>We reserve the right to modify or cancel promotions at any time</li>
-              <li>Abuse of bonus offers may result in account termination</li>
+              <li>Service outages outside our reasonable control.</li>
+              <li>Unauthorised access that results from a player's own credential lapse.</li>
+              <li>Errors or omissions in third-party content.</li>
             </ul>
+            <p>
+              Use of the service is at your own risk and discretion.
+            </p>
           </section>
 
           <section>
-            <h2>6. Responsible Gaming</h2>
+            <h2>12. Updates to These Terms</h2>
             <p>
-              We are committed to promoting responsible gaming. We encourage you to:
+              We may update these terms from time to time. Material changes will be
+              announced on the site or sent to the email address on your account.
+              Continuing to use Team33 after a change means you accept the updated
+              version.
+            </p>
+          </section>
+
+          <section>
+            <h2>13. Support and Contact</h2>
+            <p>
+              Questions about these terms or anything else? Reach out:
             </p>
             <ul>
-              <li>Set deposit and betting limits</li>
-              <li>Take regular breaks from gaming</li>
-              <li>Never chase losses</li>
-              <li>Seek help if gambling becomes a problem</li>
-            </ul>
-            <p>
-              If you need assistance, please contact our support team or visit organizations
-              like Gamblers Anonymous.
-            </p>
-          </section>
-
-          <section>
-            <h2>7. Prohibited Activities</h2>
-            <p>The following activities are strictly prohibited:</p>
-            <ul>
-              <li>Fraud or attempted fraud</li>
-              <li>Money laundering</li>
-              <li>Use of automated software or bots</li>
-              <li>Collusion with other players</li>
-              <li>Exploiting system vulnerabilities</li>
-              <li>Creating multiple accounts</li>
+              <li><strong>Live Chat:</strong> available 24/7 from the chat button on the site.</li>
+              <li><strong>Telegram:</strong> @Team33</li>
             </ul>
           </section>
-
-          <section>
-            <h2>8. Intellectual Property</h2>
-            <p>
-              All content on this platform, including logos, graphics, and software, is the property
-              of Team33 or its licensors. You may not reproduce, distribute, or create derivative
-              works without our express written consent.
-            </p>
-          </section>
-
-          <section>
-            <h2>9. Limitation of Liability</h2>
-            <p>
-              Team33 shall not be liable for any indirect, incidental, special, consequential,
-              or punitive damages resulting from your use of or inability to use the service.
-              Our total liability shall not exceed the amount you deposited in the past 12 months.
-            </p>
-          </section>
-
-          <section>
-            <h2>10. Changes to Terms</h2>
-            <p>
-              We reserve the right to modify these terms at any time. We will notify users of
-              significant changes via email or through our platform. Continued use of our
-              services after changes constitutes acceptance of the new terms.
-            </p>
-          </section>
-
-          <section>
-            <h2>11. Contact Us</h2>
-            <p>
-              If you have any questions about these Terms and Conditions, please contact us:
-            </p>
-            <ul>
-              <li>Email: support@team33.com</li>
-              <li>Live Chat: Available 24/7</li>
-            </ul>
-          </section>
-        </div>
-
-        <div className="terms-footer">
-          <p>By using our services, you acknowledge that you have read and understood these terms.</p>
-          <Link to="/" className="btn-primary">
-            Return to Home
-          </Link>
         </div>
       </div>
     </div>

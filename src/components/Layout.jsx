@@ -456,7 +456,7 @@ export default function Layout({ children }) {
             <h4>{t('information')}</h4>
             <a href="#">{t('aboutUs')}</a>
             <a href="#">{t('depositTutorial')}</a>
-            <Link to="/terms">{t('termsConditions')}</Link>
+            <Link to="/terms-and-conditions">{t('termsConditions')}</Link>
             <a href="#">{t('privacyPolicy')}</a>
             <a href="#">{t('responsibleGaming')}</a>
           </div>
