@@ -26,22 +26,27 @@
 
 .terms-page h1 {
   font-size: 36px;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-weight: 800;
+  color: #ffffff;
   margin-bottom: 8px;
+  letter-spacing: 0.005em;
+  text-shadow: 0 2px 12px rgba(16, 185, 129, 0.25);
 }
 
 .last-updated {
   font-size: 14px;
-  color: var(--text-muted);
+  color: #a7f3d0;
+  opacity: 0.85;
   margin-bottom: 40px;
 }
 
 .terms-content {
-  background: var(--bg-card);
+  background: linear-gradient(180deg, #1c2823, #141c18);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid rgba(16, 185, 129, 0.25);
   padding: 40px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4),
+              inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .terms-content section {
@@ -53,19 +58,32 @@
 }
 
 .terms-content h2 {
-  font-size: 20px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #f0fdf4;
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(16, 185, 129, 0.3);
+  letter-spacing: 0.01em;
+}
+
+.terms-content h3 {
+  font-size: 17px;
   font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border-subtle);
+  color: #6ee7b7;
+  margin: 18px 0 10px;
 }
 
 .terms-content p {
-  font-size: 15px;
-  color: var(--text-secondary);
-  line-height: 1.7;
+  font-size: 15.5px;
+  color: #ecfdf5;
+  line-height: 1.75;
   margin-bottom: 12px;
+}
+
+.terms-content strong {
+  color: #fff;
+  font-weight: 700;
 }
 
 .terms-content ul {
@@ -74,14 +92,14 @@
 }
 
 .terms-content li {
-  font-size: 15px;
-  color: var(--text-secondary);
-  line-height: 1.7;
-  margin-bottom: 8px;
+  font-size: 15.5px;
+  color: #ecfdf5;
+  line-height: 1.75;
+  margin-bottom: 10px;
 }
 
 .terms-content li::marker {
-  color: var(--accent-gold);
+  color: #10b981;
 }
 
 .terms-footer {
