@@ -32,13 +32,16 @@ import bankLogo5 from '../logo/bank5.png'
 import licenseLogo from '../license/license.png'
 import certLogo from '../cert/cert.png'
 
+// First 5 entries render in the mobile bottom-nav; the full list renders in
+// the side drawer. Wallet sits at position 6 so it stays in the drawer but
+// is replaced in the bottom-nav by Promo.
 const navItemsConfig = [
   { key: 'home', path: '/', icon: iconHome },
   { key: 'sports', path: '/sports', icon: iconSports },
-  { key: 'wallet', path: '/wallet', icon: iconWallet },
+  { key: 'promo', path: '/promotions', icon: iconPromo },
   { key: 'refer', path: '/refer', icon: iconRefer },
   { key: 'history', path: '/history', icon: iconHistory },
-  { key: 'promo', path: '/promotions', icon: iconPromo },
+  { key: 'wallet', path: '/wallet', icon: iconWallet },
   { key: 'livechat', path: '/livechat', icon: iconLivechat },
   { key: 'settings', path: '/settings', icon: iconSettings },
 ]

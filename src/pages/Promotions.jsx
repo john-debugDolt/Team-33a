@@ -10,6 +10,90 @@ import './Promotions.css'
 import banner1 from '../images/New banner.png'
 import banner2 from '../images/New banner 2.png'
 import banner3 from '../images/New banner 3.png'
+import treasureGif from '../images/buried-treasure.gif'
+
+const CHECKIN_DAYS = 7
+const CHECKIN_AMOUNT = 10
+const CHECKIN_STORAGE_KEY = 'team33_checkin_state_v1'
+
+const readCheckinState = () => {
+  try { return JSON.parse(localStorage.getItem(CHECKIN_STORAGE_KEY) || '{}') }
+  catch { return {} }
+}
+
+const writeCheckinState = (state) => {
+  try { localStorage.setItem(CHECKIN_STORAGE_KEY, JSON.stringify(state)) }
+  catch { /* ignore */ }
+}
+
+// Daily check-in: tracks which days the user already claimed and the day
+// number they are currently on (1..7). Claiming is one-per-day, advances by
+// 1 each calendar day after the previous claim, and wraps back to day 1
+// after day 7 is claimed.
+function CheckinStripe({ onClaim }) {
+  const [state, setState] = useState(readCheckinState)
+
+  const today = new Date().toISOString().slice(0, 10)
+  const currentDay = Math.min(Math.max(1, state.currentDay || 1), CHECKIN_DAYS)
+  const claimedToday = state.lastClaimedDate === today
+
+  const handleClaim = () => {
+    if (claimedToday) return
+    const next = currentDay >= CHECKIN_DAYS ? 1 : currentDay + 1
+    const updated = {
+      currentDay: next,
+      lastClaimedDay: currentDay,
+      lastClaimedDate: today,
+      totalClaimed: (state.totalClaimed || 0) + 1,
+    }
+    setState(updated)
+    writeCheckinState(updated)
+    onClaim?.(currentDay, CHECKIN_AMOUNT)
+  }
+
+  return (
+    <div className="checkin-stripe">
+      <div className="checkin-header">
+        <h3 className="checkin-title">
+          <span className="checkin-icon">🎁</span>
+          7-Day Check-in Bonus
+        </h3>
+        <span className="checkin-sub">Claim ${CHECKIN_AMOUNT} every day for 7 days</span>
+      </div>
+      <div className="checkin-cards">
+        {Array.from({ length: CHECKIN_DAYS }).map((_, idx) => {
+          const day = idx + 1
+          const isToday = day === currentDay
+          const isPast = day < currentDay
+          const isFuture = day > currentDay
+          const isClaimable = isToday && !claimedToday
+          return (
+            <button
+              key={day}
+              type="button"
+              className={`checkin-card ${isToday ? 'today' : ''} ${isPast ? 'claimed' : ''} ${isFuture ? 'future' : ''} ${isClaimable ? 'claimable' : ''}`}
+              onClick={isClaimable ? handleClaim : undefined}
+              disabled={!isClaimable}
+              aria-label={`Day ${day} reward`}
+            >
+              <div className="checkin-card-media">
+                <img src={treasureGif} alt="" loading="lazy" />
+                {isPast && <span className="checkin-check">✓</span>}
+              </div>
+              <div className="checkin-card-body">
+                <span className="checkin-day-label">Day {day}</span>
+                <span className="checkin-amount">${CHECKIN_AMOUNT}</span>
+                <span className="checkin-cta">
+                  {isPast ? 'Claimed' : isToday ? (claimedToday ? 'Done today' : 'Claim') : 'Locked'}
+                </span>
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 // Cycle through banners for variety
 const bannerImages = [banner1, banner2, banner3]
@@ -139,6 +223,10 @@ export default function Promotions() {
               </svg>
             </button>
           </div>
+
+          <CheckinStripe
+            onClaim={(day, amount) => showToast(`Day ${day} reward: $${amount} added to bonus wallet`, 'success')}
+          />
 
           {/* Content */}
           {loading ? (

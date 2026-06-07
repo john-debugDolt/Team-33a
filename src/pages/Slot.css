@@ -835,16 +835,19 @@
   display: none !important;
 }
 
-/* Small Exit Button - Top Right Corner */
+/* Small Exit Button - Top Right Corner.
+   On iPhones with a notch/dynamic island, env(safe-area-inset-top) reports
+   the inset; we add 14px breathing room so the tap target sits clear of the
+   island. Falls back to 14px on screens without an inset (desktop, Android). */
 .game-player-exit {
   position: fixed !important;
-  top: 12px !important;
-  right: 12px !important;
-  width: 40px !important;
-  height: 40px !important;
+  top: calc(env(safe-area-inset-top, 0px) + 14px) !important;
+  right: calc(env(safe-area-inset-right, 0px) + 12px) !important;
+  width: 44px !important;
+  height: 44px !important;
   padding: 0 !important;
-  background: rgba(0, 0, 0, 0.6) !important;
-  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  background: rgba(0, 0, 0, 0.65) !important;
+  border: 2px solid rgba(255, 255, 255, 0.35) !important;
   border-radius: 50% !important;
   color: #fff !important;
   font-size: 0 !important;
