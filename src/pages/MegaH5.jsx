@@ -24,7 +24,12 @@ export default function MegaH5() {
   const [embeddedGame, setEmbeddedGame] = useState(null)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
 
-  const { bar, filteredGames } = useCategoryAndSort(games, { labels: { '1': 'Slots' } })
+  // MegaH5 gameType values observed live:
+  //   1 = Slots (majority), 2 = Arcade (Shark), 3 = Table (Roulette 12),
+  //   6 = Fishing (Ocean King), 7 = Live Table (Roulette Multiplayer)
+  const { bar, filteredGames } = useCategoryAndSort(games, {
+    labels: { '1': 'Slots', '2': 'Arcade', '3': 'Table', '6': 'Fishing', '7': 'Live Table' },
+  })
 
   useEffect(() => {
     const loadGames = async () => {

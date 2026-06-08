@@ -30,7 +30,9 @@ export default function Lucky365() {
   const [showExitConfirm, setShowExitConfirm] = useState(false)
 
   const { bar, filteredGames } = useCategoryAndSort(games, {
-    labels: { slots: 'Slots', card: 'Card', arcade: 'Arcade' },
+    // rawCategory is the numeric `type` Lucky365 ships:
+    //   10 = Slots (e.g. Jungle), 13 = Table (FanTan), 16 = Fishing (Ocean King)
+    labels: { '10': 'Slots', '13': 'Table', '16': 'Fishing' },
   })
 
   useEffect(() => {

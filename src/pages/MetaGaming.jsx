@@ -24,7 +24,12 @@ export default function MetaGaming() {
   const [embeddedGame, setEmbeddedGame] = useState(null)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
 
-  const { bar, filteredGames } = useCategoryAndSort(games, { labels: { '1': 'Slots', '2': 'Card', '3': 'Other', '5': 'Crash' } })
+  // MetaGaming gameType values observed live:
+  //   1 = Slots (Twister GOLD), 2 = Table (Bank Heist), 3 = Sports (Football X),
+  //   5 = Arcade (Labubu Lucky Pop)
+  const { bar, filteredGames } = useCategoryAndSort(games, {
+    labels: { '1': 'Slots', '2': 'Table', '3': 'Sports', '5': 'Arcade' },
+  })
 
   useEffect(() => {
     const loadGames = async () => {

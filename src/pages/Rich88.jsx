@@ -25,7 +25,16 @@ export default function Rich88() {
   const [embeddedGame, setEmbeddedGame] = useState(null)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
 
-  const { bar, filteredGames } = useCategoryAndSort(games, { labels: { '1': 'Slots' } })
+  // Rich88 ships string categories (`Slot Game`, `Table Game`, `Arcade Game`,
+  // `Bingo Game`). Tighten them to short chip labels.
+  const { bar, filteredGames } = useCategoryAndSort(games, {
+    labels: {
+      'Slot Game': 'Slots',
+      'Table Game': 'Table',
+      'Arcade Game': 'Arcade',
+      'Bingo Game': 'Bingo',
+    },
+  })
 
   useEffect(() => {
     const loadGames = async () => {
