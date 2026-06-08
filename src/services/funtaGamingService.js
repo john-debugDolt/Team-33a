@@ -12,6 +12,8 @@
  * - Response carries top-level booleans for branching without parsing codes
  */
 
+import { getGameIcon, pickProviderIcon } from './gameIconRegistry'
+
 const BASE_URL = 'https://seamless.team33.mx'
 const FUNTA_MYR = 458
 
@@ -50,7 +52,8 @@ const transformGame = (game, defaultImage) => {
   const name = pickName(game)
   const id = game.id
   const category = (game.category || 'slots').toLowerCase()
-  const image = defaultImage || '/placeholder-game.png'
+  const bundled = getGameIcon('Funta Gaming', name) || pickProviderIcon('Funta Gaming', id)
+  const image = bundled || defaultImage || '/placeholder-game.png'
 
   return {
     id: `funta-${id}`,

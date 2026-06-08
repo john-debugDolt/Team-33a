@@ -13,6 +13,7 @@
  */
 
 import rich88Logo from '../images/rich88logo.jpg';
+import { getGameIcon, pickProviderIcon } from './gameIconRegistry';
 
 const BASE_URL = 'https://seamless.team33.mx';
 
@@ -52,9 +53,11 @@ const transformGame = (game) => {
     slug: `rich88-${gameCode}`,
     name,
     provider: 'Rich88',
-    image: game.image || game.thumbnail || FALLBACK_IMAGE,
-    portraitImage: game.image || FALLBACK_IMAGE,
-    squareImage: game.image || FALLBACK_IMAGE,
+    // Prefer the bundled icon (matched by game name), fall back to a
+    // deterministic pick from the provider pool, then to upstream/logo.
+    image: getGameIcon('Rich88', name) || pickProviderIcon('Rich88', gameCode) || game.image || game.thumbnail || FALLBACK_IMAGE,
+    portraitImage: getGameIcon('Rich88', name) || pickProviderIcon('Rich88', gameCode) || game.image || FALLBACK_IMAGE,
+    squareImage: getGameIcon('Rich88', name) || pickProviderIcon('Rich88', gameCode) || game.image || FALLBACK_IMAGE,
     category,
     rawCategory: game.category || game.game_type,
     isHot: false,

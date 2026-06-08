@@ -11,6 +11,8 @@
  * - Backend auto-withdraws after ~20 min as safety net
  */
 
+import { getGameIcon, pickProviderIcon } from './gameIconRegistry'
+
 const BASE_URL = 'https://seamless.team33.mx'
 
 let cachedGames = null
@@ -63,7 +65,8 @@ const transformGame = (game, defaultImage) => {
   const name = pickName(game.names)
   const id = String(game.id) // keep as string — DragonSoft requires it
   const category = TYPE_CATEGORY[String(game.type)] || 'slots'
-  const image = defaultImage || '/placeholder-game.png'
+  const bundled = getGameIcon('DragoonSoft', name) || pickProviderIcon('DragoonSoft', id)
+  const image = bundled || defaultImage || '/placeholder-game.png'
 
   return {
     id: `dragoon-${id}`,

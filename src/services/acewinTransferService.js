@@ -8,6 +8,8 @@
  * Backend auto-withdraws after ~20 min as a safety net.
  */
 
+import { getGameIcon, pickProviderIcon } from './gameIconRegistry'
+
 const BASE_URL = 'https://seamless.team33.mx'
 
 let cachedGames = null
@@ -51,7 +53,9 @@ const transformGame = (game, defaultImage) => {
   const name = pickName(game.gameName || game.GameName || game.name)
   const gameId = game.gameId ?? game.GameId ?? game.id
   const categoryId = game.GameCategoryId ?? game.gameCategoryId ?? game.category
-  const image = game.imageUrl || game.ImageUrl || game.image || defaultImage || '/placeholder-game.png'
+  // Prefer bundled per-game icon, fall back to a deterministic pool pick, then upstream/borrowed.
+  const bundled = getGameIcon('AceWin', name) || pickProviderIcon('AceWin', gameId)
+  const image = bundled || game.imageUrl || game.ImageUrl || game.image || defaultImage || '/placeholder-game.png'
 
   return {
     id: `acewin-${gameId}`,

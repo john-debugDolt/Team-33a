@@ -13,6 +13,8 @@
  * - Codes: S100 = OK, F6006 = insufficient main balance, F7502 = blocked
  */
 
+import { getGameIcon, pickProviderIcon } from './gameIconRegistry'
+
 const BASE_URL = 'https://seamless.team33.mx'
 
 let cachedGames = null
@@ -69,7 +71,8 @@ const transformGame = (game, defaultImage) => {
   const name = game.gameName || `Lucky365 ${id}`
   const rawType = String(game.type ?? 10)
   const category = TYPE_CATEGORY[Number(rawType)] || 'slots'
-  const image = game.imageUrl || game.icon || defaultImage || '/placeholder-game.png'
+  const bundled = getGameIcon('Lucky365', name) || pickProviderIcon('Lucky365', id)
+  const image = bundled || game.imageUrl || game.icon || defaultImage || '/placeholder-game.png'
 
   return {
     id: `lucky365-${id}`,

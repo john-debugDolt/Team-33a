@@ -13,6 +13,8 @@
  * - /games currently 500s in prod (NAT IP allowlist) — fallback static list embedded
  */
 
+import { getGameIcon, pickProviderIcon } from './gameIconRegistry'
+
 const BASE_URL = 'https://seamless.team33.mx'
 
 let cachedGames = null
@@ -115,8 +117,10 @@ const transformGame = (game, defaultImage) => {
   const name = game.GameName_EN || game.GameName || game.name || (id ? `VPower Game ${id}` : 'VPower Game')
   const rawType = (game.GameType || game.type || 'slot').toLowerCase()
   const category = rawType === 'fish' ? 'fishing' : rawType === 'slot' ? 'slots' : rawType
-  // Live API ships real thumbnails in Image1 — use them when present
-  const image = game.Image1 || game.imageUrl || defaultImage || '/placeholder-game.png'
+  // Prefer the upstream Image1 when present, fall back to the bundled
+  // per-game icon, then a deterministic pool pick, then the provider logo.
+  const bundled = getGameIcon('VPower', name) || pickProviderIcon('VPower', id)
+  const image = game.Image1 || bundled || game.imageUrl || defaultImage || '/placeholder-game.png'
 
   return {
     id: `vpower-${id}`,
