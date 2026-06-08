@@ -390,12 +390,15 @@
   }
 }
 
-/* Chat Header */
+/* Chat Header.
+   The chat window goes fullscreen on phones (see the @media 480 rule below);
+   without a safe-area padding the close X collides with the iPhone notch /
+   Dynamic Island, where taps don't register. */
 .fchat-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 14px;
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
 }

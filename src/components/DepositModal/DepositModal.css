@@ -52,8 +52,11 @@
 
 .modal-close-btn {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  /* iPhone notch / Dynamic Island can swallow taps in the top ~50px when the
+     modal is fullscreen on mobile. env(safe-area-inset-top) is 0 on desktop
+     and safe-area-free devices, so the max() collapses back to 16px there. */
+  top: max(16px, calc(env(safe-area-inset-top, 0px) + 8px));
+  right: max(16px, calc(env(safe-area-inset-right, 0px) + 8px));
   width: 40px;
   height: 40px;
   display: flex;
