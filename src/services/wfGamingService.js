@@ -100,6 +100,21 @@ export const getAllWFGamingGames = async () => {
   return [];
 };
 
+// sessionStorage key for the alias of the active WF Gaming session — the
+// kick endpoint MUST receive the same alias (normal | freecredit) that the
+// launch used; otherwise WF Gaming returns "player not found".
+const WF_ALIAS_KEY = 'wf:alias';
+
+const readStoredAlias = () => {
+  try { return sessionStorage.getItem(WF_ALIAS_KEY) || null; } catch { return null; }
+};
+const writeStoredAlias = (alias) => {
+  try { sessionStorage.setItem(WF_ALIAS_KEY, alias); } catch { /* ignore */ }
+};
+const clearStoredAlias = () => {
+  try { sessionStorage.removeItem(WF_ALIAS_KEY); } catch { /* ignore */ }
+};
+
 export const launchWFGamingGame = async (gameCode, accountId, lang = 'en-us') => {
   try {
     if (!accountId) {
@@ -108,22 +123,80 @@ export const launchWFGamingGame = async (gameCode, accountId, lang = 'en-us') =>
     }
     if (!accountId) return { success: false, error: 'Please login to play' };
 
-    const params = new URLSearchParams({ accountId, gameCode, lang });
+    // Multi-operator routing: bonus_wallet > 0 -> account=freecredit (bonus
+    // operator wallet); otherwise account=normal. Persist the alias used so
+    // the matching /kick can target the same operator.
+    const { getAccountType } = await import('./bonusWalletService.js');
+    const accountType = await getAccountType(accountId);
+    const alias = accountType === 'bonus' ? 'freecredit' : 'normal';
+
+    const params = new URLSearchParams({ accountId, gameCode, lang, account: alias });
     const urls = [`${BASE_URL}/api/wfgaming/launch?${params}`, `/api/wfgaming/launch?${params}`];
+    console.log('[WFGaming/launch] accountType=', accountType, 'alias=', alias, 'accountId=', accountId, 'gameCode=', gameCode);
 
     for (const url of urls) {
       try {
+        console.log('[WFGaming/launch] → GET', url);
         const response = await fetchWithTimeout(url);
+        console.log('[WFGaming/launch] ← status', response.status, url);
         if (!response.ok) continue;
         const data = await response.json();
+        console.log('[WFGaming/launch] ← body', data);
         const gameUrl = (data.gameUrl || data.url || data.launchUrl)?.trim();
-        if (gameUrl) return { success: true, gameUrl, ...data };
-        if (data.error) return { success: false, error: data.error };
+        if (data.success && gameUrl) {
+          // Persist alias for the matching /kick.
+          writeStoredAlias(alias);
+          return { success: true, gameUrl, alias, ...data };
+        }
+        if (data.success === false) {
+          return { success: false, error: data.error || 'Launch rejected by provider', status: data.status };
+        }
       } catch (err) {
         console.log('[WFGamingService] Launch error:', err.message);
       }
     }
     return { success: false, error: 'Failed to launch game' };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * POST /api/wfgaming/kick?accountId=&account=
+ *
+ * Ends the WF Gaming session for the given alias. The alias must match what
+ * was used at launch (the backend appends WF Gaming's per-operator suffix
+ * internally, and a mismatched alias resolves to a different upstream player
+ * id). If alias is omitted, falls back to whatever launch persisted in
+ * sessionStorage; refuses to send if the alias can't be determined.
+ */
+export const kickWFGamingGame = async (accountId, alias) => {
+  try {
+    if (!accountId) return { success: false, error: 'Missing accountId' };
+    const resolved = alias || readStoredAlias();
+    if (!resolved) {
+      console.warn('[WFGaming/kick] no alias known — refusing to send kick');
+      return { success: false, error: 'Unknown session alias' };
+    }
+    const params = new URLSearchParams({ accountId, account: resolved });
+    const urls = [`${BASE_URL}/api/wfgaming/kick?${params}`, `/api/wfgaming/kick?${params}`];
+    console.log('[WFGaming/kick] accountId=', accountId, 'alias=', resolved);
+    for (const url of urls) {
+      try {
+        console.log('[WFGaming/kick] → POST', url);
+        const response = await fetchWithTimeout(url, { method: 'POST' });
+        console.log('[WFGaming/kick] ← status', response.status);
+        if (!response.ok) continue;
+        const data = await response.json().catch(() => ({}));
+        console.log('[WFGaming/kick] ← body', data);
+        // Per doc: 200 + success:true means no session is active regardless of prior state.
+        clearStoredAlias();
+        return { success: data.success !== false, ...data };
+      } catch (err) {
+        console.log('[WFGaming/kick] error:', err.message);
+      }
+    }
+    return { success: false, error: 'Kick failed' };
   } catch (error) {
     return { success: false, error: error.message };
   }
@@ -135,6 +208,7 @@ export const wfGamingService = {
   fetchGames: fetchWFGamingGames,
   getAllGames: getAllWFGamingGames,
   launchGame: launchWFGamingGame,
+  kick: kickWFGamingGame,
   clearCache: clearWFGamingCache,
 };
 

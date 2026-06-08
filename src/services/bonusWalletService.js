@@ -171,6 +171,10 @@ export const bonusAliasParam = (providerId) => {
     case 'megah5':
     case 'metagaming':
       return { name: 'account', value: 'freecredit' }
+    case 'wfgaming':
+      // WF Gaming: account=normal default, account=freecredit for bonus.
+      // The same alias must be used at /kick — see wfGamingService.
+      return { name: 'account', value: 'freecredit' }
     case 'rich88':
       return { name: 'operator', value: 'foc' }
     case 'scr888h5':

@@ -61,6 +61,7 @@ export const BONUS_SUPPORTED_PROVIDERS = new Set([
   'scr888h5',
   'rich88',
   'evo888h5',
+  'wfgaming',
 ])
 
 // Game-object `provider` field values that map to the bonus-supported set.
@@ -72,6 +73,7 @@ export const BONUS_SUPPORTED_PROVIDER_NAMES = new Set([
   'Rich88',
   'EVO888H5',
   'Evo888H5',
+  'WFGaming',
 ])
 
 export const isBonusSupported = (idOrName) => {

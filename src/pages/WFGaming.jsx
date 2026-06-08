@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getAllWFGamingGames } from '../services/wfGamingService'
+import { getAllWFGamingGames, kickWFGamingGame } from '../services/wfGamingService'
 import { gameService } from '../services/gameService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
@@ -79,7 +79,13 @@ export default function WFGaming() {
   }, [embeddedGame, user?.accountId, updateBalance, notifyTransactionUpdate])
 
   const closeGame = async () => {
+    // End the WF Gaming session under the same alias we launched with.
+    // /kick is non-blocking for the UI — if WF Gaming is slow we still
+    // close the iframe so the player isn't stuck looking at it.
     if (user?.accountId) {
+      kickWFGamingGame(user.accountId).catch((err) =>
+        console.warn('[WFGaming/kick] failed:', err?.message)
+      )
       try {
         const result = await walletService.getBalance(user.accountId)
         if (result.success && result.balance !== undefined) {
