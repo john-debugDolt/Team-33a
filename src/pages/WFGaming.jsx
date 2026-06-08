@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getAllWFGamingGames, kickWFGamingGame } from '../services/wfGamingService'
-import { gameService } from '../services/gameService'
+import { getAllWFGamingGames, kickWFGamingGame, launchWFGamingGame } from '../services/wfGamingService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -111,8 +110,16 @@ export default function WFGaming() {
 
     if (launchingGame === game.id) return
 
+    const accountId = user?.accountId
+    if (!accountId) {
+      showToast('Your account ID is missing — please re-login', 'error')
+      console.error('[WFGaming] missing accountId on launch')
+      return
+    }
+
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
+    console.log('[WFGaming] handlePlayNow accountId=', accountId, 'gameCode=', game.gameCode || game.gameId)
 
     const maxRetries = 15
     let attempt = 0
@@ -121,13 +128,17 @@ export default function WFGaming() {
     while (attempt < maxRetries && !success) {
       attempt++
       try {
-        const result = await gameService.requestGameUrl(game.id, user?.accountId)
+        // Call the WFGaming launcher directly. gameService.requestGameUrl
+        // looks up the game in caches that are only populated when the user
+        // lands via Home — visiting /wfgaming directly leaves the cache
+        // empty so every retry hit "Game not found" before reaching the API.
+        const result = await launchWFGamingGame(game.gameCode || game.gameId, accountId)
         if (result.success && result.gameUrl) {
           setEmbeddedGame({ url: result.gameUrl, name: game.name })
           showToast(`${game.name} launched!`, 'success')
           success = true
         } else {
-          console.log(`[Game Launch] Attempt ${attempt} failed, retrying...`)
+          console.log(`[Game Launch] Attempt ${attempt} failed:`, result.error)
           if (attempt < maxRetries) {
             await new Promise(resolve => setTimeout(resolve, 1000))
           }
