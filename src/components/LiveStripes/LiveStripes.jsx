@@ -76,25 +76,39 @@ function LiveStripe({ title, icon, cards, onCardClick, autoScroll, className = '
   const resumeTimerRef = useRef(null)
 
   // JS-driven auto-scroll: pauses on user interaction, resumes after 2s idle.
-  // Lets the native scrollbar handle user scrolling alongside.
+  // Uses requestAnimationFrame with a time-delta velocity so motion stays
+  // smooth across refresh rates (60Hz / 90Hz / 120Hz) — the previous
+  // setInterval(35ms) approach drifted in and out of frame boundaries which
+  // produced visible judder. We also accumulate the scroll position as a
+  // float and only commit the integer truncation when assigning scrollLeft,
+  // so sub-pixel motion is preserved frame-to-frame.
   useEffect(() => {
     if (!autoScroll) return
     const el = scrollRef.current
     if (!el) return
 
-    const SPEED_PX = 1
-    const TICK_MS = 35
+    const SPEED_PX_PER_SEC = 30 // matches the old ~1px / 35ms feel
+    let rafId = null
+    let lastTs = null
+    let accumPx = el.scrollLeft
 
-    const tick = () => {
+    const tick = (ts) => {
+      if (lastTs == null) lastTs = ts
+      const dt = ts - lastTs
+      lastTs = ts
       if (!pausedRef.current) {
-        el.scrollLeft += SPEED_PX
-        // Seamless loop: reset when first copy is scrolled past
-        if (el.scrollLeft >= el.scrollWidth / 2) {
-          el.scrollLeft -= el.scrollWidth / 2
-        }
+        accumPx += (SPEED_PX_PER_SEC * dt) / 1000
+        const half = el.scrollWidth / 2
+        if (half > 0 && accumPx >= half) accumPx -= half
+        el.scrollLeft = accumPx
+      } else {
+        // While paused let the user's scroll position be authoritative so we
+        // don't snap back when motion resumes.
+        accumPx = el.scrollLeft
       }
+      rafId = requestAnimationFrame(tick)
     }
-    const interval = setInterval(tick, TICK_MS)
+    rafId = requestAnimationFrame(tick)
 
     const pause = () => {
       pausedRef.current = true
@@ -103,6 +117,9 @@ function LiveStripe({ title, icon, cards, onCardClick, autoScroll, className = '
     const scheduleResume = () => {
       if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current)
       resumeTimerRef.current = setTimeout(() => {
+        // Sync the accumulator to the current scroll so we don't jump.
+        accumPx = el.scrollLeft
+        lastTs = null
         pausedRef.current = false
       }, 2000)
     }
@@ -113,15 +130,28 @@ function LiveStripe({ title, icon, cards, onCardClick, autoScroll, className = '
       pause()
       scheduleResume()
     }
+    // Pause when the tab loses focus so we don't waste a wakeup every frame
+    // and so accumulated time doesn't manifest as a jump on return.
+    const onVisibility = () => {
+      if (document.hidden) {
+        pause()
+      } else {
+        lastTs = null
+        accumPx = el.scrollLeft
+        scheduleResume()
+      }
+    }
 
     el.addEventListener('pointerdown', onPointerDown)
     el.addEventListener('pointerup', onPointerUp)
     el.addEventListener('pointercancel', onPointerUp)
     el.addEventListener('pointerleave', onPointerUp)
     el.addEventListener('wheel', onWheel, { passive: true })
+    document.addEventListener('visibilitychange', onVisibility)
 
     return () => {
-      clearInterval(interval)
+      if (rafId != null) cancelAnimationFrame(rafId)
+      document.removeEventListener('visibilitychange', onVisibility)
       if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current)
       el.removeEventListener('pointerdown', onPointerDown)
       el.removeEventListener('pointerup', onPointerUp)

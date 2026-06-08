@@ -71,11 +71,19 @@
   width: max-content;
 }
 
-/* Auto-scroll containers — JS drives scrollLeft, no native scroll snap so
-   we don't jolt the user when they take over. Hide scrollbar for cleanliness
-   since user can still drag/swipe. */
+/* Auto-scroll containers — JS drives scrollLeft via requestAnimationFrame, no
+   native scroll snap so we don't jolt the user when they take over. Hide the
+   scrollbar for cleanliness since user can still drag/swipe.
+   will-change + GPU promotion keep the scroll container off the main paint
+   thread so the rAF-driven motion stays smooth on lower-end phones. */
 .live-stripe-scroll.auto-scroll {
   scrollbar-width: none;
+  will-change: scroll-position;
+  scroll-behavior: auto;
+  transform: translateZ(0);
+}
+.live-stripe-scroll.auto-scroll .live-stripe-track {
+  will-change: transform;
 }
 
 .live-stripe-scroll.auto-scroll::-webkit-scrollbar {

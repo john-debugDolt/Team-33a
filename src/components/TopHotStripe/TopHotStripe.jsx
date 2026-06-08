@@ -31,24 +31,35 @@ export default function TopHotStripe({ sourceGames = [], onPlay, count = 12 }) {
   // Duplicated cards for seamless loop
   const displayCards = hotGames.length > 0 ? [...hotGames, ...hotGames] : []
 
-  // JS-driven auto-scroll with user-interaction pause
+  // JS-driven auto-scroll with user-interaction pause.
+  // Uses requestAnimationFrame + a float accumulator so motion stays smooth
+  // across refresh rates (60/90/120Hz). The old setInterval(35ms) approach
+  // drifted in and out of frame boundaries and produced the visible judder.
   useEffect(() => {
     if (displayCards.length === 0) return
     const el = scrollRef.current
     if (!el) return
 
-    const SPEED_PX = 1
-    const TICK_MS = 35
+    const SPEED_PX_PER_SEC = 30 // matches the previous ~1px/35ms feel
+    let rafId = null
+    let lastTs = null
+    let accumPx = el.scrollLeft
 
-    const tick = () => {
+    const tick = (ts) => {
+      if (lastTs == null) lastTs = ts
+      const dt = ts - lastTs
+      lastTs = ts
       if (!pausedRef.current) {
-        el.scrollLeft += SPEED_PX
-        if (el.scrollLeft >= el.scrollWidth / 2) {
-          el.scrollLeft -= el.scrollWidth / 2
-        }
+        accumPx += (SPEED_PX_PER_SEC * dt) / 1000
+        const half = el.scrollWidth / 2
+        if (half > 0 && accumPx >= half) accumPx -= half
+        el.scrollLeft = accumPx
+      } else {
+        accumPx = el.scrollLeft
       }
+      rafId = requestAnimationFrame(tick)
     }
-    const interval = setInterval(tick, TICK_MS)
+    rafId = requestAnimationFrame(tick)
 
     const pause = () => {
       pausedRef.current = true
@@ -57,6 +68,8 @@ export default function TopHotStripe({ sourceGames = [], onPlay, count = 12 }) {
     const scheduleResume = () => {
       if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current)
       resumeTimerRef.current = setTimeout(() => {
+        accumPx = el.scrollLeft
+        lastTs = null
         pausedRef.current = false
       }, 2000)
     }
@@ -64,15 +77,26 @@ export default function TopHotStripe({ sourceGames = [], onPlay, count = 12 }) {
     const onPointerDown = () => pause()
     const onPointerUp = () => scheduleResume()
     const onWheel = () => { pause(); scheduleResume() }
+    const onVisibility = () => {
+      if (document.hidden) {
+        pause()
+      } else {
+        lastTs = null
+        accumPx = el.scrollLeft
+        scheduleResume()
+      }
+    }
 
     el.addEventListener('pointerdown', onPointerDown)
     el.addEventListener('pointerup', onPointerUp)
     el.addEventListener('pointercancel', onPointerUp)
     el.addEventListener('pointerleave', onPointerUp)
     el.addEventListener('wheel', onWheel, { passive: true })
+    document.addEventListener('visibilitychange', onVisibility)
 
     return () => {
-      clearInterval(interval)
+      if (rafId != null) cancelAnimationFrame(rafId)
+      document.removeEventListener('visibilitychange', onVisibility)
       if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current)
       el.removeEventListener('pointerdown', onPointerDown)
       el.removeEventListener('pointerup', onPointerUp)
