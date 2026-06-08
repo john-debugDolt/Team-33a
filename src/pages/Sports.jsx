@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { launchM9Game, exitM9Game } from '../services/m9TransferService'
+import { launchM9Game, exitM9Game, isMobileDevice } from '../services/m9TransferService'
 import { launchSV388, exitSV388 } from '../services/awcTransferService'
 import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
 import { walletService } from '../services/walletService'
@@ -54,6 +54,16 @@ export default function Sports() {
       })
       if (result.success && result.gameUrl) {
         setActivePlatform('M8BET')
+        // M8BET's mobile site refuses to render inside an iframe (X-Frame-Options
+        // + third-party cookie restrictions on Safari iOS / Chrome Android), so
+        // on touch devices we navigate the top window to the launch URL. The
+        // launchTracker entry was recorded above; the sweep on return will call
+        // /exit and pull funds back. URL TTL is ~60s so we navigate immediately.
+        if (isMobileDevice()) {
+          showToast('Opening M8BET…', 'success')
+          window.location.href = result.gameUrl
+          return
+        }
         setEmbeddedGame({ url: result.gameUrl, name: 'M8BET' })
         showToast('M8BET launched!', 'success')
       } else {

@@ -34,7 +34,7 @@ const resolveAccountId = (accountId) => {
   }
 }
 
-const isMobileDevice = () => {
+export const isMobileDevice = () => {
   try {
     return window.matchMedia && window.matchMedia('(pointer:coarse)').matches
   } catch {
