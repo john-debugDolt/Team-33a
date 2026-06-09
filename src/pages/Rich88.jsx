@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getAllRich88Games, launchRich88Game } from '../services/rich88TransferService'
+import { getAllRich88Games, launchRich88Game, exitRich88Game } from '../services/rich88TransferService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -77,6 +77,12 @@ export default function Rich88() {
 
   const closeGame = async () => {
     if (user?.accountId) {
+      // Fire /exit for the operator we launched under (the service reads
+      // the persisted alias from sessionStorage). Fire-and-forget so the
+      // UI never blocks on the sweep.
+      exitRich88Game(user.accountId).catch((err) =>
+        console.warn('[Rich88/exit] failed:', err?.message)
+      )
       try {
         const result = await walletService.getBalance(user.accountId)
         if (result.success && result.balance !== undefined) updateBalance?.(result.balance)
@@ -98,6 +104,15 @@ export default function Rich88() {
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
 
+    // Per the Rich88 doc:
+    //   -1 = reconciling (do NOT retry — could duplicate the deposit)
+    //   -2 = player locked     -3 = bad input
+    //   -4 = launch in progress / insufficient balance
+    //   -5 = wallet not found  13002 = Rich88 account missing
+    // All of those are deterministic — surface and stop. Retry only
+    // network / 5xx (the service already returns success:false without a
+    // code in that case).
+    const NON_RETRY = new Set([-1, -2, -3, -4, -5, 13002, 10001])
     const maxRetries = 10
     let attempt = 0
     let success = false
@@ -110,10 +125,11 @@ export default function Rich88() {
           showToast(`${game.name} launched!`, 'success')
           success = true
         } else {
-          if (result.code === 10001) {
-            showToast(result.error || 'Game code not supported', 'error')
+          if (result.code != null && NON_RETRY.has(result.code)) {
+            showToast(result.error || `Launch rejected (code ${result.code})`, 'error')
             break
           }
+          console.log(`[Rich88 launch] attempt ${attempt} failed:`, result.error, 'code=', result.code)
           if (attempt < maxRetries) await new Promise(r => setTimeout(r, 1000))
         }
       } catch (error) {

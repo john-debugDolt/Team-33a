@@ -43,6 +43,14 @@ export const ProviderKey = {
   M8BET: 'M8BET',
   JOKER: 'JOKER',
   EVO888H5_BONUS: 'EVO888H5_BONUS',
+  // Rich88 supports two operator-scoped sessions in parallel for the same
+  // accountId — each has its own Rich88-side balance and auto-withdraw
+  // timer, so the tracker records them separately.
+  RICH88_NORMAL: 'RICH88_NORMAL',
+  RICH88_FOC: 'RICH88_FOC',
+  // Back-compat: old records written under "RICH88" will be migrated on the
+  // first sweep — we treat the key as normal-operator unless the entry says
+  // otherwise.
   RICH88: 'RICH88',
 }
 
@@ -62,10 +70,16 @@ const EXIT_MAP = {
   // EVO bonus carries the deposited amount in the recorded entry; the
   // withdraw call signs it back out of EVO into the bonus_wallet ledger.
   EVO888H5_BONUS: (accountId, entry) => withdrawEvo888h5Bonus(accountId, entry?.amount),
-  // Rich88 /exit reads live freeBalance and routes credit to the right pool
-  // (main or bonus) based on the persisted operatorAlias. Works for both
-  // normal and foc modes — no amount needed.
-  RICH88: exitRich88Game,
+  // Rich88 /exit is operator-scoped — it only touches the session under
+  // the operator you pass, so the two parallel sessions need separate
+  // entries (RICH88_NORMAL / RICH88_FOC). Each calls /exit with the right
+  // operator. Funds land in the correct pool (main vs bonus_wallet) per
+  // the operator.
+  RICH88_NORMAL: (accountId) => exitRich88Game(accountId, 'normal'),
+  RICH88_FOC: (accountId) => exitRich88Game(accountId, 'foc'),
+  // Back-compat for any record written under the old RICH88 key — read the
+  // operator from the entry (default normal).
+  RICH88: (accountId, entry) => exitRich88Game(accountId, entry?.operator || 'normal'),
 }
 
 const read = () => {
