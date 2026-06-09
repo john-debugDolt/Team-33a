@@ -22,7 +22,7 @@ import { exitAllBet } from './allbetService'
 import { exitSexyBaccarat, exitSV388 } from './awcTransferService'
 import { exitM9Game } from './m9TransferService'
 import { exitJokerGame } from './jokerService'
-import { withdrawEvo888h5Bonus } from './evo888h5Service'
+import { exitEvo888h5Bonus } from './evo888h5Service'
 import { exitRich88Game } from './rich88TransferService'
 import { walletService } from './walletService'
 
@@ -67,9 +67,11 @@ const EXIT_MAP = {
   SV388: exitSV388,
   M8BET: exitM9Game,
   JOKER: exitJokerGame,
-  // EVO bonus carries the deposited amount in the recorded entry; the
-  // withdraw call signs it back out of EVO into the bonus_wallet ledger.
-  EVO888H5_BONUS: (accountId, entry) => withdrawEvo888h5Bonus(accountId, entry?.amount),
+  // EVO bonus: /exit reads EVO's live balance and sweeps it (HALF_UP), with
+  // automatic floor-withdraw recovery when the round overshoots. Doesn't use
+  // the deposited amount — player may have won/lost during play. See
+  // exitEvo888h5Bonus in evo888h5Service.js.
+  EVO888H5_BONUS: (accountId) => exitEvo888h5Bonus(accountId),
   // Rich88 /exit is operator-scoped — it only touches the session under
   // the operator you pass, so the two parallel sessions need separate
   // entries (RICH88_NORMAL / RICH88_FOC). Each calls /exit with the right

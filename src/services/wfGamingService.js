@@ -29,6 +29,9 @@ const transformGame = (game) => {
 
   return {
     id: `wfgaming-${gameCode}`,
+    // Expose both gameCode and gameId set to the bare upstream code so
+    // any caller pattern (`game.gameCode || game.gameId`) finds it.
+    gameCode: gameCode,
     gameId: gameCode,
     slug: `wfgaming-${gameCode}`,
     name: name,
@@ -123,6 +126,20 @@ export const launchWFGamingGame = async (gameCode, accountId, lang = 'en-us') =>
     }
     if (!accountId) return { success: false, error: 'Please login to play' };
 
+    // Normalise + validate gameCode. URLSearchParams coerces undefined to the
+    // literal string "undefined" — WF Gaming then returns "Invalid Game Id"
+    // (status 900404). Refuse to fire the request in that case so we don't
+    // burn 15 retries on a malformed input. Also strip any slug-style
+    // prefix (e.g. "wfgaming-70026") in case a caller hands us the React id
+    // instead of the bare provider code.
+    let normCode = String(gameCode ?? '').trim();
+    if (normCode.toLowerCase() === 'undefined' || normCode.toLowerCase() === 'null') normCode = '';
+    if (normCode.startsWith('wfgaming-')) normCode = normCode.slice('wfgaming-'.length);
+    if (!normCode) {
+      console.error('[WFGaming/launch] missing or invalid gameCode:', gameCode);
+      return { success: false, error: 'Missing game code' };
+    }
+
     // Multi-operator routing: bonus_wallet > 0 -> account=freecredit (bonus
     // operator wallet); otherwise account=normal. Persist the alias used so
     // the matching /kick can target the same operator.
@@ -130,7 +147,7 @@ export const launchWFGamingGame = async (gameCode, accountId, lang = 'en-us') =>
     const accountType = await getAccountType(accountId);
     const alias = accountType === 'bonus' ? 'freecredit' : 'normal';
 
-    const params = new URLSearchParams({ accountId, gameCode, lang, account: alias });
+    const params = new URLSearchParams({ accountId, gameCode: normCode, lang, account: alias });
     const urls = [`${BASE_URL}/api/wfgaming/launch?${params}`, `/api/wfgaming/launch?${params}`];
     console.log('[WFGaming/launch] accountType=', accountType, 'alias=', alias, 'accountId=', accountId, 'gameCode=', gameCode);
 
