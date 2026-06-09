@@ -115,15 +115,32 @@ export function AuthProvider({ children }) {
 
     // Check localStorage every 1 second for instant updates (same tab)
     const localStorageInterval = setInterval(checkLocalStorage, 1000);
-    // Refresh from API every 10 seconds (more frequent for better UX)
-    const apiInterval = setInterval(refreshBalance, 10000);
-    // Also refresh immediately
-    refreshBalance();
+
+    // API refresh on an adaptive cadence:
+    //   - 3s while the player is actually in a game (any provider page
+    //     mounting the .game-player-overlay iframe), so post-spin balance
+    //     feels near real-time and players don't panic
+    //   - 10s otherwise, to keep wallet-service load low while in the lobby
+    // Self-rescheduling setTimeout (not setInterval) so the delay can flip
+    // mid-flight without restarting the effect.
+    let apiTimer = null;
+    let cancelled = false;
+    const tick = async () => {
+      if (cancelled) return;
+      await refreshBalance();
+      if (cancelled) return;
+      const inGame = !!document.querySelector('.game-player-overlay');
+      const delay = inGame ? 3000 : 10000;
+      apiTimer = setTimeout(tick, delay);
+    };
+    // Kick off immediately, then schedule the next tick from inside.
+    tick();
 
     return () => {
+      cancelled = true;
       window.removeEventListener('storage', handleStorageChange);
       clearInterval(localStorageInterval);
-      clearInterval(apiInterval);
+      if (apiTimer) clearTimeout(apiTimer);
     };
   }, [isAuthenticated]);
 
