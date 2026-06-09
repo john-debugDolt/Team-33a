@@ -178,7 +178,10 @@ export const bonusAliasParam = (providerId) => {
     case 'rich88':
       return { name: 'operator', value: 'foc' }
     case 'scr888h5':
-      return { name: 'account', value: 'bonus' }
+      // Per the 2026-06-09 SCR888H5 fix: alias param renamed from `account`
+      // to `accountAlias`, and must be present on EVERY call while the
+      // player's bonus_wallet > 0 (not just /launch).
+      return { name: 'accountAlias', value: 'bonus' }
     // EVO888H5 uses a separate endpoint family — no query param.
     case 'evo888h5':
       return null
