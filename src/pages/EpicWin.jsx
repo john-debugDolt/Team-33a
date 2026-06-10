@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getAllEpicWinGames } from '../services/epicWinService'
-import { gameService } from '../services/gameService'
+import { getAllEpicWinGames, launchEpicWinGame } from '../services/epicWinService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -115,13 +114,18 @@ export default function EpicWin() {
     while (attempt < maxRetries && !success) {
       attempt++
       try {
-        const result = await gameService.requestGameUrl(game.id, user?.accountId)
+        // Call the EpicWin launcher directly. gameService.requestGameUrl
+        // looks up game.id in cachedCombinedGames / cachedApiGames — both
+        // are only populated by Home, so visiting /epicwin directly left
+        // the lookup short-circuiting on "Game not found" and every retry
+        // failed before /api/epicwin/game/launch was ever hit.
+        const result = await launchEpicWinGame(game.gameCode || game.gameId, user?.accountId)
         if (result.success && result.gameUrl) {
           setEmbeddedGame({ url: result.gameUrl, name: game.name })
           showToast(`${game.name} launched!`, 'success')
           success = true
         } else {
-          console.log(`[Game Launch] Attempt ${attempt} failed, retrying...`)
+          console.log(`[Game Launch] Attempt ${attempt} failed:`, result.error)
           if (attempt < maxRetries) {
             await new Promise(resolve => setTimeout(resolve, 1000))
           }

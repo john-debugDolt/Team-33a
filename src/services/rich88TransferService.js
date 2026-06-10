@@ -118,7 +118,12 @@ const transformGame = (game) => {
 
 export const fetchRich88Games = async () => {
   try {
-    const urls = [`${BASE_URL}/api/rich88-transfer/games`, `/api/rich88-transfer/games`];
+    // Always use the absolute seamless host — wallet-service is only exposed
+    // via seamless.team33.mx (see seamless-ingress.yaml). The relative path
+    // resolves against the apex team33.mx which has no wallet-service and
+    // hits the wrong Spring controller (Spring's @GetMapping("/games") also
+    // refuses /games/ trailing-slash, surfacing as a 404).
+    const urls = [`${BASE_URL}/api/rich88-transfer/games`];
     for (const url of urls) {
       try {
         const response = await fetchWithTimeout(url);
@@ -194,10 +199,8 @@ export const launchRich88Game = async (game, accountId, options = {}) => {
     if (options.tokenEffectiveType) params.set('tokenEffectiveType', options.tokenEffectiveType);
 
     const requestId = newRequestId();
-    const urls = [
-      `${BASE_URL}/api/rich88-transfer/launch?${params}`,
-      `/api/rich88-transfer/launch?${params}`,
-    ];
+    // Absolute seamless host only — see games() comment.
+    const urls = [`${BASE_URL}/api/rich88-transfer/launch?${params}`];
     console.log('[Rich88/launch] accountType=', accountType, 'operator=', operator, 'accountId=', accountId, 'gameCode=', gameCode);
 
     for (const url of urls) {
@@ -294,10 +297,8 @@ export const exitRich88Game = async (accountId, operator) => {
     const op = resolveOperator(operator);
     const params = new URLSearchParams({ accountId, operator: op });
     const requestId = newRequestId();
-    const urls = [
-      `${BASE_URL}/api/rich88-transfer/exit?${params}`,
-      `/api/rich88-transfer/exit?${params}`,
-    ];
+    // Absolute seamless host only — see games() comment.
+    const urls = [`${BASE_URL}/api/rich88-transfer/exit?${params}`];
     console.log('[Rich88/exit] accountId=', accountId, 'operator=', op);
     for (const url of urls) {
       try {
