@@ -24,41 +24,26 @@
 
 const BASE_URL = 'https://seamless.team33.mx';
 
-// sessionStorage key for the alias of the active SCR888H5 session — the
-// matching /transfer-out (and /balance, /withdraw etc.) MUST use the same
-// alias that /launch used. We can't always recompute from current
-// bonus_wallet balance: the launch's deposit may have already drained it
-// to 0 even though the SCR-side player is still on the bonus operator.
-const SCR_ALIAS_KEY = 'scr888h5:alias';
-
-const readStoredScrAlias = () => {
-  try { return sessionStorage.getItem(SCR_ALIAS_KEY) || null; } catch { return null; }
-};
-const writeStoredScrAlias = (alias) => {
-  try { sessionStorage.setItem(SCR_ALIAS_KEY, alias); } catch { /* ignore */ }
-};
-const clearStoredScrAlias = () => {
-  try { sessionStorage.removeItem(SCR_ALIAS_KEY); } catch { /* ignore */ }
-};
-
 /**
- * Resolve the SCR888H5 alias for the given account. Returns 'bonus' or
- * 'normal' (never null) so callers can use it directly. Priority:
- *   1. Persisted alias from the most recent launch (covers the case where
- *      bonus_wallet has been debited to 0 by the launch's deposit but the
- *      matching exit still needs accountAlias=bonus to find the SCR player).
- *   2. Derived from current bonus_wallet balance via getAccountType.
+ * Resolve the SCR888H5 alias for the given account, per the SCR doc:
+ *   bonus_wallet.balance > 0  ⇒  'bonus' (passes accountAlias=bonus)
+ *   else                      ⇒  null   (omit — backend defaults to normal)
+ *
+ * The backend auto-creates the SCR player on first /launch under either
+ * operator — the frontend should never try to pin or persist an alias.
+ * "User does not exist" symptoms on the normal alias are a backend bootstrap
+ * issue (the launch flow is supposed to find-or-create on every call); the
+ * frontend's job is just to pass the doc-correct alias and surface the
+ * upstream message.
  */
 const resolveScrAlias = async (accountId) => {
   try {
-    const stored = readStoredScrAlias();
-    if (stored === 'bonus' || stored === 'normal') return stored;
     const { getAccountType } = await import('./bonusWalletService.js');
     const accountType = await getAccountType(accountId);
-    return accountType === 'bonus' ? 'bonus' : 'normal';
+    return accountType === 'bonus' ? 'bonus' : null;
   } catch (e) {
     console.warn('[SCR888H5] resolveScrAlias failed:', e?.message);
-    return 'normal';
+    return null;
   }
 };
 
@@ -162,6 +147,16 @@ export const getAllSCR888H5Games = async () => {
   return [];
 };
 
+/**
+ * GET /api/scr888h5/launch — single attempt, doc-canonical alias resolution.
+ *
+ * Per the SCR888H5 normal-launch doc, the backend find-or-creates the SCR
+ * player on every launch under the resolved alias; the frontend's only
+ * responsibility is passing accountAlias=bonus when bonus_wallet > 0 and
+ * omitting it otherwise. No client-side retry / alias-flipping: if the
+ * backend returns "user does not exist" that's a bootstrap issue on the
+ * wallet-service side, not something the frontend can paper over.
+ */
 export const launchSCR888H5Game = async (game, accountId) => {
   try {
     if (!accountId) {
@@ -177,87 +172,36 @@ export const launchSCR888H5Game = async (game, accountId) => {
 
     const alias = await resolveScrAlias(accountId);
     const params = withAlias(new URLSearchParams({ accountId, gameId: String(gameId) }), alias);
-    const urls = [`${BASE_URL}/api/scr888h5/launch?${params}`];
-    console.log('[SCR888H5/launch] alias=', alias || 'normal', 'accountId=', accountId, 'gameId=', gameId);
+    const url = `${BASE_URL}/api/scr888h5/launch?${params}`;
+    console.log('[SCR888H5/launch] alias=', alias || 'normal', '→', url);
 
-    for (const url of urls) {
-      try {
-        console.log('[SCR888H5/launch] → GET', url);
-        const response = await fetchWithTimeout(url);
-        console.log('[SCR888H5/launch] ← status', response.status, url);
-        if (!response.ok) continue;
-        const data = await response.json();
-        console.log('[SCR888H5/launch] ← body', data);
-        if (data.success && data.gameUrl) {
-          // Persist the alias used so the matching /transfer-out (and any
-          // /balance / /withdraw between launch and close) hits the same
-          // SCR-side player row — even if bonus_wallet has since been
-          // debited to 0 by the launch's own deposit.
-          writeStoredScrAlias(alias);
-          return { success: true, gameUrl: data.gameUrl.trim(), alias, ...data };
-        }
-        if (data.success === false) {
-          const msg = data.errorCode === 6006 ? 'Insufficient balance'
-                    : data.errorCode === 7501 ? 'Wallet not found'
-                    : (data.error || data.message || 'Launch failed');
-          return { success: false, error: msg, errorCode: data.errorCode, ...data };
-        }
-      } catch (err) {
-        console.log('[SCR888H5Service] Launch error:', err.message);
-      }
+    let data = null;
+    try {
+      const response = await fetchWithTimeout(url);
+      data = await response.json().catch(() => null);
+      console.log('[SCR888H5/launch] ←', response.status, data);
+      if (!data) return { success: false, error: `Launch failed (HTTP ${response.status})` };
+    } catch (err) {
+      console.log('[SCR888H5/launch] network err:', err.message);
+      return { success: false, error: err.message };
     }
-    return { success: false, error: 'Failed to launch game' };
+
+    if (data.success && data.gameUrl) {
+      return { success: true, gameUrl: data.gameUrl.trim(), alias: alias || 'normal', ...data };
+    }
+    const msg = data.errorCode === 6006 ? 'Insufficient balance'
+              : data.errorCode === 7501 ? 'Wallet not found'
+              : (data.error || data.message || 'Launch failed');
+    return { success: false, error: msg, errorCode: data.errorCode, ...data };
   } catch (error) {
     return { success: false, error: error.message };
   }
 };
 
 /**
- * Internal: one-shot transfer-out for a specific alias. Returns the parsed
- * response (or a network-error envelope) so the caller can decide whether
- * to fall back.
- */
-const transferOutOnce = async (accountId, alias) => {
-  const params = withAlias(new URLSearchParams({ accountId }), alias);
-  const url = `${BASE_URL}/api/scr888h5/transfer-out?${params}`;
-  console.log('[SCR888H5/transfer-out] alias=', alias, '→', url);
-  try {
-    const response = await fetchWithTimeout(url, { method: 'POST' });
-    const data = await response.json().catch(() => null);
-    console.log('[SCR888H5/transfer-out] ←', response.status, data);
-    if (!response.ok || !data) {
-      return { ok: false, status: response.status, data };
-    }
-    return { ok: true, data };
-  } catch (err) {
-    console.log('[SCR888H5/transfer-out] network err:', err.message);
-    return { ok: false, status: 0, error: err.message };
-  }
-};
-
-// -4 ("user does not exist") means the SCR-side player row for the alias
-// we tried doesn't exist. Could be a fresh browser (sessionStorage was
-// cleared between launch and exit) or we guessed wrong. Caller flips to
-// the opposite alias and retries once.
-const isNoUserError = (data) => {
-  if (!data) return false;
-  if (data.errorCode === -4 || data.code === -4) return true;
-  const msg = String(data.error || data.message || '').toLowerCase();
-  return msg.includes('user does not exist') || msg.includes('player not found');
-};
-
-/**
- * POST /api/scr888h5/transfer-out — sweep SCR's freeBalance back into the
- * funding pool that the launch deposited from. Alias MUST match the launch.
- *
- * Strategy:
- *   1. Try with the resolved alias (persisted from launch, or derived from
- *      current bonus_wallet balance).
- *   2. If that returns "-4 user does not exist", retry once with the
- *      opposite alias — covers the case where the user comes back in a
- *      fresh browser and sessionStorage was empty.
- *   3. Clear the persisted alias on a clean sweep so we don't accidentally
- *      use a stale value next session.
+ * POST /api/scr888h5/transfer-out — sweep SCR's freeBalance back to the
+ * funding pool the launch deposited from. Single attempt; alias is resolved
+ * the same way as launch (bonus_wallet > 0 ⇒ alias=bonus, else omit).
  */
 export const transferOutSCR888H5 = async (accountId) => {
   try {
@@ -267,28 +211,23 @@ export const transferOutSCR888H5 = async (accountId) => {
     }
     if (!accountId) return { success: false, error: 'No account ID' };
 
-    const firstAlias = await resolveScrAlias(accountId);
-    let attempt = await transferOutOnce(accountId, firstAlias);
+    const alias = await resolveScrAlias(accountId);
+    const params = withAlias(new URLSearchParams({ accountId }), alias);
+    const url = `${BASE_URL}/api/scr888h5/transfer-out?${params}`;
+    console.log('[SCR888H5/transfer-out] alias=', alias || 'normal', '→', url);
 
-    // If the SCR player row doesn't exist on the alias we tried, flip and
-    // retry once. Don't loop — one bonus / one normal is the universe.
-    if (attempt.ok && attempt.data.success === false && isNoUserError(attempt.data)) {
-      const otherAlias = firstAlias === 'bonus' ? 'normal' : 'bonus';
-      console.log('[SCR888H5/transfer-out] -4 on', firstAlias, '— retrying as', otherAlias);
-      attempt = await transferOutOnce(accountId, otherAlias);
+    try {
+      const response = await fetchWithTimeout(url, { method: 'POST' });
+      const data = await response.json().catch(() => null);
+      console.log('[SCR888H5/transfer-out] ←', response.status, data);
+      if (!response.ok || !data) return { success: false, error: `Transfer out failed (HTTP ${response.status})` };
+      if (data.success) return { success: true, amountTransferred: data.amountTransferred ?? 0, ...data };
+      return { success: false, error: data.error || data.message || 'Transfer out failed', ...data };
+    } catch (err) {
+      console.log('[SCR888H5/transfer-out] network err:', err.message);
+      return { success: false, error: err.message };
     }
-
-    if (!attempt.ok) {
-      return { success: false, error: `Transfer out failed (HTTP ${attempt.status})` };
-    }
-    const data = attempt.data;
-    if (data.success) {
-      clearStoredScrAlias();
-      return { success: true, amountTransferred: data.amountTransferred ?? 0, ...data };
-    }
-    return { success: false, error: data.error || data.message || 'Transfer out failed', ...data };
   } catch (error) {
-    console.log('[SCR888H5/transfer-out] error:', error.message);
     return { success: false, error: error.message };
   }
 };
