@@ -215,27 +215,58 @@ export const exitAceWinGame = async (accountId) => {
   }
 }
 
-export const getAceWinBalance = async (accountId) => {
+// AceWin rate-limits /balance, so we cap polling at 1 call / 5 s per
+// accountId by returning the previous snapshot when called more often.
+const ACEWIN_BALANCE_MIN_INTERVAL_MS = 5000
+const acewinBalanceCache = new Map() // accountId -> { ts, snapshot }
+
+/**
+ * GET /api/acewin-transfer/balance?accountId=
+ *
+ * Response (post 2026-06-10 contract):
+ *   { success: true, status: "0000", balance: <MYR>, memberStatus: 1|2, online: bool, ... }
+ *
+ * Gate on body.success (new). status "0000" is kept as a back-compat fallback
+ * for any caller still inspecting it. balance is top-level MYR already
+ * converted from coins; no need to dig into a nested envelope.
+ *
+ * memberStatus: 1 = active in-game, 2 = inactive.
+ *
+ * Polling cap: caller is throttled to one upstream hit per 5s per accountId;
+ * intervening calls return the previous snapshot with { cached: true }.
+ */
+export const getAceWinBalance = async (accountId, { force = false } = {}) => {
   try {
     accountId = resolveAccountId(accountId)
     if (!accountId) return { success: false, error: 'No account ID' }
 
+    const now = Date.now()
+    const cached = acewinBalanceCache.get(accountId)
+    if (!force && cached && now - cached.ts < ACEWIN_BALANCE_MIN_INTERVAL_MS) {
+      return { ...cached.snapshot, cached: true }
+    }
+
     const response = await fetchWithTimeout(
       `${BASE_URL}/api/acewin-transfer/balance?accountId=${accountId}`
     )
-    if (!response.ok) return { success: false, error: 'Failed to get balance' }
+    if (!response.ok) return { success: false, error: `Failed to get balance (HTTP ${response.status})` }
     const data = await response.json()
-    if (data.status === '0000') {
-      return {
+
+    const ok = data?.success === true || data?.status === '0000'
+    if (ok) {
+      const snapshot = {
         success: true,
         balance: data.balance ?? 0,
         memberStatus: data.memberStatus,
         online: data.online,
+        status: data.status,
         acewinAccount: data.acewinAccount,
         ...data,
       }
+      acewinBalanceCache.set(accountId, { ts: now, snapshot })
+      return snapshot
     }
-    return { success: false, error: `Balance fetch failed (${data.status})` }
+    return { success: false, error: data?.error || data?.message || `Balance fetch failed (${data?.status || '-'})` }
   } catch (error) {
     return { success: false, error: error.message }
   }
