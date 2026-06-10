@@ -60,7 +60,7 @@ const transformGame = (game) => {
 
 export const fetchWFGamingGames = async () => {
   try {
-    const urls = [`${BASE_URL}/api/wfgaming/games`, `/api/wfgaming/games`];
+    const urls = [`${BASE_URL}/api/wfgaming/games`];
 
     for (const url of urls) {
       try {
@@ -148,7 +148,7 @@ export const launchWFGamingGame = async (gameCode, accountId, lang = 'en-us') =>
     const alias = accountType === 'bonus' ? 'freecredit' : 'normal';
 
     const params = new URLSearchParams({ accountId, gameCode: normCode, lang, account: alias });
-    const urls = [`${BASE_URL}/api/wfgaming/launch?${params}`, `/api/wfgaming/launch?${params}`];
+    const urls = [`${BASE_URL}/api/wfgaming/launch?${params}`];
     console.log('[WFGaming/launch] accountType=', accountType, 'alias=', alias, 'accountId=', accountId, 'gameCode=', gameCode);
 
     for (const url of urls) {
@@ -196,7 +196,7 @@ export const kickWFGamingGame = async (accountId, alias) => {
       return { success: false, error: 'Unknown session alias' };
     }
     const params = new URLSearchParams({ accountId, account: resolved });
-    const urls = [`${BASE_URL}/api/wfgaming/kick?${params}`, `/api/wfgaming/kick?${params}`];
+    const urls = [`${BASE_URL}/api/wfgaming/kick?${params}`];
     console.log('[WFGaming/kick] accountId=', accountId, 'alias=', resolved);
     for (const url of urls) {
       try {

@@ -58,7 +58,10 @@ const transformGame = (game) => {
 
 export const fetchRichGamingGames = async () => {
   try {
-    const urls = [`${BASE_URL}/api/richgaming/games`, `/api/richgaming/games`];
+    // Absolute seamless host only — wallet-service is not exposed at the
+    // apex team33.mx, so a relative fallback would hit the wrong origin
+    // and 404 (often with a trailing-slash variant the CDN adds).
+    const urls = [`${BASE_URL}/api/richgaming/games`];
 
     for (const url of urls) {
       try {
@@ -132,7 +135,8 @@ export const launchRichGamingGame = async (game, accountId, device) => {
     }
 
     const params = new URLSearchParams({ accountId, gameCode: String(gameCode), device: String(device) });
-    const urls = [`${BASE_URL}/api/richgaming/launch?${params}`, `/api/richgaming/launch?${params}`];
+    // Absolute seamless host only — see games() comment.
+    const urls = [`${BASE_URL}/api/richgaming/launch?${params}`];
     console.log('[RichGaming/launch] accountId=', accountId, 'gameCode=', gameCode, 'device=', device);
 
     for (const url of urls) {

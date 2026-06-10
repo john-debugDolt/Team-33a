@@ -86,7 +86,7 @@ const transformGame = (game, defaultImage) => {
 
 export const fetchAceWinGames = async (defaultImage) => {
   try {
-    const urls = [`${BASE_URL}/api/acewin-transfer/games`, `/api/acewin-transfer/games`]
+    const urls = [`${BASE_URL}/api/acewin-transfer/games`]
     for (const url of urls) {
       try {
         const response = await fetchWithTimeout(url)

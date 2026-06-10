@@ -119,7 +119,7 @@ const transformGame = (game) => {
 
 export const fetchSCR888H5Games = async () => {
   try {
-    const urls = [`${BASE_URL}/api/scr888h5/games`, `/api/scr888h5/games`];
+    const urls = [`${BASE_URL}/api/scr888h5/games`];
 
     for (const url of urls) {
       try {
@@ -177,7 +177,7 @@ export const launchSCR888H5Game = async (game, accountId) => {
 
     const alias = await resolveScrAlias(accountId);
     const params = withAlias(new URLSearchParams({ accountId, gameId: String(gameId) }), alias);
-    const urls = [`${BASE_URL}/api/scr888h5/launch?${params}`, `/api/scr888h5/launch?${params}`];
+    const urls = [`${BASE_URL}/api/scr888h5/launch?${params}`];
     console.log('[SCR888H5/launch] alias=', alias || 'normal', 'accountId=', accountId, 'gameId=', gameId);
 
     for (const url of urls) {

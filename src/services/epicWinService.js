@@ -58,7 +58,7 @@ const transformGame = (game) => {
 export const fetchEpicWinGames = async (lang = 'en', currency = 'AUD') => {
   try {
     const params = new URLSearchParams({ lang, currency });
-    const urls = [`${BASE_URL}/api/epicwin/game/list?${params}`, `/api/epicwin/game/list?${params}`];
+    const urls = [`${BASE_URL}/api/epicwin/game/list?${params}`];
 
     for (const url of urls) {
       try {
@@ -114,7 +114,7 @@ export const launchEpicWinGame = async (gameCode, accountId, launchDemo = false)
       gameCode,
       launchDemo: launchDemo.toString()
     });
-    const urls = [`${BASE_URL}/api/epicwin/game/launch?${params}`, `/api/epicwin/game/launch?${params}`];
+    const urls = [`${BASE_URL}/api/epicwin/game/launch?${params}`];
 
     for (const url of urls) {
       try {
