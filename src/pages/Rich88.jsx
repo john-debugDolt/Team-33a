@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllRich88Games, launchRich88Game, exitRich88Game } from '../services/rich88TransferService'
+import { recordLaunch, clearLaunch, sweepAllReturns, getPreLaunchBalance, ProviderKey } from '../services/launchTracker'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -15,7 +16,7 @@ import rich88Logo from '../images/rich88logo.jpg'
 
 export default function Rich88() {
   const navigate = useNavigate()
-  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate, isLaunchBlocked } = useAuth()
+  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate, freezeBalance, isLaunchBlocked } = useAuth()
   const { showToast } = useToast()
 
   const [games, setGames] = useState([])
@@ -75,22 +76,34 @@ export default function Rich88() {
     return () => window.removeEventListener('message', handleGameMessage)
   }, [embeddedGame, user?.accountId, updateBalance, notifyTransactionUpdate])
 
-  const closeGame = async () => {
-    if (user?.accountId) {
-      // Fire /exit for the operator we launched under (the service reads
-      // the persisted alias from sessionStorage). Fire-and-forget so the
-      // UI never blocks on the sweep.
-      exitRich88Game(user.accountId).catch((err) =>
-        console.warn('[Rich88/exit] failed:', err?.message)
-      )
-      try {
-        const result = await walletService.getBalance(user.accountId)
-        if (result.success && result.balance !== undefined) updateBalance?.(result.balance)
-      } catch (error) { console.error('Balance sync error:', error) }
-    }
+  // Read the active operator from sessionStorage to pick the right LIFO key.
+  // launchRich88Game writes 'normal' or 'foc' to rich88:op based on accountType.
+  const activeRich88Key = () => {
+    const op = (() => { try { return sessionStorage.getItem('rich88:op') } catch { return null } })()
+    return op === 'foc' ? ProviderKey.RICH88_FOC : ProviderKey.RICH88_NORMAL
+  }
+
+  const closeGame = () => {
+    const providerKey = activeRich88Key()
+    const preBalance = getPreLaunchBalance(providerKey)
+    if (preBalance != null) freezeBalance?.(preBalance, 4000)
     setEmbeddedGame(null)
     setShowExitConfirm(false)
-    notifyTransactionUpdate?.()
+    ;(async () => {
+      if (user?.accountId) {
+        try {
+          const result = await exitRich88Game(user.accountId)
+          if (result?.success) clearLaunch(providerKey)
+        } catch (error) {
+          console.error('[Rich88] Exit error:', error)
+        }
+        try {
+          const result = await walletService.getBalance(user.accountId)
+          if (result.success && result.balance !== undefined) updateBalance?.(result.balance)
+        } catch (error) { console.error('Balance sync error:', error) }
+      }
+      notifyTransactionUpdate?.()
+    })()
   }
 
   const handlePlayNow = async (game, e) => {
@@ -107,6 +120,10 @@ export default function Rich88() {
     }
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
+
+    const preBalance = Number(user?.balance) || 0
+    freezeBalance?.(preBalance, 5000)
+    sweepAllReturns(updateBalance).catch(() => {})
 
     // Per the Rich88 doc:
     //   -1 = reconciling (do NOT retry — could duplicate the deposit)
@@ -125,6 +142,9 @@ export default function Rich88() {
       try {
         const result = await launchRich88Game(game, user?.accountId)
         if (result.success && result.gameUrl) {
+          // Record under the operator the service just stored — getPreLaunchBalance
+          // and the watcher's recoverLastLaunch will both key off it.
+          recordLaunch(activeRich88Key(), user?.accountId, { preLaunchBalance: preBalance })
           setEmbeddedGame({ url: result.gameUrl, name: game.name })
           showToast(`${game.name} launched!`, 'success')
           success = true

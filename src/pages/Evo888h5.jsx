@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getAllEvo888h5Games, launchEvo888h5Game } from '../services/evo888h5Service'
+import { getAllEvo888h5Games, launchEvo888h5Game, exitEvo888h5Bonus } from '../services/evo888h5Service'
+import { getAccountType } from '../services/bonusWalletService'
+import { recordLaunch, clearLaunch, sweepAllReturns, getPreLaunchBalance, ProviderKey } from '../services/launchTracker'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -14,7 +16,7 @@ import { useCategoryAndSort } from '../components/CategorySortBar/CategorySortBa
 
 export default function Evo888h5() {
   const navigate = useNavigate()
-  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate, isLaunchBlocked } = useAuth()
+  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate, freezeBalance, isLaunchBlocked } = useAuth()
   const { showToast } = useToast()
 
   const [games, setGames] = useState([])
@@ -79,20 +81,35 @@ export default function Evo888h5() {
     return () => window.removeEventListener('message', handleGameMessage)
   }, [embeddedGame, user?.accountId, updateBalance, notifyTransactionUpdate])
 
-  const closeGame = async () => {
-    if (user?.accountId) {
-      try {
-        const result = await walletService.getBalance(user.accountId)
-        if (result.success && result.balance !== undefined) {
-          updateBalance?.(result.balance)
-        }
-      } catch (error) {
-        console.error('Balance sync error:', error)
-      }
-    }
+  const closeGame = () => {
+    // Bonus-mode EVO888H5 deposits into a transfer wallet; seamless mode
+    // doesn't. The LIFO key is only present for bonus launches, so the
+    // freeze/exit/clearLaunch are no-ops on seamless sessions.
+    const preBalance = getPreLaunchBalance(ProviderKey.EVO888H5_BONUS)
+    if (preBalance != null) freezeBalance?.(preBalance, 4000)
     setEmbeddedGame(null)
     setShowExitConfirm(false)
-    notifyTransactionUpdate?.()
+    ;(async () => {
+      if (user?.accountId) {
+        if (preBalance != null) {
+          try {
+            const result = await exitEvo888h5Bonus(user.accountId)
+            if (result?.success) clearLaunch(ProviderKey.EVO888H5_BONUS)
+          } catch (error) {
+            console.error('[EVO888H5] Exit error:', error)
+          }
+        }
+        try {
+          const result = await walletService.getBalance(user.accountId)
+          if (result.success && result.balance !== undefined) {
+            updateBalance?.(result.balance)
+          }
+        } catch (error) {
+          console.error('Balance sync error:', error)
+        }
+      }
+      notifyTransactionUpdate?.()
+    })()
   }
 
   const handlePlayNow = async (game, e) => {
@@ -113,6 +130,16 @@ export default function Evo888h5() {
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
 
+    const preBalance = Number(user?.balance) || 0
+    freezeBalance?.(preBalance, 5000)
+    sweepAllReturns(updateBalance).catch(() => {})
+
+    // EVO888H5 only does a transfer-wallet deposit when the account is in
+    // bonus mode. Seamless launches don't need LIFO tracking — the /exit
+    // endpoint is a no-op there.
+    let isBonus = false
+    try { isBonus = (await getAccountType(user?.accountId)) === 'bonus' } catch { /* assume seamless */ }
+
     const maxRetries = 15
     let attempt = 0
     let success = false
@@ -127,6 +154,9 @@ export default function Evo888h5() {
           gameUrl = null
         }
         if (gameUrl) {
+          if (isBonus) {
+            recordLaunch(ProviderKey.EVO888H5_BONUS, user?.accountId, { preLaunchBalance: preBalance })
+          }
           setEmbeddedGame({ url: gameUrl, name: game.name })
           showToast(`${game.name} launched!`, 'success')
           success = true

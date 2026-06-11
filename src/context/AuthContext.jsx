@@ -386,6 +386,13 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('accountId');
     localStorage.removeItem('userId');
     localStorage.removeItem('walletId');
+    // Wipe the LIFO launch stack so user B doesn't inherit user A's
+    // stranded sessions — and reset the in-memory refs so a previous
+    // recovery state can't carry over into the new login.
+    localStorage.removeItem('team33_active_launches_v1');
+    recoveryRef.current = { attempts: 0, lastAttemptAt: 0, active: false };
+    launchBlockedRef.current = false;
+    balanceFreezeRef.current = null;
     // Clear legacy auth data
     await authService.logout();
     setUser(null);

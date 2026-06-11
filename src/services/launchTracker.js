@@ -165,11 +165,15 @@ export const recoverLastLaunch = async () => {
   }
   try {
     const result = await exitFn(accountId, entry)
+    // Only clear on a confirmed-good exit. On failure leave the record so
+    // the next sweep (visibility / mount) gets another shot, and the
+    // backend's 20-min auto-withdraw is the final fallback. Previously the
+    // finally{} cleared regardless and a single network blip orphaned the
+    // session client-side.
+    if (result?.success) clearLaunch(provider)
     return { provider, result }
   } catch (err) {
     return { provider, result: { success: false, error: err?.message } }
-  } finally {
-    clearLaunch(provider)
   }
 }
 
