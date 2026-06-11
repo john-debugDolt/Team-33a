@@ -14,7 +14,7 @@ import './Slot.css'
 
 export default function Slot() {
   const navigate = useNavigate()
-  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
+  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate, isLaunchBlocked } = useAuth()
   const { showToast } = useToast()
 
   // Separate state for each provider
@@ -150,6 +150,10 @@ export default function Slot() {
     }
 
     if (launchingGame === game.id) return
+    if (isLaunchBlocked?.()) {
+      showToast('Recovering your balance — please try again in a moment.', 'warning')
+      return
+    }
 
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')

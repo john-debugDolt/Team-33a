@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllWin8Games, exitWin8Game, launchWin8Game } from '../services/win8Service'
-import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunch, sweepAllReturns, getPreLaunchBalance, ProviderKey } from '../services/launchTracker'
 import { getAllClotPlayGames } from '../services/gameService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
@@ -19,7 +19,7 @@ const DEFAULT_LAUNCH_AMOUNT = 100
 
 export default function Win8() {
   const navigate = useNavigate()
-  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
+  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate, freezeBalance, isLaunchBlocked } = useAuth()
   const { showToast } = useToast()
 
   const [games, setGames] = useState([])
@@ -102,29 +102,33 @@ export default function Win8() {
     return () => window.removeEventListener('message', handleGameMessage)
   }, [embeddedGame, user?.accountId, updateBalance, notifyTransactionUpdate])
 
-  const closeGame = async () => {
-    if (user?.accountId) {
-      try {
-        const result = await exitWin8Game(user.accountId)
-        clearLaunch(ProviderKey.WIN8)
-        if (result.reconciling) {
-          showToast('Cash-out is being processed — refresh in a moment.', 'warning')
-        }
-      } catch (error) {
-        console.error('[3win8] Exit error:', error)
-      }
-      try {
-        const result = await walletService.getBalance(user.accountId)
-        if (result.success && result.balance !== undefined) {
-          updateBalance?.(result.balance)
-        }
-      } catch (error) {
-        console.error('Balance sync error:', error)
-      }
-    }
+  const closeGame = () => {
+    const preBalance = getPreLaunchBalance(ProviderKey.WIN8)
+    if (preBalance != null) freezeBalance?.(preBalance, 4000)
     setEmbeddedGame(null)
     setShowExitConfirm(false)
-    notifyTransactionUpdate?.()
+    ;(async () => {
+      if (user?.accountId) {
+        try {
+          const result = await exitWin8Game(user.accountId)
+          clearLaunch(ProviderKey.WIN8)
+          if (result.reconciling) {
+            showToast('Cash-out is being processed — refresh in a moment.', 'warning')
+          }
+        } catch (error) {
+          console.error('[3win8] Exit error:', error)
+        }
+        try {
+          const result = await walletService.getBalance(user.accountId)
+          if (result.success && result.balance !== undefined) {
+            updateBalance?.(result.balance)
+          }
+        } catch (error) {
+          console.error('Balance sync error:', error)
+        }
+      }
+      notifyTransactionUpdate?.()
+    })()
   }
 
   const handlePlayNow = async (game, e) => {
@@ -137,12 +141,19 @@ export default function Win8() {
     }
 
     if (launchingGame === game.id) return
+    if (isLaunchBlocked?.()) {
+      showToast('Recovering your balance — please try again in a moment.', 'warning')
+      return
+    }
 
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
 
-    await sweepAllReturns(updateBalance)
-    recordLaunch(ProviderKey.WIN8, user?.accountId)
+    const preBalance = Number(user?.balance) || 0
+    freezeBalance?.(preBalance, 5000)
+
+    sweepAllReturns(updateBalance).catch(() => {})
+    recordLaunch(ProviderKey.WIN8, user?.accountId, { preLaunchBalance: preBalance })
 
     const mainBalance = Number(user?.balance) || 0
     const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))

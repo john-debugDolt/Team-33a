@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllPegasusGames, exitPegasusGame, launchPegasusGame } from '../services/pegasusService'
-import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunch, sweepAllReturns, getPreLaunchBalance, ProviderKey } from '../services/launchTracker'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -18,7 +18,7 @@ const DEFAULT_LAUNCH_AMOUNT = 100
 
 export default function Pegasus() {
   const navigate = useNavigate()
-  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
+  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate, freezeBalance, isLaunchBlocked } = useAuth()
   const { showToast } = useToast()
 
   const [games, setGames] = useState([])
@@ -79,29 +79,33 @@ export default function Pegasus() {
     return () => window.removeEventListener('message', handleGameMessage)
   }, [embeddedGame, user?.accountId, updateBalance, notifyTransactionUpdate])
 
-  const closeGame = async () => {
-    if (user?.accountId) {
-      try {
-        const result = await exitPegasusGame(user.accountId)
-        clearLaunch(ProviderKey.PEGASUS)
-        if (result.reconciling) {
-          showToast('Cash-out is being processed — refresh in a moment.', 'warning')
-        }
-      } catch (error) {
-        console.error('[Pegasus] Exit error:', error)
-      }
-      try {
-        const result = await walletService.getBalance(user.accountId)
-        if (result.success && result.balance !== undefined) {
-          updateBalance?.(result.balance)
-        }
-      } catch (error) {
-        console.error('Balance sync error:', error)
-      }
-    }
+  const closeGame = () => {
+    const preBalance = getPreLaunchBalance(ProviderKey.PEGASUS)
+    if (preBalance != null) freezeBalance?.(preBalance, 4000)
     setEmbeddedGame(null)
     setShowExitConfirm(false)
-    notifyTransactionUpdate?.()
+    ;(async () => {
+      if (user?.accountId) {
+        try {
+          const result = await exitPegasusGame(user.accountId)
+          clearLaunch(ProviderKey.PEGASUS)
+          if (result.reconciling) {
+            showToast('Cash-out is being processed — refresh in a moment.', 'warning')
+          }
+        } catch (error) {
+          console.error('[Pegasus] Exit error:', error)
+        }
+        try {
+          const result = await walletService.getBalance(user.accountId)
+          if (result.success && result.balance !== undefined) {
+            updateBalance?.(result.balance)
+          }
+        } catch (error) {
+          console.error('Balance sync error:', error)
+        }
+      }
+      notifyTransactionUpdate?.()
+    })()
   }
 
   const handlePlayNow = async (game, e) => {
@@ -114,12 +118,19 @@ export default function Pegasus() {
     }
 
     if (launchingGame === game.id) return
+    if (isLaunchBlocked?.()) {
+      showToast('Recovering your balance — please try again in a moment.', 'warning')
+      return
+    }
 
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
 
-    await sweepAllReturns(updateBalance)
-    recordLaunch(ProviderKey.PEGASUS, user?.accountId)
+    const preBalance = Number(user?.balance) || 0
+    freezeBalance?.(preBalance, 5000)
+
+    sweepAllReturns(updateBalance).catch(() => {})
+    recordLaunch(ProviderKey.PEGASUS, user?.accountId, { preLaunchBalance: preBalance })
 
     const mainBalance = Number(user?.balance) || 0
     const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))

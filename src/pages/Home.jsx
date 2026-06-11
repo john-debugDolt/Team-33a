@@ -144,7 +144,7 @@ const TOTAL_DISPLAY_COUNT = 12350 // Total games to show
 
 export default function Home() {
   const navigate = useNavigate()
-  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
+  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate, isLaunchBlocked } = useAuth()
   const { showToast } = useToast()
   const { t } = useTranslation()
   const accountType = useAccountType()
@@ -684,6 +684,10 @@ export default function Home() {
 
     // Prevent double clicks
     if (launchingGame === game.id || launchingGame === game.uniqueId) return
+    if (isLaunchBlocked?.()) {
+      showToast('Recovering your balance — please try again in a moment.', 'warning')
+      return
+    }
 
     setLaunchingGame(game.uniqueId || game.id)
     showToast(`Launching ${game.name}...`, 'info')

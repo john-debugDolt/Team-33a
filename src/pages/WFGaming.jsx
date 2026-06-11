@@ -14,7 +14,7 @@ import { useCategoryAndSort } from '../components/CategorySortBar/CategorySortBa
 
 export default function WFGaming() {
   const navigate = useNavigate()
-  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
+  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate, isLaunchBlocked } = useAuth()
   const { showToast } = useToast()
 
   const [games, setGames] = useState([])
@@ -109,6 +109,10 @@ export default function WFGaming() {
     }
 
     if (launchingGame === game.id) return
+    if (isLaunchBlocked?.()) {
+      showToast('Recovering your balance — please try again in a moment.', 'warning')
+      return
+    }
 
     const accountId = user?.accountId
     if (!accountId) {

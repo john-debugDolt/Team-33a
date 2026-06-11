@@ -15,7 +15,7 @@ import rich88Logo from '../images/rich88logo.jpg'
 
 export default function Rich88() {
   const navigate = useNavigate()
-  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
+  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate, isLaunchBlocked } = useAuth()
   const { showToast } = useToast()
 
   const [games, setGames] = useState([])
@@ -101,6 +101,10 @@ export default function Rich88() {
       return
     }
     if (launchingGame === game.id) return
+    if (isLaunchBlocked?.()) {
+      showToast('Recovering your balance — please try again in a moment.', 'warning')
+      return
+    }
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
 

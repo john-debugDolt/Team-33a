@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { launchM9Game, exitM9Game, isMobileDevice } from '../services/m9TransferService'
 import { launchSV388, exitSV388 } from '../services/awcTransferService'
-import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunch, sweepAllReturns, getPreLaunchBalance, ProviderKey } from '../services/launchTracker'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -23,7 +23,7 @@ export default function Sports() {
   const navigate = useNavigate()
   const location = useLocation()
   const autoLaunchedRef = useRef(false)
-  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
+  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate, freezeBalance, isLaunchBlocked } = useAuth()
   const { showToast } = useToast()
 
   const [launching, setLaunching] = useState(null)
@@ -38,12 +38,19 @@ export default function Sports() {
       return
     }
     if (launching === 'M8BET') return
+    if (isLaunchBlocked?.()) {
+      showToast('Recovering your balance — please try again in a moment.', 'warning')
+      return
+    }
 
     setLaunching('M8BET')
     showToast('Launching M8BET...', 'info')
 
-    await sweepAllReturns(updateBalance)
-    recordLaunch(ProviderKey.M8BET, user?.accountId)
+    const preBalance = Number(user?.balance) || 0
+    freezeBalance?.(preBalance, 5000)
+
+    sweepAllReturns(updateBalance).catch(() => {})
+    recordLaunch(ProviderKey.M8BET, user?.accountId, { preLaunchBalance: preBalance })
 
     const mainBalance = Number(user?.balance) || 0
     const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))
@@ -91,12 +98,19 @@ export default function Sports() {
       return
     }
     if (launching === 'SV388') return
+    if (isLaunchBlocked?.()) {
+      showToast('Recovering your balance — please try again in a moment.', 'warning')
+      return
+    }
 
     setLaunching('SV388')
     showToast('Launching SV388...', 'info')
 
-    await sweepAllReturns(updateBalance)
-    recordLaunch(ProviderKey.SV388, user?.accountId)
+    const preBalance = Number(user?.balance) || 0
+    freezeBalance?.(preBalance, 5000)
+
+    sweepAllReturns(updateBalance).catch(() => {})
+    recordLaunch(ProviderKey.SV388, user?.accountId, { preLaunchBalance: preBalance })
 
     const mainBalance = Number(user?.balance) || 0
     const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))
@@ -146,32 +160,38 @@ export default function Sports() {
     else if (provider.id === 'SV388') handleSV388Launch()
   }
 
-  const closeGame = async () => {
-    if (user?.accountId) {
-      try {
-        if (activePlatform === 'SV388') {
-          await exitSV388(user.accountId)
-          clearLaunch(ProviderKey.SV388)
-        } else {
-          await exitM9Game(user.accountId)
-          clearLaunch(ProviderKey.M8BET)
-        }
-      } catch (error) {
-        console.error('[Sports] Exit error:', error)
-      }
-      try {
-        const result = await walletService.getBalance(user.accountId)
-        if (result.success && result.balance !== undefined) {
-          updateBalance?.(result.balance)
-        }
-      } catch (error) {
-        console.error('Balance sync error:', error)
-      }
-    }
+  const closeGame = () => {
+    const providerKey = activePlatform === 'SV388' ? ProviderKey.SV388 : ProviderKey.M8BET
+    const preBalance = getPreLaunchBalance(providerKey)
+    if (preBalance != null) freezeBalance?.(preBalance, 4000)
+    const platformAtClose = activePlatform
     setEmbeddedGame(null)
     setShowExitConfirm(false)
     setActivePlatform(null)
-    notifyTransactionUpdate?.()
+    ;(async () => {
+      if (user?.accountId) {
+        try {
+          if (platformAtClose === 'SV388') {
+            await exitSV388(user.accountId)
+            clearLaunch(ProviderKey.SV388)
+          } else {
+            await exitM9Game(user.accountId)
+            clearLaunch(ProviderKey.M8BET)
+          }
+        } catch (error) {
+          console.error('[Sports] Exit error:', error)
+        }
+        try {
+          const result = await walletService.getBalance(user.accountId)
+          if (result.success && result.balance !== undefined) {
+            updateBalance?.(result.balance)
+          }
+        } catch (error) {
+          console.error('Balance sync error:', error)
+        }
+      }
+      notifyTransactionUpdate?.()
+    })()
   }
 
   return (

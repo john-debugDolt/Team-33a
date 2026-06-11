@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllDragoonSoftGames, exitDragoonSoftGame, launchDragoonSoftGame } from '../services/dragoonSoftService'
-import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunch, sweepAllReturns, getPreLaunchBalance, ProviderKey } from '../services/launchTracker'
 import { getAllClotPlayGames } from '../services/gameService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
@@ -20,7 +20,7 @@ const DEFAULT_LAUNCH_AMOUNT = 100
 
 export default function DragoonSoft() {
   const navigate = useNavigate()
-  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
+  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate, freezeBalance, isLaunchBlocked } = useAuth()
   const { showToast } = useToast()
 
   const [games, setGames] = useState([])
@@ -100,26 +100,30 @@ export default function DragoonSoft() {
     return () => window.removeEventListener('message', handleGameMessage)
   }, [embeddedGame, user?.accountId, updateBalance, notifyTransactionUpdate])
 
-  const closeGame = async () => {
-    if (user?.accountId) {
-      try {
-        await exitDragoonSoftGame(user.accountId)
-        clearLaunch(ProviderKey.DRAGOONSOFT)
-      } catch (error) {
-        console.error('[DragoonSoft] Exit error:', error)
-      }
-      try {
-        const result = await walletService.getBalance(user.accountId)
-        if (result.success && result.balance !== undefined) {
-          updateBalance?.(result.balance)
-        }
-      } catch (error) {
-        console.error('Balance sync error:', error)
-      }
-    }
+  const closeGame = () => {
+    const preBalance = getPreLaunchBalance(ProviderKey.DRAGOONSOFT)
+    if (preBalance != null) freezeBalance?.(preBalance, 4000)
     setEmbeddedGame(null)
     setShowExitConfirm(false)
-    notifyTransactionUpdate?.()
+    ;(async () => {
+      if (user?.accountId) {
+        try {
+          await exitDragoonSoftGame(user.accountId)
+          clearLaunch(ProviderKey.DRAGOONSOFT)
+        } catch (error) {
+          console.error('[DragoonSoft] Exit error:', error)
+        }
+        try {
+          const result = await walletService.getBalance(user.accountId)
+          if (result.success && result.balance !== undefined) {
+            updateBalance?.(result.balance)
+          }
+        } catch (error) {
+          console.error('Balance sync error:', error)
+        }
+      }
+      notifyTransactionUpdate?.()
+    })()
   }
 
   const handlePlayNow = async (game, e) => {
@@ -136,12 +140,19 @@ export default function DragoonSoft() {
     }
 
     if (launchingGame === game.id) return
+    if (isLaunchBlocked?.()) {
+      showToast('Recovering your balance — please try again in a moment.', 'warning')
+      return
+    }
 
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
 
-    await sweepAllReturns(updateBalance)
-    recordLaunch(ProviderKey.DRAGOONSOFT, user?.accountId)
+    const preBalance = Number(user?.balance) || 0
+    freezeBalance?.(preBalance, 5000)
+
+    sweepAllReturns(updateBalance).catch(() => {})
+    recordLaunch(ProviderKey.DRAGOONSOFT, user?.accountId, { preLaunchBalance: preBalance })
 
     const mainBalance = Number(user?.balance) || 0
     const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))

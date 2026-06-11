@@ -14,7 +14,7 @@ import { useCategoryAndSort } from '../components/CategorySortBar/CategorySortBa
 
 export default function ClotPlay() {
   const navigate = useNavigate()
-  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
+  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate, isLaunchBlocked } = useAuth()
   const { showToast } = useToast()
 
   const [games, setGames] = useState([])
@@ -107,6 +107,10 @@ export default function ClotPlay() {
     }
 
     if (launchingGame === game.id) return
+    if (isLaunchBlocked?.()) {
+      showToast('Recovering your balance — please try again in a moment.', 'warning')
+      return
+    }
 
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')

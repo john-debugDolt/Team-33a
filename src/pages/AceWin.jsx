@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllAceWinGames, exitAceWinGame, launchAceWinGame } from '../services/acewinTransferService'
-import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunch, sweepAllReturns, getPreLaunchBalance, ProviderKey } from '../services/launchTracker'
 import { getAllClotPlayGames } from '../services/gameService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
@@ -37,7 +37,7 @@ const DEFAULT_LAUNCH_AMOUNT = 100
 
 export default function AceWin() {
   const navigate = useNavigate()
-  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
+  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate, freezeBalance, isLaunchBlocked } = useAuth()
   const { showToast } = useToast()
 
   const [games, setGames] = useState([])
@@ -134,26 +134,32 @@ export default function AceWin() {
   }, [embeddedGame, user?.accountId, updateBalance, notifyTransactionUpdate])
 
   // Transfer Wallet: /exit kicks the session & withdraws-all
-  const closeGame = async () => {
-    if (user?.accountId) {
-      try {
-        await exitAceWinGame(user.accountId)
-        clearLaunch(ProviderKey.ACEWIN)
-      } catch (error) {
-        console.error('[AceWin] Exit error:', error)
-      }
-      try {
-        const result = await walletService.getBalance(user.accountId)
-        if (result.success && result.balance !== undefined) {
-          updateBalance?.(result.balance)
-        }
-      } catch (error) {
-        console.error('Balance sync error:', error)
-      }
-    }
+  // Tear down iframe + show pre-launch balance for 4s while exit runs in the
+  // background so the player doesn't see a flicker to $0 or a frozen modal.
+  const closeGame = () => {
+    const preBalance = getPreLaunchBalance(ProviderKey.ACEWIN)
+    if (preBalance != null) freezeBalance?.(preBalance, 4000)
     setEmbeddedGame(null)
     setShowExitConfirm(false)
-    notifyTransactionUpdate?.()
+    ;(async () => {
+      if (user?.accountId) {
+        try {
+          await exitAceWinGame(user.accountId)
+          clearLaunch(ProviderKey.ACEWIN)
+        } catch (error) {
+          console.error('[AceWin] Exit error:', error)
+        }
+        try {
+          const result = await walletService.getBalance(user.accountId)
+          if (result.success && result.balance !== undefined) {
+            updateBalance?.(result.balance)
+          }
+        } catch (error) {
+          console.error('Balance sync error:', error)
+        }
+      }
+      notifyTransactionUpdate?.()
+    })()
   }
 
   const handlePlayNow = async (game, e) => {
@@ -166,15 +172,25 @@ export default function AceWin() {
     }
 
     if (launchingGame === game.id) return
+    if (isLaunchBlocked?.()) {
+      showToast('Recovering your balance — please try again in a moment.', 'warning')
+      return
+    }
 
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
 
+    // Freeze the displayed balance for 5s so the post-deposit dip doesn't
+    // surface to the player while the upstream is still settling.
+    const preBalance = Number(user?.balance) || 0
+    freezeBalance?.(preBalance, 5000)
+
     // Sweep any stranded session from a prior provider (incl. another tab)
-    // before depositing into this one, then record THIS launch immediately
+    // before depositing into this one, but don't await — a slow upstream
+    // exit shouldn't block the new launch. Record THIS launch immediately
     // so even a tab-close mid-RPC leaves a record to sweep later.
-    await sweepAllReturns(updateBalance)
-    recordLaunch(ProviderKey.ACEWIN, user?.accountId)
+    sweepAllReturns(updateBalance).catch(() => {})
+    recordLaunch(ProviderKey.ACEWIN, user?.accountId, { preLaunchBalance: preBalance })
 
     const mainBalance = Number(user?.balance) || 0
     const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))

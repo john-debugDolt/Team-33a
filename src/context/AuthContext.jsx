@@ -58,8 +58,20 @@ export function AuthProvider({ children }) {
       launchBlockedRef.current = false;
       return;
     }
+    // CRITICAL: do not auto-/exit a session the player is actively playing.
+    // Their wallet can momentarily read 0 mid-game (just lost a big bet,
+    // between spins) — firing /exit here would kick them out in the middle
+    // of play. Every provider page mounts its iframe under .game-player-overlay
+    // so this selector is a reliable "user is in game right now" signal.
+    if (typeof document !== 'undefined' && document.querySelector('.game-player-overlay')) return;
     if (recoveryRef.current.active) return;
-    if (recoveryRef.current.attempts >= 3) return;
+    if (recoveryRef.current.attempts >= 3) {
+      // We've tried three times and still see 0. Player almost certainly has
+      // a real empty wallet — release the launch block so they can attempt
+      // a new launch (or top up) instead of being stuck behind the gate.
+      launchBlockedRef.current = false;
+      return;
+    }
     const now = Date.now();
     if (now - recoveryRef.current.lastAttemptAt < 5000) return;
 
