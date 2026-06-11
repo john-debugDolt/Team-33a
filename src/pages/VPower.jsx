@@ -102,26 +102,56 @@ export default function VPower() {
     return () => window.removeEventListener('message', handleGameMessage)
   }, [embeddedGame, user?.accountId, updateBalance, notifyTransactionUpdate])
 
+  // Try /exit up to N times. /exit is idempotent on the VPower side, so a
+  // transient upstream blip (e.g. ErrorCode 4) on the first call doesn't lose
+  // any state — the next call resumes the sweep cleanly. Returns the final
+  // result so the caller can decide whether to escalate to a user-driven
+  // retry.
+  const tryExitWithRetries = async (accountId, attempts = 3) => {
+    let last = { success: false, error: 'No attempts made' }
+    for (let i = 0; i < attempts; i++) {
+      try {
+        last = await exitVPowerGame(accountId)
+        if (last?.success) return last
+        // Small backoff between attempts so we don't retry into the same
+        // upstream blip (60s reconciler runs server-side either way).
+        await new Promise((r) => setTimeout(r, 800 + i * 400))
+      } catch (err) {
+        last = { success: false, error: err?.message }
+      }
+    }
+    return last
+  }
+
+  const refreshWalletBalance = async () => {
+    if (!user?.accountId) return
+    try {
+      const r = await walletService.getBalance(user.accountId)
+      if (r.success && r.balance !== undefined) updateBalance?.(r.balance)
+    } catch (err) {
+      console.error('[VPower] balance sync error:', err)
+    }
+  }
+
   const closeGame = async () => {
     if (user?.accountId) {
-      try {
-        const result = await exitVPowerGame(user.accountId)
-        clearLaunch(ProviderKey.VPOWER)
-        // Per VPower spec post 2026-05-30 fix: success:false means funds still at VPower.
-        // Reconciler will sweep them; let the user know.
-        if (!result.success) {
-          showToast('Cash-out is being processed — refresh in a minute.', 'warning')
-        }
-      } catch (error) {
-        console.error('[VPower] Exit error:', error)
-      }
-      try {
-        const result = await walletService.getBalance(user.accountId)
-        if (result.success && result.balance !== undefined) {
-          updateBalance?.(result.balance)
-        }
-      } catch (error) {
-        console.error('Balance sync error:', error)
+      const result = await tryExitWithRetries(user.accountId, 3)
+      clearLaunch(ProviderKey.VPOWER)
+      if (result?.success) {
+        // Clean sweep. Refresh the wallet display so the user sees the
+        // funds back in their main wallet immediately.
+        await refreshWalletBalance()
+      } else {
+        // After auto-retries we still failed. The 20-min auto-withdraw
+        // + 60-s reconciler will eventually sweep, but offer the user a
+        // one-tap retry so they don't have to wait. /exit is idempotent —
+        // hitting it again is safe.
+        console.warn('[VPower] /exit still failing after retries:', result?.error)
+        showToast(
+          'Cash-out is being processed in the background. Tap the exit button again to retry now.',
+          'warning'
+        )
+        await refreshWalletBalance()
       }
     }
     setEmbeddedGame(null)
