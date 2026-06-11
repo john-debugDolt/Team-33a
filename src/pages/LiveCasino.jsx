@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { launchAllBet, exitAllBet } from '../services/allbetService'
 import { launchSexyBaccarat, exitSexyBaccarat } from '../services/awcTransferService'
-import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey, getPreLaunchBalance } from '../services/launchTracker'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -30,7 +30,7 @@ export default function LiveCasino() {
   const navigate = useNavigate()
   const location = useLocation()
   const autoLaunchedRef = useRef(false)
-  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
+  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate, freezeBalance, isLaunchBlocked } = useAuth()
   const { showToast } = useToast()
 
   const [activeProvider, setActiveProvider] = useState('ALLBET')
@@ -48,12 +48,29 @@ export default function LiveCasino() {
       return
     }
     if (launching) return
+    // Recovery in flight (post-launch balance read 0 with an active session
+    // on the LIFO stack) — auto-watcher is firing /exit to pull funds back.
+    // Block new launches until balance settles, otherwise we'd stack
+    // sessions on top of an empty wallet.
+    if (isLaunchBlocked?.()) {
+      showToast('Recovering your balance — please try again in a moment.', 'warning')
+      return
+    }
 
     setLaunching(true)
     showToast('Launching AllBet Live Casino...', 'info')
 
-    await sweepAllReturns(updateBalance)
-    recordLaunch(ProviderKey.ALLBET, user?.accountId)
+    // Freeze the displayed balance at the pre-launch value for 5s so the
+    // player doesn't see the deposit debit before the iframe fully loads.
+    const preBalance = Number(user?.balance) || 0
+    freezeBalance?.(preBalance, 5000)
+
+    // Sweep any stranded sessions from a previous tab close. Fire-and-forget
+    // so the launch isn't blocked waiting on a slow upstream — sweepAllReturns
+    // is parallel and idempotent. The recorded ALLBET entry below is added
+    // AFTER the sweep snapshots its work, so it won't be exited by mistake.
+    sweepAllReturns(updateBalance).catch(() => {})
+    recordLaunch(ProviderKey.ALLBET, user?.accountId, { preLaunchBalance: preBalance })
 
     const mainBalance = Number(user?.balance) || 0
     const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))
@@ -91,12 +108,20 @@ export default function LiveCasino() {
       return
     }
     if (launching) return
+    if (isLaunchBlocked?.()) {
+      showToast('Recovering your balance — please try again in a moment.', 'warning')
+      return
+    }
 
     setLaunching(true)
     showToast('Launching Sexy Baccarat...', 'info')
 
-    await sweepAllReturns(updateBalance)
-    recordLaunch(ProviderKey.SEXYBCRT, user?.accountId)
+    const preBalance = Number(user?.balance) || 0
+    freezeBalance?.(preBalance, 5000)
+
+    // Fire-and-forget sweep — see handleAllBetLaunch for the rationale.
+    sweepAllReturns(updateBalance).catch(() => {})
+    recordLaunch(ProviderKey.SEXYBCRT, user?.accountId, { preLaunchBalance: preBalance })
 
     const mainBalance = Number(user?.balance) || 0
     const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))
@@ -157,34 +182,77 @@ export default function LiveCasino() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state?.autoLaunch])
 
-  const closeGame = async () => {
-    if (user?.accountId) {
+  // /exit is idempotent on both AllBet and SEXYBCRT — a transient blip on
+  // the first call (network hiccup, RECONCILING state, slow upstream) is
+  // safe to retry. We try up to 3 times with backoff so we don't surrender
+  // after one wobble. Returns the final result.
+  const tryExitWithRetries = async (platform, accountId, attempts = 3) => {
+    const exitFn = platform === 'SEXYBCRT' ? exitSexyBaccarat : exitAllBet
+    let last = { success: false, error: 'No attempts made' }
+    for (let i = 0; i < attempts; i++) {
       try {
-        // Route /exit to the right provider based on which one was launched.
-        // Both auto-withdraw on idle, but explicit exit gives instant feedback.
-        if (activePlatform === 'SEXYBCRT') {
-          await exitSexyBaccarat(user.accountId)
-          clearLaunch(ProviderKey.SEXYBCRT)
-        } else {
-          await exitAllBet(user.accountId)
-          clearLaunch(ProviderKey.ALLBET)
-        }
-      } catch (error) {
-        console.error('[LiveCasino] Exit error:', error)
-      }
-      try {
-        const result = await walletService.getBalance(user.accountId)
-        if (result.success && result.balance !== undefined) {
-          updateBalance?.(result.balance)
-        }
-      } catch (error) {
-        console.error('Balance sync error:', error)
+        last = await exitFn(accountId)
+        if (last?.success) return last
+        await new Promise((r) => setTimeout(r, 800 + i * 400))
+      } catch (err) {
+        last = { success: false, error: err?.message }
       }
     }
+    return last
+  }
+
+  const closeGame = () => {
+    // Close the iframe + dialog immediately. The exit sweep happens in the
+    // background so a slow upstream (or a RECONCILING state) never freezes
+    // the UI — auto-withdraw + reconciler are the server-side safety net.
+    const platform = activePlatform
+    const accountId = user?.accountId
+
+    // Pull the pre-launch balance snapshot stashed at recordLaunch time and
+    // freeze the displayed balance at that value for 4s. The real
+    // refreshBalance / updateBalance calls below are silenced by the freeze;
+    // after 4s they unfreeze and the true post-game balance shows.
+    const providerKey = platform === 'SEXYBCRT' ? ProviderKey.SEXYBCRT : ProviderKey.ALLBET
+    const preBalance = getPreLaunchBalance(providerKey)
+    if (preBalance != null) freezeBalance?.(preBalance, 4000)
+
     setEmbeddedGame(null)
     setShowExitConfirm(false)
     setActivePlatform(null)
-    notifyTransactionUpdate?.()
+
+    if (!accountId) {
+      notifyTransactionUpdate?.()
+      return
+    }
+
+    ;(async () => {
+      try {
+        const result = await tryExitWithRetries(platform, accountId, 3)
+        if (platform === 'SEXYBCRT') clearLaunch(ProviderKey.SEXYBCRT)
+        else clearLaunch(ProviderKey.ALLBET)
+        if (!result?.success) {
+          console.warn('[LiveCasino] exit still failing after retries:', result?.error)
+          // Auto-withdraw / reconciler will sweep eventually. Tell the user.
+          showToast(
+            'Cash-out is being processed in the background — balance will update shortly.',
+            'warning'
+          )
+        }
+        // Always refresh wallet display so the user sees fresh state — the
+        // freeze window above silences the immediate update; after 4s the
+        // periodic poll picks it up and the display catches up cleanly.
+        try {
+          const r = await walletService.getBalance(accountId)
+          if (r.success && r.balance !== undefined) updateBalance?.(r.balance)
+        } catch (err) {
+          console.error('[LiveCasino] balance sync error:', err)
+        }
+      } catch (err) {
+        console.error('[LiveCasino] closeGame background error:', err)
+      } finally {
+        notifyTransactionUpdate?.()
+      }
+    })()
   }
 
   return (

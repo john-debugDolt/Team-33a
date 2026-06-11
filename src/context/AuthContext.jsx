@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { authService } from '../services/authService';
 import { accountService } from '../services/accountService';
 import { walletService } from '../services/walletService';
@@ -10,6 +10,90 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [transactionVersion, setTransactionVersion] = useState(0); // Increments when transactions change
+
+  // Balance freeze: hold the displayed balance constant for a short window so
+  // a player launching a game doesn't see the deposit debit (5s freeze on
+  // launch) and a player closing one doesn't see a transient 0 before the
+  // sweep credits back (4s freeze on close at the pre-launch value). All
+  // four balance-update paths (refreshBalance, checkLocalStorage, storage
+  // event, updateBalance) check this ref and skip while it's active.
+  const balanceFreezeRef = useRef(null); // { expiresAt: number } | null
+
+  const isBalanceFrozen = useCallback(() => {
+    const f = balanceFreezeRef.current;
+    if (!f) return false;
+    if (Date.now() >= f.expiresAt) {
+      balanceFreezeRef.current = null;
+      return false;
+    }
+    return true;
+  }, []);
+
+  const freezeBalance = useCallback((value, durationMs) => {
+    // Snap the displayed value first, then lock further updates for the window.
+    const num = Number(value);
+    if (Number.isFinite(num)) {
+      setUser(prev => prev ? { ...prev, balance: num, availableBalance: num } : prev);
+    }
+    balanceFreezeRef.current = { expiresAt: Date.now() + Math.max(0, Number(durationMs) || 0) };
+  }, []);
+
+  // Auto-recovery for "balance reads 0 but a launch is still on the LIFO
+  // stack" — almost always means a transfer-wallet provider holds funds we
+  // need to /exit to recover. The watcher fires recoverLastLaunch (which
+  // pops the LIFO top and posts /exit), freezes the display at the entry's
+  // preLaunchBalance for 4s, and blocks new launches until the recovery
+  // settles. Capped at 3 attempts and cool-offed 5s between to avoid
+  // hammering when the bank really is empty.
+  const recoveryRef = useRef({ attempts: 0, lastAttemptAt: 0, active: false });
+  const launchBlockedRef = useRef(false);
+
+  const isLaunchBlocked = useCallback(() => launchBlockedRef.current, []);
+
+  const maybeAutoRecover = useCallback(async (currentBalance) => {
+    if (currentBalance > 0) {
+      // Healthy balance — reset the attempt counter so a future zero gets
+      // the full three retries.
+      recoveryRef.current = { attempts: 0, lastAttemptAt: 0, active: false };
+      launchBlockedRef.current = false;
+      return;
+    }
+    if (recoveryRef.current.active) return;
+    if (recoveryRef.current.attempts >= 3) return;
+    const now = Date.now();
+    if (now - recoveryRef.current.lastAttemptAt < 5000) return;
+
+    let top, pre;
+    try {
+      const tracker = await import('../services/launchTracker.js');
+      top = tracker.peekLastLaunch();
+      if (!top) return;
+      pre = top.entry?.preLaunchBalance;
+      if (!(typeof pre === 'number' && pre > 0)) return;
+
+      recoveryRef.current = {
+        attempts: recoveryRef.current.attempts + 1,
+        lastAttemptAt: now,
+        active: true,
+      };
+      launchBlockedRef.current = true;
+
+      // Hold display at pre-launch value while recovery runs.
+      freezeBalance(pre, 4000);
+
+      console.log('[BalanceRecovery] attempt', recoveryRef.current.attempts, 'for', top.provider);
+      const result = await tracker.recoverLastLaunch();
+      console.log('[BalanceRecovery] result:', result?.result?.success ? 'OK' : (result?.result?.error || 'failed'));
+    } catch (err) {
+      console.warn('[BalanceRecovery] threw:', err?.message);
+    } finally {
+      recoveryRef.current.active = false;
+      // Don't immediately unblock — let the next balance poll confirm.
+      // If the next balance reads > 0, the watcher above clears the block.
+      // If still 0 and we still have attempts left, we'll try again after
+      // the 5s cool-off.
+    }
+  }, [freezeBalance]);
 
   // Check for existing session on mount - OTP-based auth (no tokens)
   useEffect(() => {
@@ -51,6 +135,8 @@ export function AuthProvider({ children }) {
     if (!isAuthenticated) return;
 
     const refreshBalance = async () => {
+      // Hold the displayed balance steady during a freeze window.
+      if (isBalanceFrozen()) return;
       const storedAccountId = localStorage.getItem('accountId');
       if (storedAccountId) {
         try {
@@ -58,6 +144,7 @@ export function AuthProvider({ children }) {
           if (balanceResult.success) {
             setUser(prev => {
               if (!prev) return prev;
+              if (isBalanceFrozen()) return prev;
               // Always update if balance changed
               if (prev.balance !== balanceResult.balance) {
                 const updated = { ...prev, balance: balanceResult.balance, availableBalance: balanceResult.balance };
@@ -66,6 +153,10 @@ export function AuthProvider({ children }) {
               }
               return prev;
             });
+            // After the update applies, give the auto-recovery watcher a
+            // chance to react if balance dropped to 0 with an active launch
+            // on the LIFO stack.
+            maybeAutoRecover(Number(balanceResult.balance) || 0).catch(() => {});
           }
         } catch (e) {
           // Silently fail - will retry on next interval
@@ -75,12 +166,14 @@ export function AuthProvider({ children }) {
 
     // Check localStorage for updates from admin panel
     const checkLocalStorage = () => {
+      if (isBalanceFrozen()) return;
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
         try {
           const userData = JSON.parse(storedUser);
           setUser(prev => {
             if (!prev) return prev;
+            if (isBalanceFrozen()) return prev;
             // Update if balance is different
             if (prev.balance !== userData.balance) {
               return { ...prev, balance: userData.balance, availableBalance: userData.balance };
@@ -96,10 +189,12 @@ export function AuthProvider({ children }) {
     // Listen for storage events from other tabs
     const handleStorageChange = (e) => {
       if (e.key === 'user' && e.newValue) {
+        if (isBalanceFrozen()) return;
         try {
           const userData = JSON.parse(e.newValue);
           setUser(prev => {
             if (!prev) return prev;
+            if (isBalanceFrozen()) return prev;
             if (prev.balance !== userData.balance) {
               return { ...prev, balance: userData.balance, availableBalance: userData.balance };
             }
@@ -311,6 +406,10 @@ export function AuthProvider({ children }) {
   }, []);
 
   const updateBalance = useCallback((newBalance) => {
+    // Honour the freeze window — pages that explicitly want to override the
+    // freeze (e.g. force-recover after a stuck exit) can call freezeBalance
+    // with duration 0 first, then updateBalance.
+    if (isBalanceFrozen()) return;
     setUser(prev => {
       if (!prev) return null;
 
@@ -331,7 +430,7 @@ export function AuthProvider({ children }) {
 
       return updatedUser;
     });
-  }, []);
+  }, [isBalanceFrozen]);
 
   const refreshUser = useCallback(async () => {
     // First check for external API user
@@ -376,6 +475,8 @@ export function AuthProvider({ children }) {
     logout,
     updateProfile,
     updateBalance,
+    freezeBalance,
+    isLaunchBlocked,
     refreshUser,
     transactionVersion,
     notifyTransactionUpdate

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllVPowerGames, exitVPowerGame, launchVPowerGame } from '../services/vpowerService'
-import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey, getPreLaunchBalance } from '../services/launchTracker'
 import { getAllClotPlayGames } from '../services/gameService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
@@ -19,7 +19,7 @@ const DEFAULT_LAUNCH_AMOUNT = 100
 
 export default function VPower() {
   const navigate = useNavigate()
-  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate } = useAuth()
+  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate, freezeBalance, isLaunchBlocked } = useAuth()
   const { showToast } = useToast()
 
   const [games, setGames] = useState([])
@@ -133,30 +133,45 @@ export default function VPower() {
     }
   }
 
-  const closeGame = async () => {
-    if (user?.accountId) {
-      const result = await tryExitWithRetries(user.accountId, 3)
-      clearLaunch(ProviderKey.VPOWER)
-      if (result?.success) {
-        // Clean sweep. Refresh the wallet display so the user sees the
-        // funds back in their main wallet immediately.
-        await refreshWalletBalance()
-      } else {
-        // After auto-retries we still failed. The 20-min auto-withdraw
-        // + 60-s reconciler will eventually sweep, but offer the user a
-        // one-tap retry so they don't have to wait. /exit is idempotent —
-        // hitting it again is safe.
-        console.warn('[VPower] /exit still failing after retries:', result?.error)
-        showToast(
-          'Cash-out is being processed in the background. Tap the exit button again to retry now.',
-          'warning'
-        )
-        await refreshWalletBalance()
-      }
-    }
+  const closeGame = () => {
+    const accountId = user?.accountId
+
+    // Freeze the displayed balance at the pre-launch snapshot for 4s so the
+    // player doesn't see a transient 0 between the exit and the refresh.
+    const preBalance = getPreLaunchBalance(ProviderKey.VPOWER)
+    if (preBalance != null) freezeBalance?.(preBalance, 4000)
+
+    // Tear down the iframe + dialog immediately. The exit + retries run in
+    // the background; VPower's 20-min auto-withdraw + 60-s reconciler is
+    // the server-side safety net if every retry still fails.
     setEmbeddedGame(null)
     setShowExitConfirm(false)
-    notifyTransactionUpdate?.()
+
+    if (!accountId) {
+      notifyTransactionUpdate?.()
+      return
+    }
+
+    ;(async () => {
+      try {
+        const result = await tryExitWithRetries(accountId, 3)
+        clearLaunch(ProviderKey.VPOWER)
+        if (!result?.success) {
+          console.warn('[VPower] /exit still failing after retries:', result?.error)
+          showToast(
+            'Cash-out is being processed in the background. Tap the exit button again to retry now.',
+            'warning'
+          )
+        }
+        // refreshWalletBalance fires updateBalance — the freeze window above
+        // silences it; after 4s the periodic poll picks up the true value.
+        await refreshWalletBalance()
+      } catch (err) {
+        console.error('[VPower] closeGame background error:', err)
+      } finally {
+        notifyTransactionUpdate?.()
+      }
+    })()
   }
 
   const handlePlayNow = async (game, e) => {
@@ -169,14 +184,25 @@ export default function VPower() {
     }
 
     if (launchingGame === game.id) return
+    if (isLaunchBlocked?.()) {
+      showToast('Recovering your balance — please try again in a moment.', 'warning')
+      return
+    }
 
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
 
-    await sweepAllReturns(updateBalance)
-    recordLaunch(ProviderKey.VPOWER, user?.accountId)
-
+    // Capture pre-launch balance, freeze the display for 5s so the player
+    // doesn't see the deposit debit, and stash the snapshot on the launch
+    // entry so closeGame can recall it for the 4s close-freeze.
     const mainBalance = Number(user?.balance) || 0
+    freezeBalance?.(mainBalance, 5000)
+
+    // Fire-and-forget — sweepAllReturns is parallel + idempotent. Doesn't
+    // block the launch on a slow upstream from a prior stranded session.
+    sweepAllReturns(updateBalance).catch(() => {})
+    recordLaunch(ProviderKey.VPOWER, user?.accountId, { preLaunchBalance: mainBalance })
+
     const amount = Math.min(DEFAULT_LAUNCH_AMOUNT, Math.floor(mainBalance))
 
     try {

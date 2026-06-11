@@ -121,9 +121,71 @@ export const clearLaunch = (provider) => {
 export const getActiveLaunches = () => read()
 
 /**
+ * LIFO view over the active launches. Insertion order is preserved by
+ * JS objects, so the last key is the most-recently-launched provider.
+ */
+export const getLaunchStack = () => Object.keys(read())
+
+export const peekLastLaunch = () => {
+  const cur = read()
+  const keys = Object.keys(cur)
+  if (keys.length === 0) return null
+  const provider = keys[keys.length - 1]
+  return { provider, entry: cur[provider] }
+}
+
+export const popLastLaunch = () => {
+  const top = peekLastLaunch()
+  if (top) clearLaunch(top.provider)
+  return top
+}
+
+/**
+ * Read the pre-launch balance snapshot stashed on the recorded entry by
+ * recordLaunch(..., { preLaunchBalance }). Returns null if not present.
+ */
+export const getPreLaunchBalance = (provider) => {
+  const cur = read()
+  const entry = provider ? cur[provider] : null
+  const v = entry?.preLaunchBalance
+  return typeof v === 'number' && Number.isFinite(v) ? v : null
+}
+
+/**
+ * Exit the LIFO-top provider explicitly (no sweep, no other providers
+ * touched). Useful for "post-launch balance reads 0, recover" flows.
+ * Returns { provider, result } or null if nothing was on the stack.
+ */
+export const recoverLastLaunch = async () => {
+  const top = peekLastLaunch()
+  if (!top) return null
+  const { provider, entry } = top
+  const exitFn = EXIT_MAP[provider]
+  const accountId = entry?.accountId
+  if (!exitFn || !accountId) {
+    clearLaunch(provider)
+    return { provider, result: { success: false, error: 'no exit fn / accountId' } }
+  }
+  try {
+    const result = await exitFn(accountId, entry)
+    return { provider, result }
+  } catch (err) {
+    return { provider, result: { success: false, error: err?.message } }
+  } finally {
+    clearLaunch(provider)
+  }
+}
+
+/**
  * For every recorded launch, call the provider's exit endpoint.
  * Records are cleared regardless of success — failures fall back to the
  * backend's 20-min auto-withdraw timer.
+ *
+ * Sweeps run all providers **in parallel** (Promise.allSettled) so a slow
+ * upstream on one provider doesn't block the others. Previously this was a
+ * serial for-await loop and stranded sessions could stack — N providers ×
+ * 20s fetchWithTimeout = N × 20s wall-clock before the next launch could
+ * fire. Now the worst case is ~20s regardless of how many entries.
  */
 let sweepPromise = null
 export const sweepAllReturns = async (onBalanceRefresh) => {
@@ -134,26 +196,27 @@ export const sweepAllReturns = async (onBalanceRefresh) => {
   if (providers.length === 0) return
 
   sweepPromise = (async () => {
-    console.log('[LaunchTracker] sweeping returns:', providers)
-    let anySwept = false
-    for (const provider of providers) {
+    console.log('[LaunchTracker] sweeping returns (parallel):', providers)
+    const results = await Promise.allSettled(providers.map(async (provider) => {
       const exitFn = EXIT_MAP[provider]
       const entry = active[provider]
       const accountId = entry?.accountId
       if (!exitFn || !accountId) {
         clearLaunch(provider)
-        continue
+        return { provider, skipped: true }
       }
       try {
         const result = await exitFn(accountId, entry)
         console.log(`[LaunchTracker] ${provider} exit:`, result?.success ? 'OK' : (result?.error || 'no-op'))
-        anySwept = true
+        return { provider, ok: !!result?.success }
       } catch (err) {
         console.warn(`[LaunchTracker] ${provider} exit threw:`, err?.message)
+        return { provider, error: err?.message }
       } finally {
         clearLaunch(provider)
       }
-    }
+    }))
+    const anySwept = results.some((r) => r.status === 'fulfilled' && !r.value?.skipped)
 
     if (anySwept) {
       try {
