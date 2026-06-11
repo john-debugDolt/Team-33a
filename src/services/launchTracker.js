@@ -21,7 +21,6 @@ import { exitLucky365Game } from './lucky365Service'
 import { exitAllBet } from './allbetService'
 import { exitSexyBaccarat, exitSV388 } from './awcTransferService'
 import { exitM9Game } from './m9TransferService'
-import { exitJokerGame } from './jokerService'
 import { exitEvo888h5Bonus } from './evo888h5Service'
 import { exitRich88Game } from './rich88TransferService'
 import { walletService } from './walletService'
@@ -41,7 +40,6 @@ export const ProviderKey = {
   SEXYBCRT: 'SEXYBCRT',
   SV388: 'SV388',
   M8BET: 'M8BET',
-  JOKER: 'JOKER',
   EVO888H5_BONUS: 'EVO888H5_BONUS',
   // Rich88 supports two operator-scoped sessions in parallel for the same
   // accountId — each has its own Rich88-side balance and auto-withdraw
@@ -66,7 +64,6 @@ const EXIT_MAP = {
   SEXYBCRT: exitSexyBaccarat,
   SV388: exitSV388,
   M8BET: exitM9Game,
-  JOKER: exitJokerGame,
   // EVO bonus: /exit reads EVO's live balance and sweeps it (HALF_UP), with
   // automatic floor-withdraw recovery when the round overshoots. Doesn't use
   // the deposited amount — player may have won/lost during play. See
