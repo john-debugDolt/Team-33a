@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { launchM9Game, exitM9Game, isMobileDevice } from '../services/m9TransferService'
 import { launchSV388, exitSV388 } from '../services/awcTransferService'
-import { recordLaunch, clearLaunch, sweepAllReturns, getPreLaunchBalance, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunchIfMatches, sweepAllReturns, getPreLaunchBalance, getLaunchTimestamp, ProviderKey } from '../services/launchTracker'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -163,6 +163,7 @@ export default function Sports() {
   const closeGame = () => {
     const providerKey = activePlatform === 'SV388' ? ProviderKey.SV388 : ProviderKey.M8BET
     const preBalance = getPreLaunchBalance(providerKey)
+    const launchedAt = getLaunchTimestamp(providerKey)
     if (preBalance != null) freezeBalance?.(preBalance, 4000)
     const platformAtClose = activePlatform
     setEmbeddedGame(null)
@@ -172,11 +173,11 @@ export default function Sports() {
       if (user?.accountId) {
         try {
           if (platformAtClose === 'SV388') {
-            await exitSV388(user.accountId)
-            clearLaunch(ProviderKey.SV388)
+            const result = await exitSV388(user.accountId)
+            if (result?.success) clearLaunchIfMatches(ProviderKey.SV388, launchedAt)
           } else {
-            await exitM9Game(user.accountId)
-            clearLaunch(ProviderKey.M8BET)
+            const result = await exitM9Game(user.accountId)
+            if (result?.success) clearLaunchIfMatches(ProviderKey.M8BET, launchedAt)
           }
         } catch (error) {
           console.error('[Sports] Exit error:', error)

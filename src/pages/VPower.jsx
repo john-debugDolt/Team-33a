@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllVPowerGames, exitVPowerGame, launchVPowerGame } from '../services/vpowerService'
-import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey, getPreLaunchBalance } from '../services/launchTracker'
+import { recordLaunch, clearLaunch, clearLaunchIfMatches, sweepAllReturns, ProviderKey, getPreLaunchBalance, getLaunchTimestamp } from '../services/launchTracker'
 import { getAllClotPlayGames } from '../services/gameService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
@@ -139,6 +139,7 @@ export default function VPower() {
     // Freeze the displayed balance at the pre-launch snapshot for 4s so the
     // player doesn't see a transient 0 between the exit and the refresh.
     const preBalance = getPreLaunchBalance(ProviderKey.VPOWER)
+    const launchedAt = getLaunchTimestamp(ProviderKey.VPOWER)
     if (preBalance != null) freezeBalance?.(preBalance, 4000)
 
     // Tear down the iframe + dialog immediately. The exit + retries run in
@@ -155,7 +156,7 @@ export default function VPower() {
     ;(async () => {
       try {
         const result = await tryExitWithRetries(accountId, 3)
-        clearLaunch(ProviderKey.VPOWER)
+        if (result?.success) clearLaunchIfMatches(ProviderKey.VPOWER, launchedAt)
         if (!result?.success) {
           console.warn('[VPower] /exit still failing after retries:', result?.error)
           showToast(

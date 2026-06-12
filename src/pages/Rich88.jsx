@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllRich88Games, launchRich88Game, exitRich88Game } from '../services/rich88TransferService'
-import { recordLaunch, clearLaunch, sweepAllReturns, getPreLaunchBalance, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunchIfMatches, sweepAllReturns, getPreLaunchBalance, getLaunchTimestamp, ProviderKey } from '../services/launchTracker'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -86,6 +86,7 @@ export default function Rich88() {
   const closeGame = () => {
     const providerKey = activeRich88Key()
     const preBalance = getPreLaunchBalance(providerKey)
+    const launchedAt = getLaunchTimestamp(providerKey)
     if (preBalance != null) freezeBalance?.(preBalance, 4000)
     setEmbeddedGame(null)
     setShowExitConfirm(false)
@@ -93,7 +94,7 @@ export default function Rich88() {
       if (user?.accountId) {
         try {
           const result = await exitRich88Game(user.accountId)
-          if (result?.success) clearLaunch(providerKey)
+          if (result?.success) clearLaunchIfMatches(providerKey, launchedAt)
         } catch (error) {
           console.error('[Rich88] Exit error:', error)
         }

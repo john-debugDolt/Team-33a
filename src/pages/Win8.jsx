@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllWin8Games, exitWin8Game, launchWin8Game } from '../services/win8Service'
-import { recordLaunch, clearLaunch, sweepAllReturns, getPreLaunchBalance, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunchIfMatches, sweepAllReturns, getPreLaunchBalance, getLaunchTimestamp, ProviderKey } from '../services/launchTracker'
 import { getAllClotPlayGames } from '../services/gameService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
@@ -104,6 +104,7 @@ export default function Win8() {
 
   const closeGame = () => {
     const preBalance = getPreLaunchBalance(ProviderKey.WIN8)
+    const launchedAt = getLaunchTimestamp(ProviderKey.WIN8)
     if (preBalance != null) freezeBalance?.(preBalance, 4000)
     setEmbeddedGame(null)
     setShowExitConfirm(false)
@@ -111,7 +112,7 @@ export default function Win8() {
       if (user?.accountId) {
         try {
           const result = await exitWin8Game(user.accountId)
-          clearLaunch(ProviderKey.WIN8)
+          if (result?.success) clearLaunchIfMatches(ProviderKey.WIN8, launchedAt)
           if (result.reconciling) {
             showToast('Cash-out is being processed — refresh in a moment.', 'warning')
           }

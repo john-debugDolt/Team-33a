@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllEvo888h5Games, launchEvo888h5Game, exitEvo888h5Bonus } from '../services/evo888h5Service'
 import { getAccountType } from '../services/bonusWalletService'
-import { recordLaunch, clearLaunch, sweepAllReturns, getPreLaunchBalance, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunchIfMatches, sweepAllReturns, getPreLaunchBalance, getLaunchTimestamp, ProviderKey } from '../services/launchTracker'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -86,6 +86,7 @@ export default function Evo888h5() {
     // doesn't. The LIFO key is only present for bonus launches, so the
     // freeze/exit/clearLaunch are no-ops on seamless sessions.
     const preBalance = getPreLaunchBalance(ProviderKey.EVO888H5_BONUS)
+    const launchedAt = getLaunchTimestamp(ProviderKey.EVO888H5_BONUS)
     if (preBalance != null) freezeBalance?.(preBalance, 4000)
     setEmbeddedGame(null)
     setShowExitConfirm(false)
@@ -94,7 +95,7 @@ export default function Evo888h5() {
         if (preBalance != null) {
           try {
             const result = await exitEvo888h5Bonus(user.accountId)
-            if (result?.success) clearLaunch(ProviderKey.EVO888H5_BONUS)
+            if (result?.success) clearLaunchIfMatches(ProviderKey.EVO888H5_BONUS, launchedAt)
           } catch (error) {
             console.error('[EVO888H5] Exit error:', error)
           }

@@ -115,6 +115,31 @@ export const clearLaunch = (provider) => {
   }
 }
 
+/**
+ * Clear only if the record's launchedAt still matches the snapshot taken
+ * earlier. Protects against the race where a slow /exit completes after
+ * the user has already started a NEW launch on the same provider — an
+ * unconditional clearLaunch there would wipe the new session's entry.
+ * Returns true if the record was cleared.
+ */
+export const clearLaunchIfMatches = (provider, launchedAt) => {
+  if (!provider || launchedAt == null) return false
+  const cur = read()
+  if (cur[provider]?.launchedAt === launchedAt) {
+    delete cur[provider]
+    write(cur)
+    console.log('[LaunchTracker] cleared (match):', provider)
+    return true
+  }
+  return false
+}
+
+export const getLaunchTimestamp = (provider) => {
+  const cur = read()
+  const v = provider ? cur[provider]?.launchedAt : null
+  return typeof v === 'number' ? v : null
+}
+
 export const getActiveLaunches = () => read()
 
 /**
@@ -179,8 +204,12 @@ export const recoverLastLaunch = async () => {
 
 /**
  * For every recorded launch, call the provider's exit endpoint.
- * Records are cleared regardless of success — failures fall back to the
- * backend's 20-min auto-withdraw timer.
+ * Only a confirmed-good exit clears the record; failures stay on the
+ * stack so the next sweep (visibility / mount / launch) retries. The
+ * backend's 20-min auto-withdraw is the final safety net for cases
+ * where every client-side retry fails. clearLaunchIfMatches guards
+ * against wiping a NEW launch's record if it was written after this
+ * sweep snapshotted the active set.
  *
  * Sweeps run all providers **in parallel** (Promise.allSettled) so a slow
  * upstream on one provider doesn't block the others. Previously this was a
@@ -203,18 +232,18 @@ export const sweepAllReturns = async (onBalanceRefresh) => {
       const entry = active[provider]
       const accountId = entry?.accountId
       if (!exitFn || !accountId) {
+        // Malformed record — no way to recover, drop it.
         clearLaunch(provider)
         return { provider, skipped: true }
       }
       try {
         const result = await exitFn(accountId, entry)
         console.log(`[LaunchTracker] ${provider} exit:`, result?.success ? 'OK' : (result?.error || 'no-op'))
+        if (result?.success) clearLaunchIfMatches(provider, entry.launchedAt)
         return { provider, ok: !!result?.success }
       } catch (err) {
         console.warn(`[LaunchTracker] ${provider} exit threw:`, err?.message)
         return { provider, error: err?.message }
-      } finally {
-        clearLaunch(provider)
       }
     }))
     const anySwept = results.some((r) => r.status === 'fulfilled' && !r.value?.skipped)

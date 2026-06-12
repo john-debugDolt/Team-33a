@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllDragoonSoftGames, exitDragoonSoftGame, launchDragoonSoftGame } from '../services/dragoonSoftService'
-import { recordLaunch, clearLaunch, sweepAllReturns, getPreLaunchBalance, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunchIfMatches, sweepAllReturns, getPreLaunchBalance, getLaunchTimestamp, ProviderKey } from '../services/launchTracker'
 import { getAllClotPlayGames } from '../services/gameService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
@@ -102,14 +102,15 @@ export default function DragoonSoft() {
 
   const closeGame = () => {
     const preBalance = getPreLaunchBalance(ProviderKey.DRAGOONSOFT)
+    const launchedAt = getLaunchTimestamp(ProviderKey.DRAGOONSOFT)
     if (preBalance != null) freezeBalance?.(preBalance, 4000)
     setEmbeddedGame(null)
     setShowExitConfirm(false)
     ;(async () => {
       if (user?.accountId) {
         try {
-          await exitDragoonSoftGame(user.accountId)
-          clearLaunch(ProviderKey.DRAGOONSOFT)
+          const result = await exitDragoonSoftGame(user.accountId)
+          if (result?.success) clearLaunchIfMatches(ProviderKey.DRAGOONSOFT, launchedAt)
         } catch (error) {
           console.error('[DragoonSoft] Exit error:', error)
         }

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllAceWinGames, exitAceWinGame, launchAceWinGame } from '../services/acewinTransferService'
-import { recordLaunch, clearLaunch, sweepAllReturns, getPreLaunchBalance, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunchIfMatches, sweepAllReturns, getPreLaunchBalance, getLaunchTimestamp, ProviderKey } from '../services/launchTracker'
 import { getAllClotPlayGames } from '../services/gameService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
@@ -138,14 +138,17 @@ export default function AceWin() {
   // background so the player doesn't see a flicker to $0 or a frozen modal.
   const closeGame = () => {
     const preBalance = getPreLaunchBalance(ProviderKey.ACEWIN)
+    // Snapshot launchedAt now so the IIFE's clearLaunchIfMatches can tell
+    // a stale clear apart from one that should still apply.
+    const launchedAt = getLaunchTimestamp(ProviderKey.ACEWIN)
     if (preBalance != null) freezeBalance?.(preBalance, 4000)
     setEmbeddedGame(null)
     setShowExitConfirm(false)
     ;(async () => {
       if (user?.accountId) {
         try {
-          await exitAceWinGame(user.accountId)
-          clearLaunch(ProviderKey.ACEWIN)
+          const result = await exitAceWinGame(user.accountId)
+          if (result?.success) clearLaunchIfMatches(ProviderKey.ACEWIN, launchedAt)
         } catch (error) {
           console.error('[AceWin] Exit error:', error)
         }

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllLucky365Games, exitLucky365Game, launchLucky365Game } from '../services/lucky365Service'
-import { recordLaunch, clearLaunch, sweepAllReturns, getPreLaunchBalance, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunchIfMatches, sweepAllReturns, getPreLaunchBalance, getLaunchTimestamp, ProviderKey } from '../services/launchTracker'
 import { getAllClotPlayGames } from '../services/gameService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
@@ -105,6 +105,7 @@ export default function Lucky365() {
 
   const closeGame = () => {
     const preBalance = getPreLaunchBalance(ProviderKey.LUCKY365)
+    const launchedAt = getLaunchTimestamp(ProviderKey.LUCKY365)
     if (preBalance != null) freezeBalance?.(preBalance, 4000)
     setEmbeddedGame(null)
     setShowExitConfirm(false)
@@ -112,7 +113,7 @@ export default function Lucky365() {
       if (user?.accountId) {
         try {
           const result = await exitLucky365Game(user.accountId)
-          clearLaunch(ProviderKey.LUCKY365)
+          if (result?.success) clearLaunchIfMatches(ProviderKey.LUCKY365, launchedAt)
           if (result.reconciling) {
             showToast('Cash-out is being processed — refresh in a moment.', 'warning')
           }

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { launchAllBet, exitAllBet } from '../services/allbetService'
 import { launchSexyBaccarat, exitSexyBaccarat } from '../services/awcTransferService'
-import { recordLaunch, clearLaunch, sweepAllReturns, ProviderKey, getPreLaunchBalance } from '../services/launchTracker'
+import { recordLaunch, clearLaunch, clearLaunchIfMatches, sweepAllReturns, ProviderKey, getPreLaunchBalance, getLaunchTimestamp } from '../services/launchTracker'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -214,6 +214,7 @@ export default function LiveCasino() {
     // after 4s they unfreeze and the true post-game balance shows.
     const providerKey = platform === 'SEXYBCRT' ? ProviderKey.SEXYBCRT : ProviderKey.ALLBET
     const preBalance = getPreLaunchBalance(providerKey)
+    const launchedAt = getLaunchTimestamp(providerKey)
     if (preBalance != null) freezeBalance?.(preBalance, 4000)
 
     setEmbeddedGame(null)
@@ -228,8 +229,7 @@ export default function LiveCasino() {
     ;(async () => {
       try {
         const result = await tryExitWithRetries(platform, accountId, 3)
-        if (platform === 'SEXYBCRT') clearLaunch(ProviderKey.SEXYBCRT)
-        else clearLaunch(ProviderKey.ALLBET)
+        if (result?.success) clearLaunchIfMatches(providerKey, launchedAt)
         if (!result?.success) {
           console.warn('[LiveCasino] exit still failing after retries:', result?.error)
           // Auto-withdraw / reconciler will sweep eventually. Tell the user.

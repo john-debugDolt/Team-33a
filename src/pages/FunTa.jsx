@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllFunTaGames, exitFunTaGame, launchFunTaGame } from '../services/funtaGamingService'
-import { recordLaunch, clearLaunch, sweepAllReturns, getPreLaunchBalance, ProviderKey } from '../services/launchTracker'
+import { recordLaunch, clearLaunchIfMatches, sweepAllReturns, getPreLaunchBalance, getLaunchTimestamp, ProviderKey } from '../services/launchTracker'
 import { getAllClotPlayGames } from '../services/gameService'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
@@ -109,14 +109,15 @@ export default function FunTa() {
   // FunTa: /exit does withdraw-all + ends session (the right call for cash-out)
   const closeGame = () => {
     const preBalance = getPreLaunchBalance(ProviderKey.FUNTA)
+    const launchedAt = getLaunchTimestamp(ProviderKey.FUNTA)
     if (preBalance != null) freezeBalance?.(preBalance, 4000)
     setEmbeddedGame(null)
     setShowExitConfirm(false)
     ;(async () => {
       if (user?.accountId) {
         try {
-          await exitFunTaGame(user.accountId)
-          clearLaunch(ProviderKey.FUNTA)
+          const result = await exitFunTaGame(user.accountId)
+          if (result?.success) clearLaunchIfMatches(ProviderKey.FUNTA, launchedAt)
         } catch (error) {
           console.error('[FunTa] Exit error:', error)
         }
