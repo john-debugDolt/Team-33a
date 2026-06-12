@@ -5,6 +5,7 @@ import { ToastProvider } from './context/ToastContext'
 import { TranslationProvider } from './context/TranslationContext'
 import ToastContainer from './components/Toast/Toast'
 import Layout from './components/Layout'
+import StartupAd from './components/StartupAd/StartupAd'
 import './App.css'
 
 // Retry logic for lazy imports - helps with network issues
@@ -125,6 +126,7 @@ function App() {
         <ToastProvider>
           <Router>
             <ToastContainer />
+            <StartupAd />
             <Suspense fallback={<PageLoader />}>
               <Routes>
               {/* Auth Routes - With Layout */}
