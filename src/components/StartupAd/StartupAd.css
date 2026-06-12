@@ -1,3 +1,8 @@
+/* Royal serif for the headline / description — Cinzel reads as classical
+   Roman capitals and pairs cleanly with the slot key art. Playfair is the
+   fallback if the network blocks Google Fonts. */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Playfair+Display:wght@700;900&display=swap');
+
 .startup-ad-backdrop {
   position: fixed;
   inset: 0;
@@ -99,30 +104,53 @@
 }
 
 .startup-ad-headline {
-  font-size: clamp(20px, 4.4vw, 30px);
+  font-family: 'Cinzel', 'Playfair Display', 'Trajan Pro', Georgia, serif;
+  font-size: clamp(22px, 4.8vw, 34px);
   font-weight: 900;
-  letter-spacing: 0.5px;
-  line-height: 1.15;
-  background: linear-gradient(180deg, #fff3a0 0%, #ffd700 45%, #b8860b 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  text-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.65),
-    0 0 18px rgba(0, 0, 0, 0.5);
-  /* Outline so gradient text still pops over both photos. */
-  -webkit-text-stroke: 0.5px rgba(0, 0, 0, 0.55);
+  letter-spacing: 1.5px;
+  line-height: 1.18;
+  text-transform: uppercase;
+  /* Color + shadow swap in sync with the image crossfade — frame B has
+     yellow tones that wash out gold text, so the headline flips to black
+     while frame B is visible. Same cadence (2.4s) as the image keyframes. */
+  animation: startupAdTextSwap 2.4s ease-in-out infinite;
 }
 
 .startup-ad-desc {
-  margin-top: 10px;
-  font-size: clamp(13px, 2.8vw, 16px);
-  font-weight: 600;
-  line-height: 1.35;
-  color: #ffd700;
-  text-shadow:
-    0 1px 4px rgba(0, 0, 0, 0.9),
-    0 0 12px rgba(0, 0, 0, 0.6);
+  margin-top: 12px;
+  font-family: 'Cinzel', 'Playfair Display', 'Trajan Pro', Georgia, serif;
+  font-size: clamp(13px, 2.9vw, 17px);
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  line-height: 1.4;
+  animation: startupAdTextSwap 2.4s ease-in-out infinite;
+}
+
+/* Frame-A window: gold with a dark stroke. Frame-B window: black with a
+   light gold halo so it still reads against the warm background. The
+   transition timing matches startupAdFlipA/B above. */
+@keyframes startupAdTextSwap {
+  0%, 45% {
+    color: #ffd700;
+    text-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.85),
+      0 0 14px rgba(0, 0, 0, 0.55);
+    -webkit-text-stroke: 0.6px rgba(0, 0, 0, 0.6);
+  }
+  55%, 95% {
+    color: #0a0a0a;
+    text-shadow:
+      0 1px 2px rgba(255, 235, 150, 0.8),
+      0 0 10px rgba(255, 215, 0, 0.55);
+    -webkit-text-stroke: 0.4px rgba(255, 215, 0, 0.45);
+  }
+  100% {
+    color: #ffd700;
+    text-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.85),
+      0 0 14px rgba(0, 0, 0, 0.55);
+    -webkit-text-stroke: 0.6px rgba(0, 0, 0, 0.6);
+  }
 }
 
 @media (max-width: 480px) {
