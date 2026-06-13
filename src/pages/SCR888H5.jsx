@@ -77,37 +77,67 @@ export default function SCR888H5() {
     return () => window.removeEventListener('message', handleGameMessage)
   }, [embeddedGame, user?.accountId, updateBalance, notifyTransactionUpdate])
 
-  // Transfer Wallet: Call transfer-out when exiting game
-  const closeGame = async () => {
-    // For Transfer Wallet providers, call transfer-out to return funds
-    if (user?.accountId) {
+  // /transfer-out can flake under upstream load even on a healthy session —
+  // alias resolution, deposit-ledger row contention, or a 5xx burst will all
+  // surface as a one-shot "Transfer out failed" today. Retry up to 10 times
+  // with a gentle backoff so a transient blip can't strand the session.
+  // The launch tracker's backend 20-min auto-withdraw is the final safety
+  // net if every retry still fails.
+  const tryTransferOutWithRetries = async (accountId, max = 10) => {
+    let last
+    for (let i = 1; i <= max; i++) {
       try {
-        console.log('[SCR888H5] Calling transfer-out on exit...')
-        const result = await transferOutSCR888H5(user.accountId)
-        if (result?.success) {
-          const amount = Number(result.amountTransferred ?? 0)
-          if (amount > 0) {
-            showToast(`+${amount} returned to your wallet`, 'success')
-          }
-        } else if (result?.error) {
-          showToast(result.error, 'error')
-        }
-      } catch (error) {
-        console.error('[SCR888H5] Transfer out error:', error)
+        last = await transferOutSCR888H5(accountId)
+        if (last?.success) return last
+      } catch (err) {
+        last = { success: false, error: err?.message }
       }
-
-      try {
-        const result = await walletService.getBalance(user.accountId)
-        if (result.success && result.balance !== undefined) {
-          updateBalance?.(result.balance)
-        }
-      } catch (error) {
-        console.error('Balance sync error:', error)
+      console.log(`[SCR888H5] transfer-out attempt ${i}/${max} failed:`, last?.error)
+      if (i < max) {
+        // 700ms → 2.0s, smooth ramp; total worst-case wait ~14s over 10 tries.
+        const wait = Math.min(500 + i * 200, 2000)
+        await new Promise((r) => setTimeout(r, wait))
       }
     }
+    return last
+  }
+
+  // Transfer Wallet: tear down iframe immediately so the UI isn't blocked
+  // by the retry loop; transfer-out + balance refresh run in the background.
+  const closeGame = () => {
+    const accountId = user?.accountId
     setEmbeddedGame(null)
     setShowExitConfirm(false)
-    notifyTransactionUpdate?.()
+
+    if (!accountId) {
+      notifyTransactionUpdate?.()
+      return
+    }
+
+    ;(async () => {
+      const result = await tryTransferOutWithRetries(accountId, 10)
+      if (result?.success) {
+        const amount = Number(result.amountTransferred ?? 0)
+        if (amount > 0) {
+          showToast(`+${amount} returned to your wallet`, 'success')
+        }
+      } else {
+        console.warn('[SCR888H5] transfer-out still failing after 10 retries:', result?.error)
+        showToast(
+          'Cash-out is being processed in the background — your balance will update shortly.',
+          'warning'
+        )
+      }
+      try {
+        const balance = await walletService.getBalance(accountId)
+        if (balance.success && balance.balance !== undefined) {
+          updateBalance?.(balance.balance)
+        }
+      } catch (error) {
+        console.error('[SCR888H5] Balance sync error:', error)
+      }
+      notifyTransactionUpdate?.()
+    })()
   }
 
   const handlePlayNow = async (game, e) => {
