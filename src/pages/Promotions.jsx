@@ -156,20 +156,24 @@ export default function Promotions() {
     }
   }
 
-  // Handle bonus click - claim free bonus or show promo code modal
-  const handleBonusClick = async (bonus) => {
-    // Check if user is logged in
+  // Every tile click opens the detail popup — the popup itself handles
+  // "Claim Now" (free) and "Copy Code" (deposit-required) paths.
+  const handleBonusClick = (bonus) => {
+    setSelectedBonus(bonus)
+  }
+
+  const handleClaimFromPopup = async () => {
+    if (!selectedBonus) return
     if (!isAuthenticated || !user?.accountId) {
       showToast('Please log in to claim this bonus', 'error')
       return
     }
-
-    // For free bonuses (minDeposit = 0), claim directly via API
-    if (bonus.minDeposit === 0 || !bonus.minDeposit) {
-      await claimFreeBonus(bonus)
+    const isFree = !selectedBonus.minDeposit
+    if (isFree) {
+      await claimFreeBonus(selectedBonus)
+      setSelectedBonus(null)
     } else {
-      // For deposit-required bonuses, show promo code modal
-      setSelectedBonus(bonus)
+      await handleCopyCode()
     }
   }
 
@@ -292,99 +296,25 @@ export default function Promotions() {
               <p>{t('checkBackLater') || 'Check back later for exciting promotions!'}</p>
             </div>
           ) : (
-            <div className="bonus-banners">
-              {bonuses.map((bonus, index) => {
+            <div className="bonus-tiles">
+              {bonuses.map((bonus) => {
                 const formatted = formatBonus(bonus)
-                const canClaim = bonusService.isBonusAvailable(bonus)
-                const isClaiming = claimingBonus === bonus.id
-                const isFreeBonus = bonus.minDeposit === 0 || !bonus.minDeposit
-                const bannerBg = bannerImages[index % bannerImages.length]
-
+                const available = bonusService.isBonusAvailable(bonus)
+                const title = bonus.displayName || bonus.bonusCode || 'BONUS'
                 return (
-                  <div
+                  <button
                     key={bonus.id}
-                    className={`bonus-banner ${canClaim ? 'claimable' : ''} ${isClaiming ? 'claiming' : ''}`}
-                    onClick={canClaim && !isClaiming ? () => handleBonusClick(bonus) : undefined}
-                    role={canClaim ? 'button' : undefined}
-                    tabIndex={canClaim ? 0 : undefined}
+                    type="button"
+                    className={`bonus-tile ${available ? '' : 'tile-disabled'}`}
+                    onClick={() => handleBonusClick(bonus)}
+                    aria-label={`${title} — ${formatted.valueDisplay}`}
                   >
-                    {/* Background Image */}
-                    <div className="banner-bg" style={{ backgroundImage: `url(${bannerBg})` }}></div>
-                    <div className="banner-overlay"></div>
-
-                    {/* Banner Content */}
-                    <div className="banner-content">
-                      {/* Left: Main Info */}
-                      <div className="banner-main">
-                        <div className="banner-value">
-                          <span className="value-amount">{formatted.valueDisplay}</span>
-                          <span className="value-label">
-                            {bonus.bonusType === 'PERCENTAGE' ? 'MATCH BONUS' : 'BONUS'}
-                          </span>
-                        </div>
-                        <h3 className="banner-title">{formatted.title}</h3>
-                        {bonus.description && (
-                          <p className="banner-desc">{bonus.description}</p>
-                        )}
-                      </div>
-
-                      {/* Right: Requirements & CTA */}
-                      <div className="banner-right">
-                        {/* Requirements Tags */}
-                        <div className="banner-tags">
-                          {bonus.minDeposit > 0 && (
-                            <span className="banner-tag deposit">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                              </svg>
-                              Min ${bonus.minDeposit}
-                            </span>
-                          )}
-                          {bonus.turnoverMultiplier > 0 && (
-                            <span className="banner-tag turnover">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M23 4v6h-6M1 20v-6h6"/>
-                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-                              </svg>
-                              {bonus.turnoverMultiplier}x
-                            </span>
-                          )}
-                          {isFreeBonus && (
-                            <span className="banner-tag free">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7"/>
-                              </svg>
-                              FREE
-                            </span>
-                          )}
-                        </div>
-
-                        {/* CTA Button */}
-                        {canClaim && (
-                          <button className={`banner-cta ${isClaiming ? 'loading' : ''}`}>
-                            {isClaiming ? (
-                              <ButtonSpinner />
-                            ) : (
-                              <>
-                                <span>{isFreeBonus ? 'Claim Now' : 'Get Code'}</span>
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <path d="M5 12h14M12 5l7 7-7 7"/>
-                                </svg>
-                              </>
-                            )}
-                          </button>
-                        )}
-
-                        {/* Limited Badge */}
-                        {formatted.isLimited && (
-                          <span className="banner-limited">{formatted.availabilityDisplay}</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Shine Effect */}
-                    <div className="banner-shine"></div>
-                  </div>
+                    <span className="bonus-tile-title">{title}</span>
+                    <span className="bonus-tile-amount">{formatted.valueDisplay}</span>
+                    {formatted.isLimited && (
+                      <span className="bonus-tile-badge">{formatted.availabilityDisplay}</span>
+                    )}
+                  </button>
                 )
               })}
             </div>
@@ -400,85 +330,133 @@ export default function Promotions() {
         </div>
       </div>
 
-      {/* Promo Code Modal */}
+      {/* Bonus Detail Popup */}
       {selectedBonus && (
-        <div className="promo-modal-overlay" onClick={handleCloseModal}>
-          <div className="promo-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="promo-modal-close" onClick={handleCloseModal}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M18 6L6 18M6 6l12 12"/>
-              </svg>
-            </button>
-
-            <div className="promo-modal-icon">🎁</div>
-            <h3 className="promo-modal-title">{selectedBonus.displayName || selectedBonus.name}</h3>
-
-            <div className="promo-modal-value">
-              {formatBonus(selectedBonus).valueDisplay}
-            </div>
-
-            {selectedBonus.description && (
-              <p className="promo-modal-desc">{selectedBonus.description}</p>
-            )}
-
-            {/* Promo Code Display */}
-            <div className="promo-code-section">
-              <label>{t('promoCode') || 'Your Promo Code'}</label>
-              <div className="promo-code-box">
-                <span className="promo-code-text">{selectedBonus.bonusCode}</span>
-                <button className="copy-btn" onClick={handleCopyCode}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="9" y="9" width="13" height="13" rx="2"/>
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                  </svg>
-                  {t('copy') || 'Copy'}
-                </button>
-              </div>
-            </div>
-
-            {/* Requirements */}
-            <div className="promo-modal-reqs">
-              {selectedBonus.minDeposit > 0 && (
-                <div className="req-item">
-                  <span className="req-label">{t('minDeposit') || 'Min Deposit'}</span>
-                  <span className="req-value">${selectedBonus.minDeposit}</span>
-                </div>
-              )}
-              {selectedBonus.turnoverMultiplier > 0 && (
-                <div className="req-item">
-                  <span className="req-label">{t('turnover') || 'Turnover'}</span>
-                  <span className="req-value">{selectedBonus.turnoverMultiplier}x</span>
-                </div>
-              )}
-            </div>
-
-            {/* Minimum Deposit Highlight */}
-            {selectedBonus.minDeposit > 0 && (
-              <div className="promo-modal-min-deposit">
-                <span className="min-deposit-label">{t('minimumDepositRequired') || 'Minimum Deposit Required'}</span>
-                <span className="min-deposit-value">${selectedBonus.minDeposit}</span>
-              </div>
-            )}
-
-            {/* Instructions */}
-            <div className="promo-modal-instructions">
-              <p>
-                {selectedBonus.minDeposit > 0
-                  ? t('useCodeDuringDeposit') || 'Use this code when making a deposit to claim your bonus!'
-                  : t('useCodeToRedeem') || 'Copy this code and use it to redeem your bonus!'}
-              </p>
-            </div>
-
-            <button className="promo-modal-cta" onClick={handleCopyCode}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="9" y="9" width="13" height="13" rx="2"/>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-              </svg>
-              {t('copyCode') || 'Copy Code'}
-            </button>
-          </div>
-        </div>
+        <BonusDetailPopup
+          bonus={selectedBonus}
+          formatted={formatBonus(selectedBonus)}
+          available={bonusService.isBonusAvailable(selectedBonus)}
+          claiming={claimingBonus === selectedBonus.id}
+          onClose={handleCloseModal}
+          onClaim={handleClaimFromPopup}
+        />
       )}
+    </div>
+  )
+}
+
+// Bonus detail popup — mirrors the structure of the legacy template the
+// player team supplied. Every row that depends on a backend-supplied
+// string is hidden when the field is missing, so older bonus records
+// still render cleanly while we backfill data.
+function BonusDetailPopup({ bonus, formatted, available, claiming, onClose, onClaim }) {
+  const title = (bonus.displayName || bonus.bonusCode || 'BONUS').toUpperCase()
+  const isFree = !bonus.minDeposit
+  const requirementsLabel = isFree ? 'NO' : `MIN $${bonus.minDeposit}`
+  const claimLimitLabel = bonus.claimFrequencyText
+    || (bonus.maxClaims ? `${bonus.maxClaims} TOTAL` : null)
+  const winoverLabel = bonus.winoverTargetText
+    || (bonus.turnoverMultiplier > 0 ? `${bonus.turnoverMultiplier}x TURNOVER` : null)
+  const maxWithdrawalLabel = bonus.maxWithdrawalText
+    || (bonus.maxWithdrawal ? `$${bonus.maxWithdrawal}` : null)
+  const validForLabel = bonus.validForText || null
+  const notAllowedLabel = bonus.notAllowedText || null
+  const telegramUrl = bonus.telegramUrl || null
+  const rules = [bonus.belowRedepositText, bonus.aboveWithdrawText, bonus.infoIncorrectText].filter(Boolean)
+  const generalTos = bonus.generalTermsText
+    || 'Terms & Conditions apply. If any illegal betting, suspicious behavior, bonus abuse, side betting, or saving free games to play later is detected, your deposit, including any winnings and bonuses, may be frozen. The system may also reset your account balance to zero. Team33 reserves the right to void any withdrawal eligibility, suspend account privileges, and take any necessary actions including reversal of bonuses and winnings.'
+
+  return (
+    <div className="bonus-popup-overlay" onClick={onClose}>
+      <div className="bonus-popup" onClick={(e) => e.stopPropagation()}>
+        <button className="bonus-popup-close" onClick={onClose} aria-label="Close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+
+        <div className="bonus-popup-title">⭐ {title}</div>
+
+        <p className="bonus-popup-section-label"><b>Requirements:</b></p>
+
+        {telegramUrl && (
+          <a className="bonus-popup-telegram" href={telegramUrl} target="_blank" rel="noopener noreferrer">
+            Join Telegram Game Tips
+          </a>
+        )}
+
+        <table className="bonus-popup-table">
+          <tbody>
+            <tr>
+              <td className="bp-key">{title}</td>
+              <td className="bp-val">{formatted.valueDisplay}</td>
+            </tr>
+            <tr>
+              <td className="bp-key">REQUIREMENTS</td>
+              <td className="bp-val">{requirementsLabel}</td>
+            </tr>
+            {claimLimitLabel && (
+              <tr>
+                <td className="bp-key">CLAIM LIMIT</td>
+                <td className="bp-val">{claimLimitLabel}</td>
+              </tr>
+            )}
+            {winoverLabel && (
+              <tr>
+                <td className="bp-key">WINOVER</td>
+                <td className="bp-val">{winoverLabel}</td>
+              </tr>
+            )}
+            {maxWithdrawalLabel && (
+              <tr>
+                <td className="bp-key">MAX WITHDRAWAL</td>
+                <td className="bp-val">{maxWithdrawalLabel}</td>
+              </tr>
+            )}
+            {validForLabel && (
+              <tr>
+                <td className="bp-key">VALID FOR</td>
+                <td className="bp-val">{validForLabel}</td>
+              </tr>
+            )}
+            {notAllowedLabel && (
+              <tr>
+                <td className="bp-key">NOT ALLOWED</td>
+                <td className="bp-val bp-warn">{notAllowedLabel}</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+
+        {rules.length > 0 && (
+          <table className="bonus-popup-rules">
+            <tbody>
+              {rules.map((r, i) => (
+                <tr key={i}><td>{r}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        <p className="bonus-popup-tos">
+          <span className="bp-tos-label">General</span>
+          <span className="bp-tos-alert" aria-hidden="true">⚠️</span>
+          <span>{generalTos}</span>
+        </p>
+
+        <div className="bonus-popup-btns">
+          <button className="bp-btn bp-btn-danger" onClick={onClose}>Close</button>
+          {available && (
+            <button
+              className="bp-btn bp-btn-claim"
+              onClick={onClaim}
+              disabled={claiming}
+            >
+              {claiming ? 'Claiming…' : (isFree ? 'Claim Now' : 'Get Code')}
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

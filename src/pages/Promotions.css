@@ -1030,3 +1030,286 @@
   .checkin-card { flex-basis: 96px; }
   .checkin-amount { font-size: 15px; }
 }
+
+/* -----------------------------------------------------------------------
+   Bonus tiles (square cards) — title on top, amount centered. Same
+   gold/dark theme as the rest of the Promotions page.
+   --------------------------------------------------------------------- */
+.bonus-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.bonus-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  aspect-ratio: 1 / 1;
+  padding: 14px 12px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  background:
+    linear-gradient(160deg, rgba(212, 175, 55, 0.12) 0%, rgba(212, 175, 55, 0.04) 55%, rgba(0, 0, 0, 0.35) 100%),
+    #15182a;
+  color: #fff;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  font-family: inherit;
+}
+
+.bonus-tile:hover:not(.tile-disabled) {
+  transform: translateY(-3px);
+  border-color: rgba(212, 175, 55, 0.7);
+  box-shadow: 0 10px 26px rgba(212, 175, 55, 0.25);
+}
+
+.bonus-tile.tile-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.bonus-tile-title {
+  font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #ffe88a;
+  line-height: 1.2;
+  text-align: center;
+  word-break: break-word;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+
+.bonus-tile-amount {
+  font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+  font-size: clamp(26px, 6vw, 38px);
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  text-align: center;
+  margin: auto 0;
+  background: linear-gradient(180deg, #fff3a0 0%, #ffd700 45%, #b8860b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
+  -webkit-text-stroke: 0.4px rgba(0, 0, 0, 0.45);
+}
+
+.bonus-tile-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #ffd700;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  text-transform: uppercase;
+}
+
+/* -----------------------------------------------------------------------
+   Bonus detail popup — mirrors the legacy template the player team
+   supplied. Replaces the previous promo-code modal flow.
+   --------------------------------------------------------------------- */
+.bonus-popup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9100;
+  background: rgba(0, 0, 0, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow-y: auto;
+  animation: bpFadeIn 200ms ease-out;
+}
+
+@keyframes bpFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.bonus-popup {
+  position: relative;
+  width: min(540px, 96vw);
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 22px 22px 18px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #1a1f3a 0%, #131628 100%);
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.6);
+  color: #fff;
+}
+
+.bonus-popup-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 150ms, transform 150ms;
+}
+
+.bonus-popup-close:hover {
+  background: rgba(220, 38, 38, 0.85);
+  transform: scale(1.05);
+}
+
+.bonus-popup-title {
+  font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(20px, 4.5vw, 26px);
+  letter-spacing: 1px;
+  text-align: center;
+  margin-bottom: 14px;
+  background: linear-gradient(180deg, #fff3a0 0%, #ffd700 45%, #b8860b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
+}
+
+.bonus-popup-section-label {
+  margin: 6px 0 8px;
+  font-size: 13px;
+  color: #ffd700;
+  letter-spacing: 0.4px;
+}
+
+.bonus-popup-telegram {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 11px 12px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #229ed9 0%, #1976d2 100%);
+  color: #fff;
+  text-align: center;
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: 0.3px;
+  transition: filter 150ms;
+}
+
+.bonus-popup-telegram:hover { filter: brightness(1.08); }
+
+.bonus-popup-table,
+.bonus-popup-rules {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+  margin-top: 6px;
+  font-size: 11.5px;
+}
+
+.bonus-popup-table td,
+.bonus-popup-rules td {
+  padding: 9px 12px;
+  border-radius: 8px;
+  vertical-align: middle;
+  line-height: 1.3;
+}
+
+.bonus-popup-table .bp-key {
+  text-align: center;
+  width: 50%;
+  background: rgba(212, 175, 55, 0.12);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.bonus-popup-table .bp-val {
+  text-align: center;
+  width: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0a0a0a;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.bonus-popup-table .bp-val.bp-warn {
+  background: rgba(255, 235, 235, 0.95);
+  color: #ff2c2c;
+}
+
+.bonus-popup-rules td {
+  background: rgba(212, 175, 55, 0.15);
+  color: #fff;
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.bonus-popup-tos {
+  margin-top: 16px;
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: #d8d8e0;
+}
+
+.bonus-popup-tos .bp-tos-label {
+  color: #ffd700;
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+.bonus-popup-tos .bp-tos-alert {
+  margin: 0 6px;
+}
+
+.bonus-popup-btns {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.bp-btn {
+  flex: 1;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+  text-transform: uppercase;
+  transition: filter 150ms, transform 150ms;
+}
+
+.bp-btn:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+.bp-btn:disabled { opacity: 0.6; cursor: wait; }
+
+.bp-btn-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  color: #fff;
+}
+
+.bp-btn-claim {
+  background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%);
+  color: #0a0a0a;
+}
+
+@media (max-width: 480px) {
+  .bonus-tiles { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .bonus-popup { padding: 18px 16px 14px; }
+  .bonus-popup-table, .bonus-popup-rules { font-size: 11px; }
+}
