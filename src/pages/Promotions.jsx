@@ -12,6 +12,13 @@ import banner1 from '../images/New banner.png'
 import banner2 from '../images/New banner 2.png'
 import banner3 from '../images/New banner 3.png'
 import treasureGif from '../images/buried-treasure.gif'
+// Square-tile backgrounds: center-cropped team33 game banners. Cycled
+// across the bonus grid so adjacent tiles don't repeat the same art.
+import tileBg1 from '../images/promo-tile-bg-1.jpg'
+import tileBg2 from '../images/promo-tile-bg-2.jpg'
+import tileBg3 from '../images/promo-tile-bg-3.jpg'
+
+const TILE_BACKGROUNDS = [tileBg1, tileBg2, tileBg3]
 
 // Backend-driven daily check-in stripe.
 //
@@ -297,10 +304,11 @@ export default function Promotions() {
             </div>
           ) : (
             <div className="bonus-tiles">
-              {bonuses.map((bonus) => {
+              {bonuses.map((bonus, idx) => {
                 const formatted = formatBonus(bonus)
                 const available = bonusService.isBonusAvailable(bonus)
                 const title = bonus.displayName || bonus.bonusCode || 'BONUS'
+                const tileBg = TILE_BACKGROUNDS[idx % TILE_BACKGROUNDS.length]
                 return (
                   <button
                     key={bonus.id}
@@ -308,7 +316,10 @@ export default function Promotions() {
                     className={`bonus-tile ${available ? '' : 'tile-disabled'}`}
                     onClick={() => handleBonusClick(bonus)}
                     aria-label={`${title} — ${formatted.valueDisplay}`}
+                    style={{ '--tile-bg': `url(${tileBg})` }}
                   >
+                    <span className="bonus-tile-bg" aria-hidden="true"></span>
+                    <span className="bonus-tile-veil" aria-hidden="true"></span>
                     <span className="bonus-tile-title">{title}</span>
                     <span className="bonus-tile-amount">{formatted.valueDisplay}</span>
                     {formatted.isLimited && (
