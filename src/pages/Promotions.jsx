@@ -303,32 +303,27 @@ export default function Promotions() {
               <p>{t('checkBackLater') || 'Check back later for exciting promotions!'}</p>
             </div>
           ) : (
-            <div className="bonus-tiles">
-              {bonuses.map((bonus, idx) => {
-                const formatted = formatBonus(bonus)
-                const available = bonusService.isBonusAvailable(bonus)
-                const title = bonus.displayName || bonus.bonusCode || 'BONUS'
-                const tileBg = TILE_BACKGROUNDS[idx % TILE_BACKGROUNDS.length]
-                return (
-                  <button
-                    key={bonus.id}
-                    type="button"
-                    className={`bonus-tile ${available ? '' : 'tile-disabled'}`}
-                    onClick={() => handleBonusClick(bonus)}
-                    aria-label={`${title} — ${formatted.valueDisplay}`}
-                    style={{ '--tile-bg': `url(${tileBg})` }}
-                  >
-                    <span className="bonus-tile-bg" aria-hidden="true"></span>
-                    <span className="bonus-tile-veil" aria-hidden="true"></span>
-                    <span className="bonus-tile-title">{title}</span>
-                    <span className="bonus-tile-amount">{formatted.valueDisplay}</span>
-                    {formatted.isLimited && (
-                      <span className="bonus-tile-badge">{formatted.availabilityDisplay}</span>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
+            (() => {
+              // Bucket the active bonuses into Daily / Weekly / Special.
+              // We search displayName + bonusCode + description (case-
+              // insensitive) for cadence keywords; anything that doesn't
+              // match Daily or Weekly falls into Special so nothing is
+              // dropped on the floor.
+              const hay = (b) => `${b.displayName || ''} ${b.bonusCode || ''} ${b.description || ''}`.toLowerCase()
+              const isDaily = (b) => /(daily|day\b|24\s*hour)/i.test(hay(b))
+              const isWeekly = (b) => /(weekly|week\b|7\s*day)/i.test(hay(b))
+              const daily = bonuses.filter(isDaily)
+              const weekly = bonuses.filter((b) => !isDaily(b) && isWeekly(b))
+              const usedIds = new Set([...daily, ...weekly].map((b) => b.id))
+              const special = bonuses.filter((b) => !usedIds.has(b.id))
+              return (
+                <>
+                  <BonusSection title="Daily Bonus" icon="🌅" bonuses={daily} onClick={handleBonusClick} formatBonus={formatBonus} claimingBonus={claimingBonus} />
+                  <BonusSection title="Weekly Bonus" icon="📅" bonuses={weekly} onClick={handleBonusClick} formatBonus={formatBonus} claimingBonus={claimingBonus} />
+                  <BonusSection title="Special Bonus" icon="✨" bonuses={special} onClick={handleBonusClick} formatBonus={formatBonus} claimingBonus={claimingBonus} />
+                </>
+              )
+            })()
           )}
         </div>
       </div>
@@ -352,6 +347,48 @@ export default function Promotions() {
           onClaim={handleClaimFromPopup}
         />
       )}
+    </div>
+  )
+}
+
+// One labelled section (Daily / Weekly / Special) of the bonus grid.
+// Renders nothing when its bucket is empty so the page stays tight.
+function BonusSection({ title, icon, bonuses, onClick, formatBonus, claimingBonus }) {
+  if (!bonuses || bonuses.length === 0) return null
+  return (
+    <div className="bonus-section">
+      <h3 className="bonus-section-title">
+        <span className="bonus-section-icon" aria-hidden="true">{icon}</span>
+        {title}
+        <span className="bonus-section-count">{bonuses.length}</span>
+      </h3>
+      <div className="bonus-tiles">
+        {bonuses.map((bonus, idx) => {
+          const formatted = formatBonus(bonus)
+          const available = bonusService.isBonusAvailable(bonus)
+          const cardTitle = bonus.displayName || bonus.bonusCode || 'BONUS'
+          const tileBg = TILE_BACKGROUNDS[idx % TILE_BACKGROUNDS.length]
+          const isClaiming = claimingBonus === bonus.id
+          return (
+            <button
+              key={bonus.id}
+              type="button"
+              className={`bonus-tile ${available ? '' : 'tile-disabled'} ${isClaiming ? 'tile-claiming' : ''}`}
+              onClick={() => onClick(bonus)}
+              aria-label={`${cardTitle} — ${formatted.valueDisplay}`}
+              style={{ '--tile-bg': `url(${tileBg})` }}
+            >
+              <span className="bonus-tile-bg" aria-hidden="true"></span>
+              <span className="bonus-tile-veil" aria-hidden="true"></span>
+              <span className="bonus-tile-title">{cardTitle}</span>
+              <span className="bonus-tile-amount">{formatted.valueDisplay}</span>
+              {formatted.isLimited && (
+                <span className="bonus-tile-badge">{formatted.availabilityDisplay}</span>
+              )}
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
