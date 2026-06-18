@@ -1,13 +1,8 @@
-/* Royal serif for the headline / description — Cinzel reads as classical
-   Roman capitals and pairs cleanly with the slot key art. Playfair is the
-   fallback if the network blocks Google Fonts. */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Playfair+Display:wght@700;900&display=swap');
-
 .startup-ad-backdrop {
   position: fixed;
   inset: 0;
   z-index: 9000;
-  background: rgba(0, 0, 0, 0.78);
+  background: rgba(0, 0, 0, 0.82);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -22,7 +17,9 @@
 
 .startup-ad-card {
   position: relative;
-  width: min(560px, 92vw);
+  width: 80vw;
+  /* Keep the popup inside the viewport on small phones / huge desktops. */
+  max-width: 720px;
   max-height: 88vh;
   border-radius: 18px;
   overflow: hidden;
@@ -37,13 +34,13 @@
   top: 10px;
   right: 10px;
   z-index: 3;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   border: none;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.7);
   color: #fff;
-  font-size: 26px;
+  font-size: 28px;
   line-height: 1;
   cursor: pointer;
   display: flex;
@@ -53,107 +50,28 @@
 }
 
 .startup-ad-close:hover {
-  background: rgba(220, 38, 38, 0.85);
+  background: rgba(220, 38, 38, 0.9);
   transform: scale(1.05);
 }
 
-.startup-ad-stage {
-  position: relative;
+.startup-ad-link {
+  display: block;
   width: 100%;
-  /* 4:5 portrait — works for both slot key-art images without cropping. */
-  aspect-ratio: 4 / 5;
-  background: #000;
-  overflow: hidden;
+  line-height: 0;
+  cursor: pointer;
 }
 
-.startup-ad-frame {
-  position: absolute;
-  inset: 0;
+.startup-ad-art {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  animation-duration: 2.4s;
-  animation-iteration-count: infinite;
-  animation-timing-function: ease-in-out;
-}
-
-.startup-ad-frame-a { animation-name: startupAdFlipA; }
-.startup-ad-frame-b { animation-name: startupAdFlipB; }
-
-/* Two-image swap, no hard cut — short crossfade so it reads as a GIF. */
-@keyframes startupAdFlipA {
-  0%, 45%   { opacity: 1; }
-  55%, 95%  { opacity: 0; }
-  100%      { opacity: 1; }
-}
-@keyframes startupAdFlipB {
-  0%, 45%   { opacity: 0; }
-  55%, 95%  { opacity: 1; }
-  100%      { opacity: 0; }
-}
-
-.startup-ad-copy {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  padding: 16px 22px;
-  text-align: center;
-  pointer-events: none;
-}
-
-.startup-ad-headline {
-  font-family: 'Cinzel', 'Playfair Display', 'Trajan Pro', Georgia, serif;
-  font-size: clamp(22px, 4.8vw, 34px);
-  font-weight: 900;
-  letter-spacing: 1.5px;
-  line-height: 1.18;
-  text-transform: uppercase;
-  /* Color + shadow swap in sync with the image crossfade — frame B has
-     yellow tones that wash out gold text, so the headline flips to black
-     while frame B is visible. Same cadence (2.4s) as the image keyframes. */
-  animation: startupAdTextSwap 2.4s ease-in-out infinite;
-}
-
-.startup-ad-desc {
-  margin-top: 12px;
-  font-family: 'Cinzel', 'Playfair Display', 'Trajan Pro', Georgia, serif;
-  font-size: clamp(13px, 2.9vw, 17px);
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  line-height: 1.4;
-  animation: startupAdTextSwap 2.4s ease-in-out infinite;
-}
-
-/* Frame-A window: gold with a dark stroke. Frame-B window: black with a
-   light gold halo so it still reads against the warm background. The
-   transition timing matches startupAdFlipA/B above. */
-@keyframes startupAdTextSwap {
-  0%, 45% {
-    color: #ffd700;
-    text-shadow:
-      0 2px 6px rgba(0, 0, 0, 0.85),
-      0 0 14px rgba(0, 0, 0, 0.55);
-    -webkit-text-stroke: 0.6px rgba(0, 0, 0, 0.6);
-  }
-  55%, 95% {
-    color: #0a0a0a;
-    text-shadow:
-      0 1px 2px rgba(255, 235, 150, 0.8),
-      0 0 10px rgba(255, 215, 0, 0.55);
-    -webkit-text-stroke: 0.4px rgba(255, 215, 0, 0.45);
-  }
-  100% {
-    color: #ffd700;
-    text-shadow:
-      0 2px 6px rgba(0, 0, 0, 0.85),
-      0 0 14px rgba(0, 0, 0, 0.55);
-    -webkit-text-stroke: 0.6px rgba(0, 0, 0, 0.6);
-  }
+  /* Bonus art is square — let the image set the card height so we
+     never crop the promo. object-fit: cover would chop the edges on
+     non-square cards. */
+  height: auto;
+  display: block;
+  object-fit: contain;
 }
 
 @media (max-width: 480px) {
-  .startup-ad-card { width: 94vw; border-radius: 14px; }
-  .startup-ad-close { top: 8px; right: 8px; width: 32px; height: 32px; font-size: 22px; }
+  .startup-ad-card { width: 90vw; border-radius: 14px; }
+  .startup-ad-close { top: 8px; right: 8px; width: 34px; height: 34px; font-size: 24px; }
 }

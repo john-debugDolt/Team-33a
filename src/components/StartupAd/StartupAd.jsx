@@ -1,35 +1,36 @@
-import { useEffect, useState } from 'react'
-import { bonusService } from '../../services/bonusService'
-import slide1 from '../../images/slotgifpic1.jpg'
-import slide2 from '../../images/slotgifpic2.jpg'
+import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import bonusDaily5 from '../../images/bonus-daily-5.jpg'
+import bonusWelcome50 from '../../images/bonus-welcome-50.jpg'
+import bonusWelcome28 from '../../images/bonus-welcome-28.jpg'
+import bonusWeeklyRebate5 from '../../images/bonus-weeklyrebate-5.jpg'
+import bonusWeeklyRebate10 from '../../images/bonus-weeklyrebate-10.jpg'
+import bonusWeekly20 from '../../images/bonus-weekly-20.jpg'
+import bonusWeekly50 from '../../images/bonus-weekly-50.jpg'
+import bonusWeekly80 from '../../images/bonus-weekly-80.jpg'
 import './StartupAd.css'
 
-// Picks the most recent active bonus by startDate (falls back to id).
-const pickLatest = (list) => {
-  if (!list || list.length === 0) return null
-  const score = (b) => {
-    const t = b?.startDate ? new Date(b.startDate).getTime() : NaN
-    return Number.isFinite(t) ? t : (b?.id || 0)
-  }
-  return [...list].sort((a, b) => score(b) - score(a))[0]
-}
+// Pool of bonus key art the popup randomly picks one from on each app
+// start. Same JPEGs used by the Promotions tile grid.
+const BONUS_ART = [
+  bonusDaily5,
+  bonusWelcome50,
+  bonusWelcome28,
+  bonusWeeklyRebate5,
+  bonusWeeklyRebate10,
+  bonusWeekly20,
+  bonusWeekly50,
+  bonusWeekly80,
+]
 
 export default function StartupAd() {
   const [visible, setVisible] = useState(true)
-  const [headline, setHeadline] = useState('')
-  const [description, setDescription] = useState('')
-
-  useEffect(() => {
-    let cancelled = false
-    bonusService.getActiveBonuses().then((list) => {
-      if (cancelled) return
-      const latest = pickLatest(list)
-      if (!latest) return
-      setHeadline(bonusService.getBonusHeadline(latest))
-      setDescription(latest.description || latest.displayName || '')
-    }).catch(() => { /* show ad with no copy */ })
-    return () => { cancelled = true }
-  }, [])
+  // Pick once per mount so the image doesn't reshuffle if the popup
+  // re-renders for some reason. Math.random gives a uniform pull.
+  const pickedArt = useMemo(
+    () => BONUS_ART[Math.floor(Math.random() * BONUS_ART.length)],
+    []
+  )
 
   if (!visible) return null
 
@@ -43,14 +44,14 @@ export default function StartupAd() {
         >
           ×
         </button>
-        <div className="startup-ad-stage">
-          <img src={slide1} alt="" className="startup-ad-frame startup-ad-frame-a" />
-          <img src={slide2} alt="" className="startup-ad-frame startup-ad-frame-b" />
-          <div className="startup-ad-copy">
-            {headline && <div className="startup-ad-headline">{headline}</div>}
-            {description && <div className="startup-ad-desc">{description}</div>}
-          </div>
-        </div>
+        <Link
+          to="/promotions"
+          className="startup-ad-link"
+          onClick={() => setVisible(false)}
+          aria-label="View promotions"
+        >
+          <img src={pickedArt} alt="Featured bonus promotion" className="startup-ad-art" />
+        </Link>
       </div>
     </div>
   )
