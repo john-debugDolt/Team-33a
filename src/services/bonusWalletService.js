@@ -1,8 +1,12 @@
 /**
  * Bonus Wallet Service — single source of truth for "is this player on bonus"
  *
- * Endpoint: GET https://seamless.team33.mx/api/bonus-wallet/{accountId}/balance
+ * Endpoint: GET https://accounts.team33.mx/api/bonus-wallet/{accountId}/balance
  *   → { accountId, balance }
+ *
+ * Per the 2026-06-18 bonus/rollover/conversion spec, all player traffic
+ * goes through accounts.team33.mx. seamless.team33.mx is reserved for
+ * game-provider seamless callbacks and is not a player-API host.
  *
  * If balance > 0, the player's main wallet is LOCKED server-side and any
  * non-bonus-capable provider launch will be rejected with WalletRestricted.
@@ -12,7 +16,7 @@
  * accountType is derived directly: bonus_wallet.balance > 0 ? "bonus" : "normal"
  */
 
-const BASE_URL = 'https://seamless.team33.mx'
+const BASE_URL = 'https://accounts.team33.mx'
 
 let cachedBalance = null
 let cacheTimestamp = null
@@ -147,6 +151,26 @@ export const getRolloverProgress = async (accountId) => {
 }
 
 /**
+ * GET /api/bonus-wallet/{accountId}/rollover-completed — slim progress view
+ * tailored for a bar UI. Returns:
+ *   { rolloverCompleted, rolloverRequired (=1.0), percentComplete (0-100,
+ *     2 decimals), complete (bool) }
+ * Returns null on any error.
+ */
+export const getRolloverCompleted = async (accountId) => {
+  if (!accountId) return null
+  try {
+    const url = `${BASE_URL}/api/bonus-wallet/${encodeURIComponent(accountId)}/rollover-completed`
+    const response = await fetchWithTimeout(url)
+    if (!response.ok) return null
+    return await response.json()
+  } catch (error) {
+    console.warn('[BonusWallet] rollover-completed fetch failed:', error?.message)
+    return null
+  }
+}
+
+/**
  * GET /api/bonus-wallet/{accountId}/transactions — immutable bonus ledger.
  *
  * Each row carries `balanceAfter` so callers can render a running balance
@@ -246,6 +270,7 @@ export const bonusWalletService = {
   getAccountType,
   getDisplayBalance,
   getRolloverProgress,
+  getRolloverCompleted,
   getBonusTransactions,
   bonusAliasParam,
   clearBonus,

@@ -29,6 +29,31 @@ const fetchWithTimeout = async (url, options = {}, timeout = 15000) => {
   }
 };
 
+// IP detection — the bonus claim endpoint requires the player's egress IP
+// (the upstream uses it for fraud control / IP-binding). Browsers can't
+// read their own external IP, so we fetch it from a lightweight public
+// service and cache the result for the rest of the tab session.
+let cachedIp = null;
+let cachedIpAt = 0;
+const IP_CACHE_TTL_MS = 10 * 60 * 1000; // 10 min — players don't change IPs often
+
+export const getClientIpAddress = async () => {
+  if (cachedIp && Date.now() - cachedIpAt < IP_CACHE_TTL_MS) return cachedIp;
+  // ipify is widely used + has open CORS. Falls back to null on any error;
+  // the claim endpoint will then surface a 400 the player can act on.
+  try {
+    const res = await fetchWithTimeout('https://api.ipify.org?format=json', {}, 5000);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data?.ip) {
+      cachedIp = String(data.ip);
+      cachedIpAt = Date.now();
+      return cachedIp;
+    }
+  } catch { /* ignore — return null */ }
+  return null;
+};
+
 // Bonus types for display
 export const BONUS_TYPE_LABELS = {
   FIRST_DEPOSIT: 'First Deposit',
@@ -271,7 +296,11 @@ class BonusService {
    */
   async claimFreeBonus(accountId, bonusId = null, bonusCode = null) {
     try {
-      const body = { accountId };
+      // The server requires the player's egress IP for IP-binding fraud
+      // control. Resolve via ipify (cached per session). If we can't get
+      // an IP at all the server will 400 — that's acceptable behaviour.
+      const ipAddress = await getClientIpAddress();
+      const body = { accountId, ipAddress };
       if (bonusId) body.bonusId = bonusId;
       if (bonusCode) body.bonusCode = bonusCode;
 

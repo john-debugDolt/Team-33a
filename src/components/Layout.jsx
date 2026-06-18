@@ -6,7 +6,7 @@ import { useTranslation } from '../context/TranslationContext'
 import { accountService } from '../services/accountService'
 import { walletService } from '../services/walletService'
 import { sweepAllReturns } from '../services/launchTracker'
-import { clearBonus } from '../services/bonusWalletService'
+import { clearBonus, getRolloverProgress } from '../services/bonusWalletService'
 import useAccountType from '../hooks/useAccountType'
 import FloatingChat from './FloatingChat/FloatingChat'
 import logo from '../images/team33newlogo.png'
@@ -61,6 +61,22 @@ export default function Layout({ children }) {
   const [walletAccount, setWalletAccount] = useState(null)
   const [clearingBonus, setClearingBonus] = useState(false)
   const accountType = useAccountType()
+  // Bonus-mode rollover snapshot — when the popup opens for a bonus
+  // player, fetch /api/bonus-wallet/{id}/rollover so the Withdrawable
+  // pill shows the gifted-pool balance (which is what the player can
+  // actually see / forfeit) instead of the locked main wallet.
+  const [walletRollover, setWalletRollover] = useState(null)
+  useEffect(() => {
+    if (!walletOpen || accountType !== 'bonus' || !user?.accountId) {
+      if (!walletOpen) setWalletRollover(null)
+      return
+    }
+    let cancelled = false
+    getRolloverProgress(user.accountId).then((r) => {
+      if (!cancelled) setWalletRollover(r)
+    })
+    return () => { cancelled = true }
+  }, [walletOpen, accountType, user?.accountId])
 
   const handleClearBalance = async () => {
     if (!user?.accountId || clearingBonus) return
@@ -553,9 +569,16 @@ export default function Layout({ children }) {
 
               <div className="wallet-bot-content">
                 <div className="wallet-balance-row">
-                  <div className="wallet-balance-title">Balance<span>:</span></div>
+                  <div className="wallet-balance-title">
+                    {accountType === 'bonus' ? 'Withdrawable' : 'Balance'}<span>:</span>
+                  </div>
                   <div className="wallet-balance-pill">
-                    <span className="wallet-balance-amount">${(Number(user?.balance) || 0).toFixed(2)}</span>
+                    <span className="wallet-balance-amount">${
+                      (accountType === 'bonus' && walletRollover
+                        ? Number(walletRollover.balance) || 0
+                        : Number(user?.balance) || 0
+                      ).toFixed(2)
+                    }</span>
                     <button
                       className="wallet-refresh-btn"
                       onClick={() => window.location.reload()}

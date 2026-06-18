@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useTranslation } from '../context/TranslationContext'
 import { walletService } from '../services/walletService'
+import { getRolloverProgress, getAccountType } from '../services/bonusWalletService'
 import { ButtonSpinner } from '../components/LoadingSpinner/LoadingSpinner'
 import AuthPrompt from '../components/AuthPrompt/AuthPrompt'
 import DepositModal from '../components/DepositModal/DepositModal'
@@ -20,6 +21,11 @@ export default function Wallet() {
   const [commissionEarnings, setCommissionEarnings] = useState([])
   const [pendingCommissionTotal, setPendingCommissionTotal] = useState(0)
   const [commissionLoading, setCommissionLoading] = useState(false)
+  // Bonus-mode rollover snapshot — populated when getAccountType === 'bonus'.
+  // The "Available" stat is sourced from rollover.balance in that case so
+  // the player sees their bonus pool size, not the (locked) main wallet.
+  const [rollover, setRollover] = useState(null)
+  const [accountType, setAccountType] = useState('normal')
 
 
   // Load wallet data
@@ -61,6 +67,31 @@ export default function Wallet() {
     loadWalletData()
   }, [loadWalletData])
 
+  // Bonus-mode snapshot: when the player is on bonus (bonus_wallet > 0)
+  // we surface the bonus pool balance in the "Available" stat instead of
+  // the main wallet (which is server-locked while on bonus).
+  useEffect(() => {
+    let cancelled = false
+    const accountId = user?.accountId
+    if (!isAuthenticated || !accountId) {
+      setRollover(null)
+      setAccountType('normal')
+      return
+    }
+    ;(async () => {
+      const type = await getAccountType(accountId)
+      if (cancelled) return
+      setAccountType(type)
+      if (type === 'bonus') {
+        const r = await getRolloverProgress(accountId)
+        if (!cancelled) setRollover(r)
+      } else {
+        setRollover(null)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [isAuthenticated, user?.accountId])
+
 
   // Show auth prompt if not logged in
   if (!isAuthenticated) {
@@ -74,7 +105,13 @@ export default function Wallet() {
   }
 
   const balance = user?.balance || 0
-  const availableBalance = user?.availableBalance || balance
+  // Withdrawable amount: when the player is on bonus mode we show the
+  // bonus pool balance from /api/bonus-wallet/{id}/rollover. Outside
+  // bonus mode the previous availableBalance (or main wallet) stands.
+  const isBonus = accountType === 'bonus'
+  const availableBalance = isBonus && rollover
+    ? Number(rollover.balance) || 0
+    : (user?.availableBalance || balance)
   const pendingBalance = user?.pendingBalance || 0
 
   return (
