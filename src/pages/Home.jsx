@@ -734,59 +734,11 @@ export default function Home() {
 
   return (
     <>
-      {/* Top promotions banner — three-frame crossfade above the main
-          banner carousel. Acts like a static GIF without shipping one. */}
+      {/* Top promotions banner — three-frame crossfade. Reuses the
+          existing .banner-carousel container so it shares the page
+          max-width + horizontal padding and shrinks responsively. */}
       <div className="banner-carousel">
         <PromoHeaderCarousel />
-      </div>
-
-      {/* Banner Carousel */}
-      <div className="banner-carousel">
-        <button className="carousel-btn prev" onClick={prevBanner}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-        </button>
-        <div className="banner-wrapper">
-          <div
-            className="banner-slider"
-            style={{ transform: `translateX(-${currentBanner * 100}%)` }}
-          >
-            {banners.map((banner, idx) => (
-              <div key={banner.id || idx} className="banner-slide">
-                {banner.image && (
-                  <img src={banner.image} alt={banner.name || `Banner ${idx + 1}`} className="banner-image" />
-                )}
-                {banner.description && (
-                  <div className="banner-text-overlay">
-                    <p className="banner-description-silver">{banner.description}</p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-          <div className="banner-progress">
-            <div
-              key={currentBanner}
-              className="banner-progress-bar"
-              style={{ animation: `progressFill ${BANNER_DURATION}ms linear` }}
-            />
-          </div>
-        </div>
-        <button className="carousel-btn next" onClick={nextBanner}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </button>
-        <div className="carousel-dots">
-          {banners.map((banner, idx) => (
-            <button
-              key={banner.id || idx}
-              className={`dot ${idx === currentBanner ? 'active' : ''}`}
-              onClick={() => setCurrentBanner(idx)}
-            />
-          ))}
-        </div>
       </div>
 
       {/* Below Banner (Choose among the best) */}
