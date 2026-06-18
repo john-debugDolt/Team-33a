@@ -51,6 +51,13 @@ const pickBonusArt = (bonus, fallback) => {
   if (has('weekly') && value === 20) return bonusWeekly20
   if (has('weekly') && value === 50) return bonusWeekly50
   if (has('weekly') && value === 80) return bonusWeekly80
+  // Catch-alls by value alone — covers bonuses whose title doesn't carry
+  // a cadence keyword (e.g. "New Register Free" $28 reuses the welcome
+  // 28 art).
+  if (value === 28) return bonusWelcome28
+  if (value === 20) return bonusWeekly20
+  if (value === 50) return bonusWeekly50
+  if (value === 80) return bonusWeekly80
   return fallback
 }
 

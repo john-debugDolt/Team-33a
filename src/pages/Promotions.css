@@ -16,7 +16,11 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%);
+  /* Match the .main-nav gradient so the Promotions page reads as a
+     continuation of the navigation surface. */
+  background: linear-gradient(180deg,
+    rgba(20, 28, 24, 0.98) 0%,
+    rgba(15, 21, 18, 0.99) 100%);
   z-index: 0;
 }
 
@@ -1105,7 +1109,14 @@
   background-size: cover;
   background-position: center;
   z-index: 0;
-  transition: transform 400ms ease;
+  /* 20% dull — flatten the brightness so the bonus art sits quieter on
+     the nav-tinted page background. */
+  filter: brightness(0.8);
+  transition: transform 400ms ease, filter 200ms ease;
+}
+
+.bonus-tile:hover:not(.tile-disabled) .bonus-tile-bg {
+  filter: brightness(0.92);
 }
 
 .bonus-tile-veil {
