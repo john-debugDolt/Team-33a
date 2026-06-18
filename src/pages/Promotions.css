@@ -1447,7 +1447,13 @@
 }
 
 @media (max-width: 480px) {
-  .bonus-tiles { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  /* Shrink the bonus grid ~30% on mobile so 3 tiles fit per row on a
+     typical phone and the bonus art reads as a "promo grid" rather
+     than full-width cards. */
+  .bonus-tiles { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+  .bonus-tile { border-radius: 10px; }
+  .bonus-section { margin-top: 18px; }
+  .bonus-section-title { font-size: 15px; }
   .bonus-popup { padding: 18px 16px 14px; }
   .bonus-popup-table, .bonus-popup-rules { font-size: 11px; }
 }
