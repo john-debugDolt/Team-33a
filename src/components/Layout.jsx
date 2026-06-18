@@ -569,9 +569,7 @@ export default function Layout({ children }) {
 
               <div className="wallet-bot-content">
                 <div className="wallet-balance-row">
-                  <div className="wallet-balance-title">
-                    {accountType === 'bonus' ? 'Withdrawable' : 'Balance'}<span>:</span>
-                  </div>
+                  <div className="wallet-balance-title">Balance<span>:</span></div>
                   <div className="wallet-balance-pill">
                     <span className="wallet-balance-amount">${
                       (accountType === 'bonus' && walletRollover

@@ -595,12 +595,6 @@ function BonusSection({ title, icon, bonuses, onClick, formatBonus, claimingBonu
               style={{ '--tile-bg': `url(${tileBg})` }}
             >
               <span className="bonus-tile-bg" aria-hidden="true"></span>
-              <span className="bonus-tile-veil" aria-hidden="true"></span>
-              <span className="bonus-tile-title">{cardTitle}</span>
-              <span className="bonus-tile-amount">{formatted.valueDisplay}</span>
-              {formatted.isLimited && (
-                <span className="bonus-tile-badge">{formatted.availabilityDisplay}</span>
-              )}
             </button>
           )
         })}
