@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import frame1 from '../../images/promo-header-1.jpg'
 import frame2 from '../../images/promo-header-2.jpg'
 import frame3 from '../../images/promo-header-3.jpg'
 import './PromoHeaderCarousel.css'
 
 // Three-frame crossfade banner that reads like a GIF — ships as three
-// JPEGs that fade through CSS opacity transitions. Sized to the same
-// 16:5 aspect the existing home banner-carousel uses so it slots in
-// where the static banner art used to sit.
+// JPEGs that fade through CSS opacity transitions. Aspect ratio matches
+// the source art (3168 x 1344) so the frames render uncropped. Whole
+// banner is a link into /promotions.
 const FRAMES = [frame1, frame2, frame3]
 const FRAME_DURATION_MS = 3500
 
@@ -21,7 +22,11 @@ export default function PromoHeaderCarousel() {
     return () => clearInterval(id)
   }, [])
   return (
-    <div className="promo-header-carousel" role="img" aria-label="Team33 promotions banner">
+    <Link
+      to="/promotions"
+      className="promo-header-carousel"
+      aria-label="View team33 promotions"
+    >
       {FRAMES.map((src, i) => (
         <img
           key={i}
@@ -33,7 +38,6 @@ export default function PromoHeaderCarousel() {
           className={`promo-header-frame ${i === active ? 'is-active' : ''}`}
         />
       ))}
-      <span className="promo-header-veil" aria-hidden="true" />
-    </div>
+    </Link>
   )
 }
