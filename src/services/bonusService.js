@@ -1,9 +1,33 @@
 /**
  * Bonus Service for Site Frontend
- * Fetches active bonuses/promotions to display to users
+ *
+ * Player-side endpoints live on accounts.team33.mx per the
+ * 2026-06-18 bonus/rollover/conversion spec at docs/bonus-rollover-conversion.md
+ *
+ * Catalogue:
+ *   GET  /api/bonuses/available                        — list player-visible bonuses
+ *   GET  /api/bonuses/{bonusId}                        — single bonus
+ *   GET  /api/bonuses/validate/{code}                  — accept a typed promo code
+ *
+ * Player history + claim:
+ *   GET  /api/bonuses/my-claims/{accountId}            — claim history (newest first)
+ *   POST /api/bonuses/claim                            — claim a free bonus (minDeposit=0)
+ *
+ * The legacy /api/bonuses/filter?isActive=true path returns 400 against
+ * accounts.team33.mx in production — verified 2026-06-18. We use /available.
  */
 
-import { apiClient } from './api';
+const PLAYER_BASE_URL = 'https://accounts.team33.mx';
+
+const fetchWithTimeout = async (url, options = {}, timeout = 15000) => {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(id);
+  }
+};
 
 // Bonus types for display
 export const BONUS_TYPE_LABELS = {
@@ -33,56 +57,90 @@ export const BONUS_TYPE_ICONS = {
 
 class BonusService {
   /**
-   * Get all active bonuses
-   * GET /api/bonuses/filter?isActive=true
+   * GET /api/bonuses/available — player-visible active bonuses.
+   *
+   * requires_code=true bonuses are filtered out server-side. The list is
+   * already player-safe; we additionally drop SYSTEM_* internal rows in case
+   * any leak through. The description field contains the full T&C text
+   * (with unicode arrows / newlines) for direct rendering in the detail
+   * popup.
    */
-  async getActiveBonuses() {
+  async getAvailableBonuses() {
     try {
-      const response = await apiClient.get('/api/bonuses/filter?isActive=true');
-
-      // Handle different response formats
-      if (Array.isArray(response)) {
-        // Filter out system bonuses that shouldn't be shown to users
-        return response.filter(bonus =>
-          bonus.bonusCode !== 'SYSTEM_DIRECT_CREDIT' &&
-          bonus.isAvailable !== false
-        );
+      const res = await fetchWithTimeout(`${PLAYER_BASE_URL}/api/bonuses/available`);
+      if (!res.ok) {
+        console.warn('[BonusService] /available returned', res.status);
+        return [];
       }
-
-      if (response.success && Array.isArray(response.data)) {
-        return response.data.filter(bonus =>
-          bonus.bonusCode !== 'SYSTEM_DIRECT_CREDIT' &&
-          bonus.isAvailable !== false
-        );
-      }
-
-      return [];
+      const list = await res.json();
+      if (!Array.isArray(list)) return [];
+      return list.filter(b => !String(b.bonusCode || '').startsWith('SYSTEM_'));
     } catch (error) {
-      console.error('[BonusService] Error fetching bonuses:', error);
+      console.error('[BonusService] Error fetching /available:', error);
       return [];
     }
   }
 
+  // Back-compat alias — older callers used getActiveBonuses().
+  async getActiveBonuses() {
+    return this.getAvailableBonuses();
+  }
+
   /**
-   * Get bonus by code
-   * GET /api/bonuses/code/{bonusCode}
+   * GET /api/bonuses/validate/{code} — used when the user types a code on
+   * the deposit page. Returns the bonus row if valid, null on 4xx/5xx.
+   *
+   * (Note: the upstream currently 500s on unknown codes instead of 400ing
+   * with a message. Treat any non-200 as "not a valid code".)
    */
-  async getBonusByCode(bonusCode) {
+  async validateBonusCode(code) {
+    if (!code) return null;
     try {
-      const response = await apiClient.get(`/api/bonuses/code/${bonusCode}`);
-
-      if (response && !response.error) {
-        return response;
-      }
-
-      if (response.success && response.data) {
-        return response.data;
-      }
-
-      return null;
+      const res = await fetchWithTimeout(
+        `${PLAYER_BASE_URL}/api/bonuses/validate/${encodeURIComponent(code)}`
+      );
+      if (!res.ok) return null;
+      return await res.json();
     } catch (error) {
-      console.error('[BonusService] Error fetching bonus by code:', error);
+      console.error('[BonusService] validate failed:', error);
       return null;
+    }
+  }
+
+  /**
+   * GET /api/bonuses/{bonusId} — single bonus by numeric id.
+   */
+  async getBonusById(bonusId) {
+    if (!bonusId) return null;
+    try {
+      const res = await fetchWithTimeout(
+        `${PLAYER_BASE_URL}/api/bonuses/${bonusId}`
+      );
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (error) {
+      console.error('[BonusService] getBonusById failed:', error);
+      return null;
+    }
+  }
+
+  /**
+   * GET /api/bonuses/my-claims/{accountId} — claim history (newest first).
+   * Returns [] for unknown accounts or any error so the UI can render an
+   * empty state cleanly.
+   */
+  async getMyClaims(accountId) {
+    if (!accountId) return [];
+    try {
+      const res = await fetchWithTimeout(
+        `${PLAYER_BASE_URL}/api/bonuses/my-claims/${encodeURIComponent(accountId)}`
+      );
+      if (!res.ok) return [];
+      const list = await res.json();
+      return Array.isArray(list) ? list : [];
+    } catch (error) {
+      console.error('[BonusService] getMyClaims failed:', error);
+      return [];
     }
   }
 
@@ -214,39 +272,61 @@ class BonusService {
   async claimFreeBonus(accountId, bonusId = null, bonusCode = null) {
     try {
       const body = { accountId };
-
-      // Either bonusId or bonusCode is required
       if (bonusId) body.bonusId = bonusId;
       if (bonusCode) body.bonusCode = bonusCode;
 
-      const response = await fetch('https://accounts.team33.mx/api/bonuses/claim', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
+      const response = await fetchWithTimeout(
+        `${PLAYER_BASE_URL}/api/bonuses/claim`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        },
+        20000,
+      );
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
       if (response.ok) {
         return {
           success: true,
-          bonusAmount: data.bonusAmount,
-          status: data.status,
-          claimId: data.id,
-          turnoverRequired: data.turnoverRequired,
-          data
+          bonusAmount: data?.bonusAmount,
+          status: data?.status,
+          claimId: data?.id,
+          turnoverRequired: data?.turnoverRequired,
+          data,
         };
       }
 
-      // Handle specific error cases
-      if (data.message?.includes('Already claimed')) {
-        return { success: false, error: 'You have already claimed this bonus' };
+      // Upstream currently 500s instead of 400 on most failures (verified
+      // 2026-06-18). Treat 5xx as a generic outage so the player sees a
+      // friendly toast instead of a cryptic stack trace.
+      if (response.status >= 500) {
+        return {
+          success: false,
+          status: response.status,
+          error: 'Bonus service is having issues right now. Please try again shortly.',
+        };
       }
-      if (data.message?.includes('requires deposit')) {
-        return { success: false, error: 'This bonus requires a deposit' };
+
+      const msg = data?.message || '';
+      if (msg.includes('already claimed this bonus today')) {
+        return { success: false, error: msg, code: 'ALREADY_CLAIMED_TODAY' };
       }
-      if (data.message?.includes('not available')) {
-        return { success: false, error: 'This bonus is no longer available' };
+      if (msg.includes('this week')) {
+        return { success: false, error: msg, code: 'ALREADY_CLAIMED_THIS_WEEK' };
+      }
+      if (msg.toLowerCase().includes('already claimed')) {
+        return { success: false, error: msg || 'You have already claimed this bonus' };
+      }
+      if (msg.includes('requires a deposit')) {
+        return { success: false, error: msg };
+      }
+      if (msg.includes('not available')) {
+        return { success: false, error: msg };
+      }
+      if (msg.toLowerCase().includes('weekly deposit')) {
+        return { success: false, error: msg, code: 'WEEKLY_DEPOSIT_GATE' };
       }
 
       return {

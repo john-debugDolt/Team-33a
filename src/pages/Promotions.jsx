@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useTranslation } from '../context/TranslationContext'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import bonusService from '../services/bonusService'
+import { getRolloverProgress } from '../services/bonusWalletService'
 import { getActiveCheckinBonus, claimCheckinBonus } from '../services/checkinBonusService'
 import { ButtonSpinner } from '../components/LoadingSpinner/LoadingSpinner'
 import './Promotions.css'
@@ -34,6 +35,15 @@ function CheckinStripe({ accountId, isAuthenticated, onClaimSuccess, onUnauthCla
   const [claiming, setClaiming] = useState(false)
 
   const refresh = async () => {
+    // Backend returns 404 when accountId is omitted (verified 2026-06-18),
+    // which collapsed the stripe for logged-out players. Skip the call in
+    // that case so the loading flag clears and the stripe stays hidden
+    // without a noisy 404 in the console.
+    if (!accountId) {
+      setCampaign(null)
+      setLoading(false)
+      return
+    }
     const result = await getActiveCheckinBonus(accountId)
     setLoading(false)
     if (result.status === 'ok') setCampaign(result.data)
@@ -143,17 +153,40 @@ export default function Promotions() {
   const [error, setError] = useState(null)
   const [selectedBonus, setSelectedBonus] = useState(null) // For promo code modal
   const [claimingBonus, setClaimingBonus] = useState(null) // For free bonus claiming
+  const [rollover, setRollover] = useState(null)
+  const [myClaims, setMyClaims] = useState([])
 
   // Fetch active bonuses on mount
   useEffect(() => {
     fetchBonuses()
   }, [])
 
+  // Per-account data: rollover snapshot + claim history. Re-fetches when the
+  // active account changes (log-in / log-out without leaving the page).
+  useEffect(() => {
+    let cancelled = false
+    const accountId = user?.accountId
+    if (!accountId) {
+      setRollover(null)
+      setMyClaims([])
+      return
+    }
+    Promise.all([
+      getRolloverProgress(accountId),
+      bonusService.getMyClaims(accountId),
+    ]).then(([rolloverData, claims]) => {
+      if (cancelled) return
+      setRollover(rolloverData)
+      setMyClaims(claims)
+    }).catch(() => { /* services already swallow errors */ })
+    return () => { cancelled = true }
+  }, [user?.accountId])
+
   const fetchBonuses = async () => {
     setLoading(true)
     setError(null)
     try {
-      const activeBonuses = await bonusService.getActiveBonuses()
+      const activeBonuses = await bonusService.getAvailableBonuses()
       setBonuses(activeBonuses)
     } catch (err) {
       console.error('Error fetching bonuses:', err)
@@ -161,6 +194,17 @@ export default function Promotions() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const refreshRolloverAndClaims = async () => {
+    const accountId = user?.accountId
+    if (!accountId) return
+    const [r, c] = await Promise.all([
+      getRolloverProgress(accountId),
+      bonusService.getMyClaims(accountId),
+    ])
+    setRollover(r)
+    setMyClaims(c)
   }
 
   // Every tile click opens the detail popup — the popup itself handles
@@ -196,8 +240,10 @@ export default function Promotions() {
           `Bonus claimed! $${result.bonusAmount?.toFixed(2) || bonus.bonusValue} credited to your wallet!`,
           'success'
         )
-        // Refresh bonuses to update availability
-        await fetchBonuses()
+        // Pull fresh catalog (availability may have changed) and the per-
+        // account rollover snapshot + claim history that drive the new
+        // RolloverCard + MyClaimsList sections.
+        await Promise.all([fetchBonuses(), refreshRolloverAndClaims()])
       } else {
         showToast(result.error || 'Failed to claim bonus', 'error')
       }
@@ -275,8 +321,14 @@ export default function Promotions() {
               try {
                 window.dispatchEvent(new StorageEvent('storage', { key: 'team33_bonus_balance' }))
               } catch { /* ignore */ }
+              // Pull the rollover snapshot + claim history again — daily
+              // check-in credits show up in bonus_wallet.balance straight
+              // away.
+              refreshRolloverAndClaims()
             }}
           />
+
+          <RolloverCard rollover={rollover} />
 
           {/* Content */}
           {loading ? (
@@ -325,6 +377,8 @@ export default function Promotions() {
               )
             })()
           )}
+
+          <MyClaimsList claims={myClaims} bonuses={bonuses} />
         </div>
       </div>
 
@@ -346,6 +400,133 @@ export default function Promotions() {
           onClose={handleCloseModal}
           onClaim={handleClaimFromPopup}
         />
+      )}
+    </div>
+  )
+}
+
+// Decimal-string-safe to-Number. The bonus/rollover API serves DECIMAL(19,4)
+// as strings — Number() is fine for *display* but we never use this for math.
+const dec = (v) => {
+  const n = Number(v)
+  return Number.isFinite(n) ? n : 0
+}
+
+const fmtMoney = (v) => {
+  const n = dec(v)
+  return `$${n.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+const fmtDate = (s) => {
+  if (!s) return ''
+  try {
+    const d = new Date(s)
+    return d.toLocaleDateString('en-AU', { day: '2-digit', month: 'short', year: 'numeric' })
+  } catch { return '' }
+}
+
+// Rollover progress card — Design-C math from
+// GET /api/bonus-wallet/{id}/rollover. Hidden when both balance and
+// originalBonusCredited are 0 ("no active bonus" per doc §3.7).
+function RolloverCard({ rollover }) {
+  if (!rollover) return null
+  const balance = dec(rollover.balance)
+  const original = dec(rollover.originalBonusCredited)
+  const denom = dec(rollover.rolloverDenominator)
+  // Hide on empty round.
+  if (balance === 0 && original === 0) return null
+
+  const completed = dec(rollover.rolloverCompleted)
+  // Cap visual progress at 100% even though the server permits >1.
+  const pct = Math.max(0, Math.min(100, completed * 100))
+
+  const isAdminTopUp = original === 0 && balance > 0
+  const subline = isAdminTopUp
+    ? 'Manual credit — no rollover round attached'
+    : `Bet ${fmtMoney(denom)} total to unlock conversion`
+
+  return (
+    <div className="rollover-card">
+      <div className="rollover-card-head">
+        <div>
+          <h3 className="rollover-card-title">
+            <span className="rollover-card-icon" aria-hidden="true">🎯</span>
+            Bonus Rollover
+          </h3>
+          <p className="rollover-card-sub">{subline}</p>
+        </div>
+        <div className="rollover-card-pct" aria-label={`Rollover ${pct.toFixed(1)} percent complete`}>
+          {pct.toFixed(0)}%
+        </div>
+      </div>
+      <div className="rollover-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={pct.toFixed(0)}>
+        <div className="rollover-bar-fill" style={{ width: `${pct}%` }} />
+      </div>
+      <div className="rollover-card-stats">
+        <div className="rollover-stat">
+          <span className="rollover-stat-label">Bonus pool</span>
+          <span className="rollover-stat-value">{fmtMoney(balance)}</span>
+        </div>
+        <div className="rollover-stat">
+          <span className="rollover-stat-label">Original credit</span>
+          <span className="rollover-stat-value">{fmtMoney(original)}</span>
+        </div>
+        <div className="rollover-stat">
+          <span className="rollover-stat-label">Wagering target</span>
+          <span className="rollover-stat-value">{fmtMoney(denom)}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Claim history — GET /api/bonuses/my-claims/{accountId}. We cross-reference
+// the active catalog to show a display name when available; older claims
+// for retired bonuses fall back to "Bonus #ID".
+function MyClaimsList({ claims, bonuses }) {
+  const [expanded, setExpanded] = useState(false)
+  const nameLookup = useMemo(() => {
+    const map = new Map()
+    for (const b of bonuses || []) map.set(b.id, b.displayName || b.bonusCode)
+    return map
+  }, [bonuses])
+  if (!claims || claims.length === 0) return null
+
+  const visible = expanded ? claims : claims.slice(0, 5)
+
+  return (
+    <div className="my-claims-section">
+      <h3 className="my-claims-title">
+        <span className="my-claims-icon" aria-hidden="true">🧾</span>
+        My Claims
+        <span className="my-claims-count">{claims.length}</span>
+      </h3>
+      <ul className="my-claims-list">
+        {visible.map((c) => {
+          const name = nameLookup.get(c.bonusId) || `Bonus #${c.bonusId}`
+          const status = (c.status || 'PENDING').toUpperCase()
+          return (
+            <li key={c.id} className="my-claim-row">
+              <div className="my-claim-main">
+                <span className="my-claim-name">{name}</span>
+                <span className="my-claim-date">{fmtDate(c.creditedAt || c.createdAt)}</span>
+              </div>
+              <div className="my-claim-meta">
+                <span className="my-claim-amount">{fmtMoney(c.bonusAmount)}</span>
+                <span className={`my-claim-status status-${status.toLowerCase()}`}>{status}</span>
+              </div>
+            </li>
+          )
+        })}
+      </ul>
+      {claims.length > 5 && (
+        <button
+          type="button"
+          className="my-claims-toggle"
+          onClick={() => setExpanded((v) => !v)}
+        >
+          {expanded ? 'Show fewer' : `Show all ${claims.length}`}
+        </button>
       )}
     </div>
   )

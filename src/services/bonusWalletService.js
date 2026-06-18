@@ -118,6 +118,57 @@ export const clearBonusWalletCache = () => {
 }
 
 /**
+ * GET /api/bonus-wallet/{accountId}/rollover — Design-C rollover snapshot.
+ *
+ * Verified 2026-06-18: this endpoint lives on seamless.team33.mx (the spec
+ * doc lists accounts.team33.mx, but accounts returns 404 today).
+ *
+ * Response shape:
+ *   { accountId, balance, originalBonusCredited, rolloverRequired,
+ *     rolloverCompleted, rolloverDenominator }
+ *
+ * Empty-round fallback: every field 0 except rolloverRequired=1. Caller
+ * should treat (originalBonusCredited === 0 && balance === 0) as
+ * "no active bonus".
+ *
+ * Returns null on any error so the UI can hide the progress card cleanly.
+ */
+export const getRolloverProgress = async (accountId) => {
+  if (!accountId) return null
+  try {
+    const url = `${BASE_URL}/api/bonus-wallet/${encodeURIComponent(accountId)}/rollover`
+    const response = await fetchWithTimeout(url)
+    if (!response.ok) return null
+    return await response.json()
+  } catch (error) {
+    console.warn('[BonusWallet] rollover fetch failed:', error?.message)
+    return null
+  }
+}
+
+/**
+ * GET /api/bonus-wallet/{accountId}/transactions — immutable bonus ledger.
+ *
+ * Each row carries `balanceAfter` so callers can render a running balance
+ * without recomputing. Types include CREDIT_GRANT,
+ * DEBIT_PROVIDER_DEPOSIT (bet), CREDIT_PROVIDER_WITHDRAW (win),
+ * DEBIT_CLEAR_BALANCE, DEBIT_REVOKE.
+ */
+export const getBonusTransactions = async (accountId) => {
+  if (!accountId) return []
+  try {
+    const url = `${BASE_URL}/api/bonus-wallet/${encodeURIComponent(accountId)}/transactions`
+    const response = await fetchWithTimeout(url)
+    if (!response.ok) return []
+    const list = await response.json()
+    return Array.isArray(list) ? list : []
+  } catch (error) {
+    console.warn('[BonusWallet] transactions fetch failed:', error?.message)
+    return []
+  }
+}
+
+/**
  * Clear the player's bonus_wallet (zeros it). After this returns success,
  * the real wallet auto-unlocks server-side because bonus_wallet.balance === 0.
  *
@@ -194,6 +245,8 @@ export const bonusWalletService = {
   getBonusBalance,
   getAccountType,
   getDisplayBalance,
+  getRolloverProgress,
+  getBonusTransactions,
   bonusAliasParam,
   clearBonus,
   clearCache: clearBonusWalletCache,

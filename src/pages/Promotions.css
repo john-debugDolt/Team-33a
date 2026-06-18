@@ -1425,3 +1425,262 @@
   .bonus-popup { padding: 18px 16px 14px; }
   .bonus-popup-table, .bonus-popup-rules { font-size: 11px; }
 }
+
+/* -----------------------------------------------------------------------
+   Rollover progress card — Design-C snapshot from
+   GET /api/bonus-wallet/{id}/rollover. Sits between CheckinStripe and
+   the bonus tile grid. Same emerald palette as the rest of the page.
+   --------------------------------------------------------------------- */
+.rollover-card {
+  margin-top: 20px;
+  padding: 18px 18px 16px;
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(ellipse at top, var(--accent-glow) 0%, transparent 60%),
+    linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+  border: 1px solid var(--border-active);
+  box-shadow: var(--shadow-glow), var(--shadow-md);
+  color: var(--text-primary);
+}
+
+.rollover-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.rollover-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 4px;
+  font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--emerald-400);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.rollover-card-icon { font-size: 19px; line-height: 1; }
+
+.rollover-card-sub {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.35;
+  max-width: 70%;
+}
+
+.rollover-card-pct {
+  flex-shrink: 0;
+  font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  background: linear-gradient(180deg, var(--emerald-300) 0%, var(--emerald-500) 55%, var(--emerald-700) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.rollover-bar {
+  position: relative;
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(167, 243, 208, 0.10);
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+
+.rollover-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--emerald-600) 0%, var(--emerald-400) 100%);
+  box-shadow: 0 0 12px var(--accent-glow);
+  transition: width 400ms ease-out;
+}
+
+.rollover-card-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.rollover-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 8px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg-elevated) 100%);
+  border: 1px solid var(--border-subtle);
+}
+
+.rollover-stat-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.rollover-stat-value {
+  font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--emerald-400);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
+}
+
+@media (max-width: 480px) {
+  .rollover-card-stats { grid-template-columns: 1fr 1fr; }
+  .rollover-card-sub { max-width: 100%; }
+  .rollover-card-pct { font-size: 22px; }
+}
+
+/* -----------------------------------------------------------------------
+   My Claims list — GET /api/bonuses/my-claims/{accountId}. Renders below
+   the bonus sections. Collapsed to 5 by default; "Show all N" expands.
+   --------------------------------------------------------------------- */
+.my-claims-section {
+  margin-top: 30px;
+}
+
+.my-claims-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.my-claims-icon { font-size: 18px; }
+
+.my-claims-count {
+  margin-left: auto;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--primary-muted);
+  border: 1px solid var(--border-hover);
+  color: var(--emerald-400);
+  letter-spacing: 0.3px;
+}
+
+.my-claims-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.my-claim-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg-elevated) 100%);
+  border: 1px solid var(--border-subtle);
+}
+
+.my-claim-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.my-claim-name {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 13.5px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.my-claim-date {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.my-claim-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.my-claim-amount {
+  font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--emerald-400);
+}
+
+.my-claim-status {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.my-claim-status.status-credited {
+  color: var(--emerald-400);
+  background: var(--primary-muted);
+  border-color: var(--border-hover);
+}
+
+.my-claim-status.status-pending {
+  color: #fde68a;
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.45);
+}
+
+.my-claim-status.status-cancelled,
+.my-claim-status.status-expired {
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.45);
+}
+
+.my-claims-toggle {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+  border: 1px solid var(--border-hover);
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  transition: border-color 150ms, color 150ms;
+}
+
+.my-claims-toggle:hover {
+  border-color: var(--border-active);
+  color: var(--text-primary);
+}
