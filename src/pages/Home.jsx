@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import PromoHeaderCarousel from '../components/PromoHeaderCarousel/PromoHeaderCarousel'
 import { gameService } from '../services/gameService'
 import { getAllAdvantPlayGames } from '../services/advantPlayService'
 import { getAllUUSlotGames } from '../services/uuSlotService'
@@ -733,6 +734,12 @@ export default function Home() {
 
   return (
     <>
+      {/* Top promotions banner — three-frame crossfade above the main
+          banner carousel. Acts like a static GIF without shipping one. */}
+      <div className="banner-carousel">
+        <PromoHeaderCarousel />
+      </div>
+
       {/* Banner Carousel */}
       <div className="banner-carousel">
         <button className="carousel-btn prev" onClick={prevBanner}>

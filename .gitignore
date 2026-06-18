@@ -33,3 +33,11 @@ admin/.env
 *.sln
 *.sw?
 Team33-admin/
+
+# Bonus / promo PNG source art — shipped as shrunk JPEGs (bonus-*.jpg,
+# promo-header-*.jpg) so the multi-megabyte originals stay out of the bundle.
+src/images/headergif*.png
+src/images/dailybonus*.png
+src/images/welcomebonus*.png
+src/images/weeklybonus*.png
+src/images/weeklyrebate*.png

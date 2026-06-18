@@ -1346,16 +1346,19 @@
 }
 
 .bonus-popup-tos {
-  margin-top: 16px;
-  font-size: 10.5px;
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 11px;
   line-height: 1.55;
-  color: var(--text-muted);
-}
-
-.bonus-popup-tos .bp-tos-label {
-  color: var(--emerald-400);
-  font-weight: 700;
-  margin-right: 6px;
+  color: var(--text-secondary);
+  background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg-elevated) 100%);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-height: 180px;
+  overflow-y: auto;
 }
 
 .bonus-popup-tos .bp-tos-alert {

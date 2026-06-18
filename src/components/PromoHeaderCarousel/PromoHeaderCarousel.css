@@ -1,0 +1,39 @@
+.promo-header-carousel {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 5;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
+  margin-bottom: 16px;
+  background: var(--bg-secondary);
+}
+
+.promo-header-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 700ms ease-in-out;
+  will-change: opacity;
+}
+
+.promo-header-frame.is-active {
+  opacity: 1;
+}
+
+.promo-header-veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, 0.25) 100%),
+    linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
+}
+
+@media (max-width: 480px) {
+  .promo-header-carousel { border-radius: var(--radius-lg); margin-bottom: 12px; }
+}

@@ -13,13 +13,46 @@ import banner1 from '../images/New banner.png'
 import banner2 from '../images/New banner 2.png'
 import banner3 from '../images/New banner 3.png'
 import treasureGif from '../images/buried-treasure.gif'
-// Square-tile backgrounds: center-cropped team33 game banners. Cycled
-// across the bonus grid so adjacent tiles don't repeat the same art.
+// Generic team33 game banners — fallback tile background when a bonus
+// doesn't match any of the dedicated art below.
 import tileBg1 from '../images/promo-tile-bg-1.jpg'
 import tileBg2 from '../images/promo-tile-bg-2.jpg'
 import tileBg3 from '../images/promo-tile-bg-3.jpg'
-
 const TILE_BACKGROUNDS = [tileBg1, tileBg2, tileBg3]
+
+// Per-bonus key art — the JPEGs are sips-shrunk from the original
+// multi-megabyte PNGs (kept .gitignored). Match below is done by bonus
+// title / amount, with a fallback to the cycled generic banners.
+import bonusDaily5 from '../images/bonus-daily-5.jpg'
+import bonusWelcome50 from '../images/bonus-welcome-50.jpg'
+import bonusWelcome28 from '../images/bonus-welcome-28.jpg'
+import bonusWeeklyRebate5 from '../images/bonus-weeklyrebate-5.jpg'
+import bonusWeeklyRebate10 from '../images/bonus-weeklyrebate-10.jpg'
+import bonusWeekly20 from '../images/bonus-weekly-20.jpg'
+import bonusWeekly50 from '../images/bonus-weekly-50.jpg'
+import bonusWeekly80 from '../images/bonus-weekly-80.jpg'
+
+// Pick the dedicated art for this bonus or fall back to the generic
+// banner pool. We look for cadence keywords (weekly rebate / daily /
+// welcome) and the integer amount in the bonus value.
+const pickBonusArt = (bonus, fallback) => {
+  if (!bonus) return fallback
+  const hay = `${bonus.displayName || ''} ${bonus.bonusCode || ''}`.toLowerCase()
+  const value = Math.round(Number(bonus.bonusValue) || 0)
+  const has = (s) => hay.includes(s)
+  if (has('daily') && value === 5) return bonusDaily5
+  if (has('welcome') && value === 50) return bonusWelcome50
+  if (has('welcome') && value === 28) return bonusWelcome28
+  if (has('rebate') && value === 5) return bonusWeeklyRebate5
+  if (has('rebate') && value === 10) return bonusWeeklyRebate10
+  // Weekly Rebate $80 — no dedicated rebate art; the weekly-bonus 80
+  // frame is the closest stylistic match.
+  if (has('rebate') && value === 80) return bonusWeekly80
+  if (has('weekly') && value === 20) return bonusWeekly20
+  if (has('weekly') && value === 50) return bonusWeekly50
+  if (has('weekly') && value === 80) return bonusWeekly80
+  return fallback
+}
 
 // Backend-driven daily check-in stripe.
 //
@@ -548,7 +581,9 @@ function BonusSection({ title, icon, bonuses, onClick, formatBonus, claimingBonu
           const formatted = formatBonus(bonus)
           const available = bonusService.isBonusAvailable(bonus)
           const cardTitle = bonus.displayName || bonus.bonusCode || 'BONUS'
-          const tileBg = TILE_BACKGROUNDS[idx % TILE_BACKGROUNDS.length]
+          // Prefer dedicated art for the bonus; fall back to the
+          // cycled team33 banner pool when there isn't a match.
+          const tileBg = pickBonusArt(bonus, TILE_BACKGROUNDS[idx % TILE_BACKGROUNDS.length])
           const isClaiming = claimingBonus === bonus.id
           return (
             <button
@@ -574,26 +609,48 @@ function BonusSection({ title, icon, bonuses, onClick, formatBonus, claimingBonu
   )
 }
 
-// Bonus detail popup — mirrors the structure of the legacy template the
-// player team supplied. Every row that depends on a backend-supplied
-// string is hidden when the field is missing, so older bonus records
-// still render cleanly while we backfill data.
+// Bonus detail popup — all rows derived from the live /api/bonuses/available
+// payload (per the 2026-06-18 customer-frontend doc §3.1). The full T&C
+// text already lives in bonus.description with unicode arrows + newlines
+// and is rendered verbatim below the structured rows.
 function BonusDetailPopup({ bonus, formatted, available, claiming, onClose, onClaim }) {
   const title = (bonus.displayName || bonus.bonusCode || 'BONUS').toUpperCase()
-  const isFree = !bonus.minDeposit
-  const requirementsLabel = isFree ? 'NO' : `MIN $${bonus.minDeposit}`
-  const claimLimitLabel = bonus.claimFrequencyText
-    || (bonus.maxClaims ? `${bonus.maxClaims} TOTAL` : null)
-  const winoverLabel = bonus.winoverTargetText
-    || (bonus.turnoverMultiplier > 0 ? `${bonus.turnoverMultiplier}x TURNOVER` : null)
-  const maxWithdrawalLabel = bonus.maxWithdrawalText
-    || (bonus.maxWithdrawal ? `$${bonus.maxWithdrawal}` : null)
-  const validForLabel = bonus.validForText || null
-  const notAllowedLabel = bonus.notAllowedText || null
-  const telegramUrl = bonus.telegramUrl || null
-  const rules = [bonus.belowRedepositText, bonus.aboveWithdrawText, bonus.infoIncorrectText].filter(Boolean)
-  const generalTos = bonus.generalTermsText
-    || 'Terms & Conditions apply. If any illegal betting, suspicious behavior, bonus abuse, side betting, or saving free games to play later is detected, your deposit, including any winnings and bonuses, may be frozen. The system may also reset your account balance to zero. Team33 reserves the right to void any withdrawal eligibility, suspend account privileges, and take any necessary actions including reversal of bonuses and winnings.'
+  const minDeposit = dec(bonus.minDeposit)
+  const isFree = minDeposit === 0
+  const bonusValueNum = dec(bonus.bonusValue)
+  const turnoverMultNum = dec(bonus.turnoverMultiplier)
+  const maxBonusNum = dec(bonus.maxBonusAmount)
+  const weeklyDepNum = dec(bonus.weeklyDepositRequired)
+
+  const requirementsLabel = isFree ? 'NO' : `MIN $${minDeposit}`
+
+  // Map claimPeriod (NONE | DAILY | WEEKLY) to a player-friendly phrase.
+  const claimLimitLabel = (() => {
+    switch ((bonus.claimPeriod || '').toUpperCase()) {
+      case 'DAILY': return 'ONCE PER DAY'
+      case 'WEEKLY': return 'ONCE PER WEEK'
+      case 'NONE': return 'ONCE PER LIFETIME'
+      default: return null
+    }
+  })()
+
+  // Winover target: bonusValue × multiplier for FIXED bonuses (e.g. $5 × 20 = $100
+  // wagering). For PERCENTAGE bonuses the dollar amount depends on the player's
+  // deposit, so we show the multiplier instead.
+  const winoverLabel = turnoverMultNum > 0
+    ? (bonus.bonusType === 'PERCENTAGE'
+        ? `${turnoverMultNum}× TURNOVER`
+        : `BET $${(bonusValueNum * turnoverMultNum).toFixed(0)} TOTAL`)
+    : null
+
+  const maxBonusLabel = maxBonusNum > 0 ? `$${maxBonusNum}` : null
+  const weeklyDepositLabel = weeklyDepNum > 0 ? `$${weeklyDepNum}` : null
+
+  const validForLabel = null     // not in API today
+  const notAllowedLabel = null   // not in API today
+  const telegramUrl = null       // not in API today
+  const rules = []
+  const generalTos = (bonus.description || '').trim()
 
   return (
     <div className="bonus-popup-overlay" onClick={onClose}>
@@ -636,10 +693,16 @@ function BonusDetailPopup({ bonus, formatted, available, claiming, onClose, onCl
                 <td className="bp-val">{winoverLabel}</td>
               </tr>
             )}
-            {maxWithdrawalLabel && (
+            {maxBonusLabel && (
               <tr>
-                <td className="bp-key">MAX WITHDRAWAL</td>
-                <td className="bp-val">{maxWithdrawalLabel}</td>
+                <td className="bp-key">MAX BONUS</td>
+                <td className="bp-val">{maxBonusLabel}</td>
+              </tr>
+            )}
+            {weeklyDepositLabel && (
+              <tr>
+                <td className="bp-key">WEEKLY DEPOSIT</td>
+                <td className="bp-val">{weeklyDepositLabel}</td>
               </tr>
             )}
             {validForLabel && (
@@ -667,11 +730,9 @@ function BonusDetailPopup({ bonus, formatted, available, claiming, onClose, onCl
           </table>
         )}
 
-        <p className="bonus-popup-tos">
-          <span className="bp-tos-label">General</span>
-          <span className="bp-tos-alert" aria-hidden="true">⚠️</span>
-          <span>{generalTos}</span>
-        </p>
+        {generalTos && (
+          <pre className="bonus-popup-tos">{generalTos}</pre>
+        )}
 
         <div className="bonus-popup-btns">
           <button className="bp-btn bp-btn-danger" onClick={onClose}>Close</button>
