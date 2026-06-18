@@ -554,7 +554,10 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px;
+  /* Pad the top by the device's safe-area inset so the logo + close X
+     clear the iPhone dynamic island / notch on the PWA. Same pattern
+     other top-anchored UI uses across the app. */
+  padding: calc(20px + var(--safe-area-top, 0px)) 20px 20px;
   border-bottom: 1px solid var(--border-subtle);
 }
 

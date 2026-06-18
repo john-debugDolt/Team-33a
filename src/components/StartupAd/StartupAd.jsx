@@ -1,5 +1,30 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+
+// Rate-limit the popup to once per hour per device. Without this it
+// re-opens on every router mount (page reload, deep-link, fresh tab),
+// which players were finding aggressive.
+const STORAGE_KEY = 'team33_startup_ad_last_shown'
+const COOLDOWN_MS = 60 * 60 * 1000 // 1 hour
+
+const shouldShowStartupAd = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return true
+    const last = Number(raw)
+    if (!Number.isFinite(last)) return true
+    return Date.now() - last >= COOLDOWN_MS
+  } catch {
+    // Private mode / storage disabled — fall back to showing it.
+    return true
+  }
+}
+
+const markStartupAdShown = () => {
+  try {
+    localStorage.setItem(STORAGE_KEY, String(Date.now()))
+  } catch { /* ignore quota / private-mode errors */ }
+}
 import bonusDaily5 from '../../images/bonus-daily-5.jpg'
 import bonusWelcome50 from '../../images/bonus-welcome-50.jpg'
 import bonusWelcome28 from '../../images/bonus-welcome-28.jpg'
@@ -24,7 +49,14 @@ const BONUS_ART = [
 ]
 
 export default function StartupAd() {
-  const [visible, setVisible] = useState(true)
+  // Decide once on first render whether this app-mount qualifies (less
+  // than 1h since the last impression). If not, the popup never enters
+  // the tree this session.
+  const [visible, setVisible] = useState(() => {
+    const ok = shouldShowStartupAd()
+    if (ok) markStartupAdShown()
+    return ok
+  })
   // Pick once per mount so the image doesn't reshuffle if the popup
   // re-renders for some reason. Math.random gives a uniform pull.
   const pickedArt = useMemo(
