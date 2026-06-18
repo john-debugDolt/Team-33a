@@ -610,47 +610,16 @@ function BonusSection({ title, icon, bonuses, onClick, formatBonus, claimingBonu
   )
 }
 
-// Bonus detail popup — all rows derived from the live /api/bonuses/available
-// payload (per the 2026-06-18 customer-frontend doc §3.1). The full T&C
-// text already lives in bonus.description with unicode arrows + newlines
-// and is rendered verbatim below the structured rows.
+// Bonus detail popup — the structured row table was dropped because the
+// derived values (winover, claim limit, weekly deposit) weren't always
+// accurate against the live catalog. The authoritative T&C ships in
+// bonus.description as a curated multi-line string with unicode arrows
+// (➤ ⚠ ✓ ✘) and newlines; we render it verbatim and point the player
+// at it.
 function BonusDetailPopup({ bonus, formatted, available, claiming, onClose, onClaim }) {
   const title = (bonus.displayName || bonus.bonusCode || 'BONUS').toUpperCase()
-  const minDeposit = dec(bonus.minDeposit)
-  const isFree = minDeposit === 0
-  const bonusValueNum = dec(bonus.bonusValue)
-  const turnoverMultNum = dec(bonus.turnoverMultiplier)
-  const maxBonusNum = dec(bonus.maxBonusAmount)
-  const weeklyDepNum = dec(bonus.weeklyDepositRequired)
-
-  const requirementsLabel = isFree ? 'NO' : `MIN $${minDeposit}`
-
-  // Map claimPeriod (NONE | DAILY | WEEKLY) to a player-friendly phrase.
-  const claimLimitLabel = (() => {
-    switch ((bonus.claimPeriod || '').toUpperCase()) {
-      case 'DAILY': return 'ONCE PER DAY'
-      case 'WEEKLY': return 'ONCE PER WEEK'
-      case 'NONE': return 'ONCE PER LIFETIME'
-      default: return null
-    }
-  })()
-
-  // Winover target: bonusValue × multiplier for FIXED bonuses (e.g. $5 × 20 = $100
-  // wagering). For PERCENTAGE bonuses the dollar amount depends on the player's
-  // deposit, so we show the multiplier instead.
-  const winoverLabel = turnoverMultNum > 0
-    ? (bonus.bonusType === 'PERCENTAGE'
-        ? `${turnoverMultNum}× TURNOVER`
-        : `BET $${(bonusValueNum * turnoverMultNum).toFixed(0)} TOTAL`)
-    : null
-
-  const maxBonusLabel = maxBonusNum > 0 ? `$${maxBonusNum}` : null
-  const weeklyDepositLabel = weeklyDepNum > 0 ? `$${weeklyDepNum}` : null
-
-  const validForLabel = null     // not in API today
-  const notAllowedLabel = null   // not in API today
+  const isFree = !dec(bonus.minDeposit)
   const telegramUrl = null       // not in API today
-  const rules = []
   const generalTos = (bonus.description || '').trim()
 
   return (
@@ -672,64 +641,10 @@ function BonusDetailPopup({ bonus, formatted, available, claiming, onClose, onCl
           </a>
         )}
 
-        <table className="bonus-popup-table">
-          <tbody>
-            <tr>
-              <td className="bp-key">{title}</td>
-              <td className="bp-val">{formatted.valueDisplay}</td>
-            </tr>
-            <tr>
-              <td className="bp-key">REQUIREMENTS</td>
-              <td className="bp-val">{requirementsLabel}</td>
-            </tr>
-            {claimLimitLabel && (
-              <tr>
-                <td className="bp-key">CLAIM LIMIT</td>
-                <td className="bp-val">{claimLimitLabel}</td>
-              </tr>
-            )}
-            {winoverLabel && (
-              <tr>
-                <td className="bp-key">WINOVER</td>
-                <td className="bp-val">{winoverLabel}</td>
-              </tr>
-            )}
-            {maxBonusLabel && (
-              <tr>
-                <td className="bp-key">MAX BONUS</td>
-                <td className="bp-val">{maxBonusLabel}</td>
-              </tr>
-            )}
-            {weeklyDepositLabel && (
-              <tr>
-                <td className="bp-key">WEEKLY DEPOSIT</td>
-                <td className="bp-val">{weeklyDepositLabel}</td>
-              </tr>
-            )}
-            {validForLabel && (
-              <tr>
-                <td className="bp-key">VALID FOR</td>
-                <td className="bp-val">{validForLabel}</td>
-              </tr>
-            )}
-            {notAllowedLabel && (
-              <tr>
-                <td className="bp-key">NOT ALLOWED</td>
-                <td className="bp-val bp-warn">{notAllowedLabel}</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-
-        {rules.length > 0 && (
-          <table className="bonus-popup-rules">
-            <tbody>
-              {rules.map((r, i) => (
-                <tr key={i}><td>{r}</td></tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        <p className="bonus-popup-readbelow">
+          Please read the full terms &amp; conditions below for accurate
+          requirements, claim limits, winover, and withdrawal rules.
+        </p>
 
         {generalTos && (
           <pre className="bonus-popup-tos">{generalTos}</pre>
