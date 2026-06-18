@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useTranslation } from '../context/TranslationContext'
 import { walletService } from '../services/walletService'
-import { getRolloverProgress, getAccountType } from '../services/bonusWalletService'
+import { getRolloverProgress, getAccountType, clearBonus } from '../services/bonusWalletService'
 import { ButtonSpinner } from '../components/LoadingSpinner/LoadingSpinner'
 import AuthPrompt from '../components/AuthPrompt/AuthPrompt'
 import DepositModal from '../components/DepositModal/DepositModal'
@@ -26,6 +26,13 @@ export default function Wallet() {
   // the player sees their bonus pool size, not the (locked) main wallet.
   const [rollover, setRollover] = useState(null)
   const [accountType, setAccountType] = useState('normal')
+  // Drives the "Clear Wallet" quick-action (forfeits the bonus pool,
+  // unlocks the main wallet) — mirrors the popup in Layout.jsx.
+  const [clearingBonus, setClearingBonus] = useState(false)
+  // Shown when a bonus-mode player taps Deposit. They must clear the
+  // bonus pool first (the main wallet is server-locked while
+  // bonus_wallet > 0).
+  const [showBonusBlockModal, setShowBonusBlockModal] = useState(false)
 
 
   // Load wallet data
@@ -66,6 +73,56 @@ export default function Wallet() {
   useEffect(() => {
     loadWalletData()
   }, [loadWalletData])
+
+  // Re-read the rollover snapshot — used after clearBonus so the
+  // Available/Balance figures and the "is on bonus" branch refresh
+  // without a full page reload.
+  const refreshBonusState = useCallback(async () => {
+    if (!user?.accountId) return
+    const type = await getAccountType(user.accountId, { force: true })
+    setAccountType(type)
+    if (type === 'bonus') {
+      const r = await getRolloverProgress(user.accountId)
+      setRollover(r)
+    } else {
+      setRollover(null)
+    }
+  }, [user?.accountId])
+
+  const handleClearBonusWallet = useCallback(async () => {
+    if (!user?.accountId || clearingBonus) return
+    if (!window.confirm('Clear your bonus balance? This will forfeit your bonus credit and unlock your main wallet for deposit / withdraw.')) {
+      return
+    }
+    setClearingBonus(true)
+    try {
+      const result = await clearBonus(user.accountId, { description: 'user hit clear-balance (wallet page)' })
+      if (result?.success) {
+        showToast(t('clearBalanceSuccess') || 'Bonus balance cleared.', 'success')
+        try {
+          const w = await walletService.getBalance(user.accountId)
+          if (w?.success && w.balance !== undefined) updateBalance(w.balance)
+        } catch { /* ignore */ }
+        await refreshBonusState()
+      } else if (result?.status === 404 || result?.status === 405) {
+        showToast('Clear balance is not yet available.', 'warning')
+      } else {
+        showToast(result?.error || 'Failed to clear balance.', 'error')
+      }
+    } catch (err) {
+      showToast(err?.message || 'Failed to clear balance.', 'error')
+    } finally {
+      setClearingBonus(false)
+    }
+  }, [user?.accountId, clearingBonus, showToast, t, updateBalance, refreshBonusState])
+
+  const handleDepositClick = useCallback(() => {
+    if (accountType === 'bonus') {
+      setShowBonusBlockModal(true)
+      return
+    }
+    setShowDepositModal(true)
+  }, [accountType])
 
   // Bonus-mode snapshot: when the player is on bonus (bonus_wallet > 0)
   // we surface the bonus pool balance in the "Available" stat instead of
@@ -165,7 +222,7 @@ export default function Wallet() {
 
         {/* Quick Actions */}
         <div className="quick-actions">
-          <button className="quick-action-btn" onClick={() => setShowDepositModal(true)}>
+          <button className="quick-action-btn" onClick={handleDepositClick}>
             <div className="action-icon deposit">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 19V5M5 12l7 7 7-7"/>
@@ -181,14 +238,21 @@ export default function Wallet() {
             </div>
             <span>{t('withdraw')}</span>
           </button>
-          <button className="quick-action-btn" onClick={() => showToast('Transfer feature coming soon!', 'info')}>
-            <div className="action-icon transfer">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
-                <path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+          <button
+            type="button"
+            className="quick-action-btn"
+            onClick={handleClearBonusWallet}
+            disabled={clearingBonus}
+            aria-label="Clear bonus wallet (forfeit bonus, unlock main wallet)"
+          >
+            <div className="action-icon clear-wallet">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
               </svg>
             </div>
-            <span>Transfer</span>
+            <span>{clearingBonus ? 'Clearing…' : 'Clear Wallet'}</span>
           </button>
           <Link to="/history" className="quick-action-btn">
             <div className="action-icon history">
@@ -357,6 +421,63 @@ export default function Wallet() {
           loadWalletData() // Refresh transactions after withdrawal
         }}
       />
+
+      {/* Bonus-active deposit gate: the main wallet is server-locked
+          while bonus_wallet > 0, so a deposit can't land on it. The
+          player has to forfeit (clear) the bonus pool first. */}
+      {showBonusBlockModal && (
+        <div
+          className="bonus-block-overlay"
+          onClick={() => setShowBonusBlockModal(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="bonus-block-title"
+        >
+          <div className="bonus-block-modal" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="bonus-block-close"
+              onClick={() => setShowBonusBlockModal(false)}
+              aria-label="Close"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
+            <div className="bonus-block-icon" aria-hidden="true">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </div>
+            <h3 id="bonus-block-title" className="bonus-block-title">Bonus is active</h3>
+            <p className="bonus-block-message">
+              You can't deposit while a bonus is sitting on your wallet. Clear the bonus to forfeit it and unlock your main wallet for deposit.
+            </p>
+            <div className="bonus-block-actions">
+              <button
+                type="button"
+                className="bonus-block-btn bonus-block-btn-secondary"
+                onClick={() => setShowBonusBlockModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="bonus-block-btn bonus-block-btn-primary"
+                disabled={clearingBonus}
+                onClick={async () => {
+                  setShowBonusBlockModal(false)
+                  await handleClearBonusWallet()
+                }}
+              >
+                {clearingBonus ? 'Clearing…' : 'Clear Bonus Now'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
