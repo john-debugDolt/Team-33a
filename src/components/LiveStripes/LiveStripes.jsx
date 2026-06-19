@@ -4,36 +4,23 @@ import useAccountType from '../../hooks/useAccountType'
 import { useToast } from '../../context/ToastContext'
 import './LiveStripes.css'
 
-// Sexy Baccarat cards — all launch the SEXYBCRT platform via LiveCasino
+// One card per live hub we actually have wired:
+//   Sexy Baccarat (SEXYBCRT) and AllBet Roulette (ALLBET) — both launched
+//   through LiveCasino, SV388 + M8BET launched through Sports. Earlier
+//   versions of this stripe duplicated each hub 3-6 times to make the
+//   carousel feel full, but that misled players into thinking we had
+//   more tables than we do.
 import sexy1 from '../../images/sexybaccarat1.jpg'
-import sexy2 from '../../images/seybaccarat2.jpg'   // (original filename has a typo)
-import sexy3 from '../../images/sexybaccarat3.jpg'
-import sexy4 from '../../images/sexybaccarat4.jpg'
-import sexy5 from '../../images/sexybaccarat5.jpg'
-import sexy6 from '../../images/sexybaccarat6.jpg'
-
-// AllBet roulette cards — launch the ALLBET hub via LiveCasino
 import rouletteAllbet1 from '../../images/live roulette allbet.jpg'
-import rouletteAllbet2 from '../../images/live roulette allbet 2.jpg'
-import rouletteAllbet3 from '../../images/live roulette allbet 3.jpg'
-
-// Live Sports
 import sv388Logo from '../../images/sv388logo.jpg'
 import m8betLogo from '../../images/m8betlogo.jpg'
 
 const BACCARAT_CARDS = [
   { id: 'sexy-1', image: sexy1, label: 'Sexy Baccarat' },
-  { id: 'sexy-2', image: sexy2, label: 'Sexy Baccarat' },
-  { id: 'sexy-3', image: sexy3, label: 'Sexy Baccarat' },
-  { id: 'sexy-4', image: sexy4, label: 'Sexy Baccarat' },
-  { id: 'sexy-5', image: sexy5, label: 'Sexy Baccarat' },
-  { id: 'sexy-6', image: sexy6, label: 'Sexy Baccarat' },
 ]
 
 const ROULETTE_CARDS = [
   { id: 'roulette-1', image: rouletteAllbet1, label: 'AllBet Roulette' },
-  { id: 'roulette-2', image: rouletteAllbet2, label: 'AllBet Roulette' },
-  { id: 'roulette-3', image: rouletteAllbet3, label: 'AllBet Roulette' },
 ]
 
 const SPORTS_CARDS = [
@@ -230,7 +217,6 @@ export default function LiveStripes() {
         icon="🃏"
         cards={BACCARAT_CARDS}
         onCardClick={handleBaccaratClick}
-        autoScroll
         locked={locked}
       />
       <div className="live-stripes-row">
@@ -239,7 +225,6 @@ export default function LiveStripes() {
           icon="🎡"
           cards={ROULETTE_CARDS}
           onCardClick={handleRouletteClick}
-          autoScroll
           locked={locked}
         />
         <LiveStripe
@@ -247,7 +232,6 @@ export default function LiveStripes() {
           icon="⚽"
           cards={SPORTS_CARDS}
           onCardClick={handleSportsClick}
-          autoScroll
           locked={locked}
         />
       </div>
