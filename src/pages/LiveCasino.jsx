@@ -13,17 +13,14 @@ import './LiveCasino.css'
 
 const DEFAULT_LAUNCH_AMOUNT = 100
 
+// Only the providers we actually have wired end up on the chips
+// carousel. The earlier list included BG / SBO / DG / WM / BBIN / OG
+// / AG / SA as "coming soon" decoys, but tapping any of those just
+// surfaced a toast and the dealer art was misleading. Surface only
+// what the player can actually play right now.
 const casinoProviders = [
-  { id: 'BG', name: 'BG', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/BG/girl-BG.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/BG/base-title.png' },
-  { id: 'SBO', name: 'SBO', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/SBO/girl-SBO.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/SBO/base-title.png' },
-  { id: 'DG', name: 'DG', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/DG/girl-DG.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/DG/base-title.png' },
   { id: 'ALLBET', name: 'ALLBET', wired: true, girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/ALLBET/girl-ALLBET.png', logo: allbetLogo },
   { id: 'SEXY', name: 'SEXY', wired: true, girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/SEXY/girl-SEXY.png', logo: sexyLogo },
-  { id: 'WM', name: 'WM', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/WM/girl-WM.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/WM/base-title.png' },
-  { id: 'BBIN', name: 'BBIN', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/BBIN/girl-BBIN.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/BBIN/base-title.png' },
-  { id: 'OG', name: 'OG', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/OG/girl-OG.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/OG/base-title.png' },
-  { id: 'AG', name: 'AG', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/AG/girl-AG.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/AG/base-title.png' },
-  { id: 'SA', name: 'SA', girl: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/SA/girl-SA.png', logo: 'https://d2a18plfx719u2.cloudfront.net/frontend/game/games/live/page/SA/base-title.png' },
 ]
 
 export default function LiveCasino() {
