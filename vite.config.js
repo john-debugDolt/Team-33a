@@ -158,61 +158,61 @@ export default defineConfig({
       },
       // Proxy AdvantPlay Games API
       '/api/advantplay': {
-        target: 'https://advantplay.seamless.team33.mx',
+        target: 'https://accounts.team33.mx',
         changeOrigin: true,
         secure: true,
       },
       // Proxy UUSlot Games API
       '/api/uuslot': {
-        target: 'https://uuslot.seamless.team33.mx',
+        target: 'https://accounts.team33.mx',
         changeOrigin: true,
         secure: true,
       },
       // Proxy EVO888H5 Games API
       '/api/evo888h5': {
-        target: 'https://evo888h5.seamless.team33.mx',
+        target: 'https://accounts.team33.mx',
         changeOrigin: true,
         secure: true,
       },
       // Proxy MegaH5 Games API
       '/api/megah5': {
-        target: 'https://seamless.team33.mx',
+        target: 'https://accounts.team33.mx',
         changeOrigin: true,
         secure: true,
       },
       // Proxy SCR888H5 Games API
       '/api/scr888h5': {
-        target: 'https://seamless.team33.mx',
+        target: 'https://accounts.team33.mx',
         changeOrigin: true,
         secure: true,
       },
       // Proxy JDB Transfer Games API
       '/api/jdb-transfer': {
-        target: 'https://seamless.team33.mx',
+        target: 'https://accounts.team33.mx',
         changeOrigin: true,
         secure: true,
       },
       // Proxy RichGaming Games API
       '/api/richgaming': {
-        target: 'https://seamless.team33.mx',
+        target: 'https://accounts.team33.mx',
         changeOrigin: true,
         secure: true,
       },
       // Proxy MetaGaming Games API
       '/api/metagaming': {
-        target: 'https://seamless.team33.mx',
+        target: 'https://accounts.team33.mx',
         changeOrigin: true,
         secure: true,
       },
       // Proxy WFGaming Games API
       '/api/wfgaming': {
-        target: 'https://seamless.team33.mx',
+        target: 'https://accounts.team33.mx',
         changeOrigin: true,
         secure: true,
       },
       // Proxy EpicWin Games API
       '/api/epicwin': {
-        target: 'https://seamless.team33.mx',
+        target: 'https://accounts.team33.mx',
         changeOrigin: true,
         secure: true,
       },

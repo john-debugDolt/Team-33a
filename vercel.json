@@ -71,43 +71,91 @@
     },
     {
       "source": "/api/advantplay/:path*",
-      "destination": "https://advantplay.seamless.team33.mx/api/advantplay/:path*"
+      "destination": "https://accounts.team33.mx/api/advantplay/:path*"
     },
     {
       "source": "/api/uuslot/:path*",
-      "destination": "https://uuslot.seamless.team33.mx/api/uuslot/:path*"
+      "destination": "https://accounts.team33.mx/api/uuslot/:path*"
     },
     {
       "source": "/api/evo888h5/:path*",
-      "destination": "https://evo888h5.seamless.team33.mx/api/evo888h5/:path*"
+      "destination": "https://accounts.team33.mx/api/evo888h5/:path*"
+    },
+    {
+      "source": "/api/evo888h5-bonus-transfer/:path*",
+      "destination": "https://accounts.team33.mx/api/evo888h5-bonus-transfer/:path*"
     },
     {
       "source": "/api/megah5/:path*",
-      "destination": "https://seamless.team33.mx/api/megah5/:path*"
+      "destination": "https://accounts.team33.mx/api/megah5/:path*"
     },
     {
       "source": "/api/scr888h5/:path*",
-      "destination": "https://seamless.team33.mx/api/scr888h5/:path*"
+      "destination": "https://accounts.team33.mx/api/scr888h5/:path*"
     },
     {
       "source": "/api/jdb-transfer/:path*",
-      "destination": "https://seamless.team33.mx/api/jdb-transfer/:path*"
+      "destination": "https://accounts.team33.mx/api/jdb-transfer/:path*"
     },
     {
       "source": "/api/richgaming/:path*",
-      "destination": "https://seamless.team33.mx/api/richgaming/:path*"
+      "destination": "https://accounts.team33.mx/api/richgaming/:path*"
     },
     {
       "source": "/api/metagaming/:path*",
-      "destination": "https://seamless.team33.mx/api/metagaming/:path*"
+      "destination": "https://accounts.team33.mx/api/metagaming/:path*"
     },
     {
       "source": "/api/wfgaming/:path*",
-      "destination": "https://seamless.team33.mx/api/wfgaming/:path*"
+      "destination": "https://accounts.team33.mx/api/wfgaming/:path*"
     },
     {
       "source": "/api/epicwin/:path*",
-      "destination": "https://seamless.team33.mx/api/epicwin/:path*"
+      "destination": "https://accounts.team33.mx/api/epicwin/:path*"
+    },
+    {
+      "source": "/api/acewin-transfer/:path*",
+      "destination": "https://accounts.team33.mx/api/acewin-transfer/:path*"
+    },
+    {
+      "source": "/api/funta-transfer/:path*",
+      "destination": "https://accounts.team33.mx/api/funta-transfer/:path*"
+    },
+    {
+      "source": "/api/dragonsoft-transfer/:path*",
+      "destination": "https://accounts.team33.mx/api/dragonsoft-transfer/:path*"
+    },
+    {
+      "source": "/api/vpower-transfer/:path*",
+      "destination": "https://accounts.team33.mx/api/vpower-transfer/:path*"
+    },
+    {
+      "source": "/api/win8-transfer/:path*",
+      "destination": "https://accounts.team33.mx/api/win8-transfer/:path*"
+    },
+    {
+      "source": "/api/pegasus-transfer/:path*",
+      "destination": "https://accounts.team33.mx/api/pegasus-transfer/:path*"
+    },
+    {
+      "source": "/api/lucky365-transfer/:path*",
+      "destination": "https://accounts.team33.mx/api/lucky365-transfer/:path*"
+    },
+    {
+      "source": "/api/awc-transfer/:path*",
+      "destination": "https://accounts.team33.mx/api/awc-transfer/:path*"
+    },
+    {
+      "source": "/api/m9-transfer/:path*",
+      "destination": "https://accounts.team33.mx/api/m9-transfer/:path*"
+    },
+    {
+      "source": "/api/allbet-transfer/:path*",
+      "destination": "https://accounts.team33.mx/api/allbet-transfer/:path*"
+    },
+    {
+      "source": "/api/rich88-transfer/:path*",
+      "destination": "https://accounts.team33.mx/api/rich88-transfer/:path*"
     },
     {
       "source": "/api/games",
