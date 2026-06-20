@@ -83,15 +83,19 @@ export default function GameImage({ src, alt, className }) {
 
   // Background probe — fetches the real URL using a new Image() with cache-busted URL.
   // Once it succeeds, swap the displayed img to the real src.
-  // Capped at MAX_RETRIES so dead URLs (e.g. dead CDN 403s) don't loop forever.
-  const MAX_RETRIES = 6
+  // No retry cap: provider CDNs (clot-gaming, evo888h5, advantplay) occasionally
+  // 403 / 5xx for tens of seconds at a time, so we keep probing until the image
+  // either loads or the component unmounts. Backoff caps at 15s so we don't
+  // hammer the upstream while still recovering as soon as it's back.
   const scheduleProbe = () => {
     if (!isMountedRef.current || !isValidSrc) return
-    if (retryCountRef.current >= MAX_RETRIES) return
 
     const attempt = retryCountRef.current
-    // Backoff: 1s, 2s, 4s, 8s, 15s, 15s, then stop
-    const delay = Math.min(1000 * Math.pow(2, attempt), 15000)
+    // Backoff: 1s, 2s, 4s, 8s, then 15s forever. Small jitter so a
+    // grid of 100+ images doesn't synchronise its retries into a
+    // thundering herd against the upstream.
+    const base = Math.min(1000 * Math.pow(2, attempt), 15000)
+    const delay = base + Math.floor(Math.random() * 500)
 
     retryTimeoutRef.current = setTimeout(() => {
       if (!isMountedRef.current) return
