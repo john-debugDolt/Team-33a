@@ -7,7 +7,7 @@
  */
 
 // AdvantPlay API URL (subdomain configured)
-const ADVANTPLAY_BASE_URL = 'https://advantplay.seamless.team33.mx';
+const ADVANTPLAY_BASE_URL = 'https://accounts.team33.mx';
 
 // Cache for AdvantPlay games
 let cachedAdvantPlayGames = null;

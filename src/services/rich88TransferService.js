@@ -32,7 +32,7 @@
 import rich88Logo from '../images/rich88logo.jpg';
 import { getGameIcon, pickProviderIcon } from './gameIconRegistry';
 
-const BASE_URL = 'https://seamless.team33.mx';
+const BASE_URL = 'https://accounts.team33.mx';
 
 // sessionStorage key — persists the operator alias for the active Rich88
 // session so follow-up balance / withdraw / exit calls hit the right

@@ -2,7 +2,7 @@
  * UUSlot Game Service
  * Handles fetching games from UUSlot API and game launching
  *
- * API Base URL: https://uuslot.seamless.team33.mx
+ * API Base URL: https://accounts.team33.mx
  * Endpoints:
  *   - GET /api/uuslot/game/list - Get game list
  *   - GET /api/uuslot/game/launch - Launch a game
@@ -11,7 +11,7 @@
  */
 
 // UUSlot API Base URL
-const UUSLOT_BASE_URL = 'https://uuslot.seamless.team33.mx';
+const UUSLOT_BASE_URL = 'https://accounts.team33.mx';
 
 // Cache for UUSlot games
 let cachedUUSlotGames = null;

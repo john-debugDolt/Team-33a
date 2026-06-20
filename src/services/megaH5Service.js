@@ -4,7 +4,7 @@
  * Endpoints: /games, /launch, /kick, /health
  */
 
-const BASE_URL = 'https://seamless.team33.mx';
+const BASE_URL = 'https://accounts.team33.mx';
 
 let cachedGames = null;
 let cacheTimestamp = null;
@@ -151,12 +151,24 @@ export const launchMegaH5Game = async (game, accountId, lang = 'en-us') => {
   }
 };
 
+export const kickMegaH5Player = async (accountId, alias) => {
+  try {
+    const params = new URLSearchParams({ accountId });
+    if (alias) params.set('account', alias);
+    const response = await fetchWithTimeout(`${BASE_URL}/api/megah5/kick?${params}`, { method: 'POST' });
+    return response.ok ? { success: true } : { success: false };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
 export const clearMegaH5Cache = () => { cachedGames = null; cacheTimestamp = null; };
 
 export const megaH5Service = {
   fetchGames: fetchMegaH5Games,
   getAllGames: getAllMegaH5Games,
   launchGame: launchMegaH5Game,
+  kickPlayer: kickMegaH5Player,
   clearCache: clearMegaH5Cache,
 };
 

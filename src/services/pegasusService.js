@@ -14,7 +14,7 @@
  * - amount=0 on /launch is a valid no-deposit launch; on /withdraw use omit (backend reads live balance)
  */
 
-const BASE_URL = 'https://seamless.team33.mx'
+const BASE_URL = 'https://accounts.team33.mx'
 
 let cachedGames = null
 let cacheTimestamp = null

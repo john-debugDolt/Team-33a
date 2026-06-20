@@ -22,7 +22,7 @@
  * as a safety net.
  */
 
-const BASE_URL = 'https://seamless.team33.mx';
+const BASE_URL = 'https://accounts.team33.mx';
 
 // sessionStorage key — persists the alias used by /launch so follow-up
 // balance / withdraw / transfer-out / clear calls hit the same operator

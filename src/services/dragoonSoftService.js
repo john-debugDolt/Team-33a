@@ -13,7 +13,7 @@
 
 import { getGameIcon, pickProviderIcon } from './gameIconRegistry'
 
-const BASE_URL = 'https://seamless.team33.mx'
+const BASE_URL = 'https://accounts.team33.mx'
 
 let cachedGames = null
 let cacheTimestamp = null

@@ -5,7 +5,7 @@
 
 // EVO888H5 API Configuration - using seamless backend endpoint
 const EVO888H5_API_BASE = '/api/evo888h5';
-const EVO888H5_DIRECT_URL = 'https://evo888h5.seamless.team33.mx/api/evo888h5';
+const EVO888H5_DIRECT_URL = 'https://accounts.team33.mx/api/evo888h5';
 
 /**
  * Fetch with timeout helper for browser compatibility
@@ -168,7 +168,7 @@ export const launchEvo888h5Game = async (accountId, gameId, lang = 'en', options
       const body = JSON.stringify(bodyObj);
       const urls = [
         `/api/evo888h5-bonus-transfer/launch`,
-        `https://seamless.team33.mx/api/evo888h5-bonus-transfer/launch`,
+        `https://accounts.team33.mx/api/evo888h5-bonus-transfer/launch`,
       ];
       for (const launchUrl of urls) {
         try {
@@ -244,7 +244,7 @@ const newRequestId = () =>
 
 const BONUS_PATHS = [
   '/api/evo888h5-bonus-transfer',
-  'https://seamless.team33.mx/api/evo888h5-bonus-transfer',
+  'https://accounts.team33.mx/api/evo888h5-bonus-transfer',
 ];
 
 /**

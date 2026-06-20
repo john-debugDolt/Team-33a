@@ -15,7 +15,7 @@
  * - Backend auto-withdraws after 20 min as safety net
  */
 
-const BASE_URL = 'https://seamless.team33.mx'
+const BASE_URL = 'https://accounts.team33.mx'
 
 const fetchWithTimeout = async (url, options = {}, timeout = 20000) => {
   const controller = new AbortController()
