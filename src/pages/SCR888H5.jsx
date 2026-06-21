@@ -1,6 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllSCR888H5Games, transferOutSCR888H5, launchSCR888H5Game } from '../services/scr888h5Service'
+import {
+  recordLaunch,
+  clearLaunch,
+  clearLaunchIfMatches,
+  sweepAllReturns,
+  getPreLaunchBalance,
+  getLaunchTimestamp,
+  ProviderKey,
+} from '../services/launchTracker'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -14,7 +23,14 @@ import { useCategoryAndSort } from '../components/CategorySortBar/CategorySortBa
 
 export default function SCR888H5() {
   const navigate = useNavigate()
-  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate, isLaunchBlocked } = useAuth()
+  const {
+    isAuthenticated,
+    user,
+    updateBalance,
+    notifyTransactionUpdate,
+    freezeBalance,
+    isLaunchBlocked,
+  } = useAuth()
   const { showToast } = useToast()
 
   const [games, setGames] = useState([])
@@ -104,8 +120,13 @@ export default function SCR888H5() {
 
   // Transfer Wallet: tear down iframe immediately so the UI isn't blocked
   // by the retry loop; transfer-out + balance refresh run in the background.
+  // The freeze hides the transient $0 the next periodic poll would otherwise
+  // pick up between transfer-out start and credit-back landing in main wallet.
   const closeGame = () => {
     const accountId = user?.accountId
+    const preBalance = getPreLaunchBalance(ProviderKey.SCR888H5)
+    const launchedAt = getLaunchTimestamp(ProviderKey.SCR888H5)
+    if (preBalance != null) freezeBalance?.(preBalance, 4000)
     setEmbeddedGame(null)
     setShowExitConfirm(false)
 
@@ -117,6 +138,7 @@ export default function SCR888H5() {
     ;(async () => {
       const result = await tryTransferOutWithRetries(accountId, 10)
       if (result?.success) {
+        clearLaunchIfMatches(ProviderKey.SCR888H5, launchedAt)
         const amount = Number(result.amountTransferred ?? 0)
         if (amount > 0) {
           showToast(`+${amount} returned to your wallet`, 'success')
@@ -158,6 +180,16 @@ export default function SCR888H5() {
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
 
+    // Hold the displayed balance for 5s so the player doesn't see the
+    // post-deposit dip while SCR is still booting the session.
+    const preBalance = Number(user?.balance) || 0
+    freezeBalance?.(preBalance, 5000)
+
+    // Sweep any stranded SCR / other-provider sessions in parallel, then
+    // record this launch so closeGame + the visibility sweep can find it.
+    sweepAllReturns(updateBalance).catch(() => {})
+    recordLaunch(ProviderKey.SCR888H5, user?.accountId, { preLaunchBalance: preBalance })
+
     const maxRetries = 15
     let attempt = 0
     let success = false
@@ -191,6 +223,10 @@ export default function SCR888H5() {
 
     if (!success) {
       console.error('[Game Launch] All retries failed')
+      // No session on SCR's side after a failed launch — drop the LIFO
+      // entry so the visibility-change sweep doesn't keep calling /exit
+      // on nothing.
+      clearLaunch(ProviderKey.SCR888H5)
     }
 
     setLaunchingGame(null)

@@ -13,6 +13,7 @@
 
 import { exitAdvantPlayGame } from './advantPlayService'
 import { exitAceWinGame } from './acewinTransferService'
+import { transferOutSCR888H5 } from './scr888h5Service'
 import { exitFunTaGame } from './funtaGamingService'
 import { exitDragoonSoftGame } from './dragoonSoftService'
 import { exitVPowerGame } from './vpowerService'
@@ -37,6 +38,7 @@ export const ProviderKey = {
   VPOWER: 'VPOWER',
   WIN8: 'WIN8',
   PEGASUS: 'PEGASUS',
+  SCR888H5: 'SCR888H5',
   LUCKY365: 'LUCKY365',
   ALLBET: 'ALLBET',
   SEXYBCRT: 'SEXYBCRT',
@@ -66,6 +68,10 @@ const EXIT_MAP = {
   VPOWER: exitVPowerGame,
   WIN8: exitWin8Game,
   PEGASUS: exitPegasusGame,
+  // SCR888H5 calls /transfer-out (not /exit); the service resolves the
+  // operator alias (normal | bonus) from the launch-time sessionStorage
+  // pin so a bonus-mode session lands in bonus_wallet, not main wallet.
+  SCR888H5: transferOutSCR888H5,
   LUCKY365: exitLucky365Game,
   ALLBET: exitAllBet,
   SEXYBCRT: exitSexyBaccarat,
