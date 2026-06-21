@@ -68,16 +68,15 @@ const getAdvantPlayIconUrl = (game, iconSize = DEFAULT_ICON_SIZE, iconType = 'bk
     return '/placeholder-game.png';
   }
 
-  const lang = getCurrentLanguage();
+  // Skip IconList entries that came back with Url:{} — AdvantPlay ships
+  // those for languages they haven't localised art for yet, and they'd
+  // look like a real match but resolve to a placeholder.
+  const hasArt = (i) => i?.Url && Object.keys(i.Url).length > 0;
 
-  // Find icon for current language, fallback to English
-  let iconData = game.IconList.find(i => i.Language === lang);
-  if (!iconData) {
-    iconData = game.IconList.find(i => i.Language === 'en');
-  }
-  if (!iconData && game.IconList.length > 0) {
-    iconData = game.IconList[0]; // Use first available
-  }
+  const lang = getCurrentLanguage();
+  let iconData = game.IconList.find((i) => i.Language === lang && hasArt(i));
+  if (!iconData) iconData = game.IconList.find((i) => i.Language === 'en' && hasArt(i));
+  if (!iconData) iconData = game.IconList.find(hasArt);
 
   if (!iconData || !iconData.Url) {
     return '/placeholder-game.png';
@@ -229,69 +228,48 @@ const fetchWithTimeout = async (url, optionsOrTimeout = {}, maybeTimeout) => {
   }
 };
 
+/**
+ * GET /api/advantplay-transfer/games?size={size}
+ *
+ * The transfer-wallet catalogue endpoint (doc 2026-06-22 §3.7). Returns
+ * AdvantPlay's raw envelope:
+ *   { ErrorCode, ErrorDescription, Games: [ { GameCategory, GameCode,
+ *     GameTag, IconList:[{ Language, Name, Url:{ size:{bkg,transparent} }}],
+ *     Id, ReleaseDate } ] }
+ *
+ * Each IconList entry that AdvantPlay hasn't shipped art for ships
+ * `Url: {}` (empty object). The transform / getAdvantPlayIconUrl below
+ * skips those when scoring the language match.
+ *
+ * The legacy seamless catalogue at /api/advantplay/game/list returns the
+ * upstream-404 right now (AdvantPlay disabled the s527 site code on
+ * cutover), so we no longer fall back to it.
+ */
 export const fetchAdvantPlayGames = async (iconSize = DEFAULT_ICON_SIZE) => {
   try {
-    // Try direct URL first (has proper CORS), then proxy as fallback
-    // Direct URL works better with privacy browsers like Brave
-    const urls = [
-      `${ADVANTPLAY_BASE_URL}/api/advantplay/game/list?iconSize=${iconSize}`,
-      `/api/advantplay/game/list?iconSize=${iconSize}`
-    ];
-
-    for (const url of urls) {
-      try {
-        console.log('[AdvantPlayService] Fetching games from:', url);
-
-        // Add mode and credentials for better cross-browser support
-        const response = await fetchWithTimeout(url, 20000);
-
-        if (!response.ok) {
-          console.log('[AdvantPlayService] Response not OK:', response.status);
-          continue;
-        }
-
-        const text = await response.text();
-
-        // Check if response is empty or HTML (blocked by browser)
-        if (!text || text.startsWith('<!') || text.startsWith('<html')) {
-          console.log('[AdvantPlayService] Invalid response (empty or HTML)');
-          continue;
-        }
-
-        const data = JSON.parse(text);
-        console.log('[AdvantPlayService] API response success:', data.success);
-
-        // AdvantPlay returns { success: true, games: [...] }
-        let games = [];
-        if (Array.isArray(data)) {
-          games = data;
-        } else if (data.games && Array.isArray(data.games)) {
-          games = data.games;
-        } else if (data.data && Array.isArray(data.data)) {
-          games = data.data;
-        }
-
-        if (games.length > 0) {
-          console.log('[AdvantPlayService] Found', games.length, 'games');
-          return {
-            success: true,
-            games: games.map(g => transformAdvantPlayGame(g, iconSize)),
-            rawGames: games,
-          };
-        }
-
-        console.log('[AdvantPlayService] No games found in response');
-      } catch (err) {
-        console.log('[AdvantPlayService] Error fetching from', url, ':', err.message);
-      }
+    const url = `${ADVANTPLAY_TRANSFER_BASE}/games?size=${encodeURIComponent(iconSize)}`;
+    console.log('[AdvantPlay/games] → GET', url);
+    const response = await fetchWithTimeout(url, 20000);
+    if (!response.ok) {
+      console.warn('[AdvantPlay/games] HTTP', response.status);
+      return { success: false, games: [], error: `HTTP ${response.status}` };
     }
-
-    console.error('[AdvantPlayService] All API endpoints failed');
-    return { success: false, games: [], error: 'All API endpoints failed' };
-
+    const data = await response.json().catch(() => null);
+    const errorCode = Number(data?.ErrorCode ?? data?.errorCode) || 0;
+    if (errorCode !== 0) {
+      console.warn('[AdvantPlay/games] upstream errorCode', errorCode);
+      return { success: false, games: [], errorCode, error: data?.ErrorDescription };
+    }
+    const raw = data?.Games || data?.games || [];
+    console.log('[AdvantPlay/games] ←', raw.length, 'games');
+    return {
+      success: true,
+      games: raw.map((g) => transformAdvantPlayGame(g, iconSize)),
+      rawGames: raw,
+    };
   } catch (error) {
-    console.error('[AdvantPlayService] Failed to fetch AdvantPlay games:', error);
-    return { success: false, games: [], error: error.message };
+    console.error('[AdvantPlay/games] fetch failed:', error);
+    return { success: false, games: [], error: error?.message };
   }
 };
 
@@ -555,33 +533,22 @@ export const getAdvantPlayDomain = async () => {
 };
 
 /**
- * Get available icon sizes from AdvantPlay
+ * GET /api/advantplay-transfer/icon-sizes — doc §3.8.
+ * Returns the upstream-supported size list (e.g. 66x67, 150x150, …).
+ * Falls back to the hardcoded local list on any error.
  */
 export const getAdvantPlayIconSizes = async () => {
   try {
-    const urls = [
-      `/api/advantplay/game/icon-sizes`,
-      `${ADVANTPLAY_BASE_URL}/api/advantplay/game/icon-sizes`
-    ];
-
-    for (const url of urls) {
-      try {
-        const response = await fetch(url);
-        if (response.ok) {
-          return await response.json();
-        }
-      } catch (err) {
-        console.log('[AdvantPlayService] Error fetching icon sizes:', err.message);
-      }
+    const response = await fetchWithTimeout(`${ADVANTPLAY_TRANSFER_BASE}/icon-sizes`, 10000);
+    if (response.ok) {
+      const data = await response.json().catch(() => null);
+      const sizes = data?.Size || data?.size;
+      if (Array.isArray(sizes) && sizes.length > 0) return sizes;
     }
-
-    // Return default sizes if API fails
-    return Object.values(ADVANTPLAY_ICON_SIZES);
-
   } catch (error) {
-    console.error('[AdvantPlayService] Failed to get icon sizes:', error);
-    return Object.values(ADVANTPLAY_ICON_SIZES);
+    console.warn('[AdvantPlay/icon-sizes] failed:', error?.message);
   }
+  return Object.values(ADVANTPLAY_ICON_SIZES);
 };
 
 /**
