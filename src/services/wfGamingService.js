@@ -143,8 +143,10 @@ export const launchWFGamingGame = async (gameCode, accountId, lang = 'en-us') =>
     // Multi-operator routing: bonus_wallet > 0 -> account=freecredit (bonus
     // operator wallet); otherwise account=normal. Persist the alias used so
     // the matching /kick can target the same operator.
+    // Force-refresh so the 5s cache can't route a fresh bonus credit (or a
+    // just-cleared bonus) to the wrong operator.
     const { getAccountType } = await import('./bonusWalletService.js');
-    const accountType = await getAccountType(accountId);
+    const accountType = await getAccountType(accountId, { force: true });
     const alias = accountType === 'bonus' ? 'freecredit' : 'normal';
 
     const params = new URLSearchParams({ accountId, gameCode: normCode, lang, account: alias });

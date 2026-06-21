@@ -113,8 +113,10 @@ export const launchMegaH5Game = async (game, accountId, lang = 'en-us') => {
     const params = new URLSearchParams({ accountId, gameCode: String(gameCode), lang });
     // Multi-operator routing — when bonus_wallet > 0, pass the bonus alias
     // so the launch is booked against the bonus operator (freecredit).
+    // Force-refresh: the 5s cache can't be allowed to strand a just-credited
+    // player on the default operator (or vice versa after a withdrawal).
     const { getAccountType } = await import('./bonusWalletService.js');
-    const accountType = await getAccountType(accountId);
+    const accountType = await getAccountType(accountId, { force: true });
     if (accountType === 'bonus') {
       params.set('account', 'freecredit');
     }

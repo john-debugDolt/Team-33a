@@ -125,9 +125,11 @@ export const launchMetaGamingGame = async (gameCode, accountId, lang = 'en-us') 
     if (!accountId) return { success: false, error: 'Please login to play' };
 
     const params = new URLSearchParams({ accountId, gameCode, lang });
-    // Multi-operator routing — bonus operator alias when bonus_wallet > 0
+    // Multi-operator routing — bonus operator alias when bonus_wallet > 0.
+    // Force-refresh so the 5s cache can't route a fresh bonus-credit (or a
+    // just-cleared bonus) to the wrong operator.
     const { getAccountType } = await import('./bonusWalletService.js');
-    const accountType = await getAccountType(accountId);
+    const accountType = await getAccountType(accountId, { force: true });
     if (accountType === 'bonus') {
       params.set('account', 'freecredit');
     }

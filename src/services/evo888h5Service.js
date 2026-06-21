@@ -144,7 +144,10 @@ export const getAllEvo888h5Games = async () => {
 export const launchEvo888h5Game = async (accountId, gameId, lang = 'en', options = {}) => {
   try {
     const { getAccountType } = await import('./bonusWalletService.js');
-    const accountType = await getAccountType(accountId);
+    // Force-refresh: EVO bonus uses a totally different endpoint family
+    // than normal mode (/api/evo888h5-bonus vs /api/evo888h5), so a stale
+    // 5s-cache read here would route the player to the wrong wallet pool.
+    const accountType = await getAccountType(accountId, { force: true });
     const isBonus = accountType === 'bonus';
     console.log('[EVO888H5/launch] accountType=', accountType, 'accountId=', accountId, 'gameId=', gameId);
 

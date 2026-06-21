@@ -184,7 +184,12 @@ export const launchRich88Game = async (game, accountId, options = {}) => {
     if (!gameCode) return { success: false, error: 'Missing gameCode' };
 
     const { getAccountType } = await import('./bonusWalletService.js');
-    const accountType = await getAccountType(accountId);
+    // Force a fresh bonus-wallet read so the 5s cache can't strand a
+    // just-credited (or just-cleared) player on the wrong operator. The
+    // launch URL is the only place where wrong-operator routing is hard
+    // to recover from — getAccountType callers elsewhere can tolerate
+    // the cache.
+    const accountType = await getAccountType(accountId, { force: true });
     const operator = options.operator || (accountType === 'bonus' ? 'foc' : 'normal');
 
     const params = new URLSearchParams({
