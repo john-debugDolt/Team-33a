@@ -139,6 +139,18 @@ export const clearBonusWalletCache = () => {
  * lastError set). The caller surfaces lastError verbatim when present.
  * Idempotent on (accountId, reference) — pass a UUID per user click and
  * the replay returns the original row instead of double-debiting.
+ *
+ * Network-error semantics (doc §4.10):
+ *   - The `reference` UUID MUST be stable across retries so the server's
+ *     (accountId, reference) dedupe key short-circuits replays to the
+ *     original row instead of double-debiting. Callers should pass an
+ *     opts.reference minted at the click site; if absent, we mint one
+ *     here and keep it across our internal retry.
+ *   - We auto-retry once on transient failures (AbortError, fetch
+ *     TypeError "Failed to fetch", HTTP >= 500) with a ~1s backoff.
+ *   - We do NOT retry on HTTP 4xx (player must fix input) or on
+ *     200 + status:FAILED (server explicitly rejected — no benefit to
+ *     replaying the same call, and the row is now persisted).
  */
 export const submitBonusWithdraw = async (accountId, opts = {}) => {
   if (!accountId) return { success: false, error: 'No account ID' }
@@ -153,41 +165,92 @@ export const submitBonusWithdraw = async (accountId, opts = {}) => {
   if (opts.bsb) body.bsb = String(opts.bsb).replace(/[^0-9]/g, '')
   if (opts.accountNumber) body.accountNumber = String(opts.accountNumber)
 
-  try {
-    const url = `${BASE_URL}/api/bonus-withdraw`
-    console.log('[BonusWithdraw] → POST', url, { ...body, accountNumber: body.accountNumber ? '***' : undefined })
+  const url = `${BASE_URL}/api/bonus-withdraw`
+  const redactedBody = { ...body, accountNumber: body.accountNumber ? '***' : undefined }
+
+  const sendOnce = async (attempt) => {
+    console.log(`[BonusWithdraw] → POST (attempt ${attempt})`, url, redactedBody)
     const response = await fetchWithTimeout(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     }, 25000)
     const data = await response.json().catch(() => null)
-    console.log('[BonusWithdraw] ← status', response.status, 'body', data)
-    if (!response.ok || !data) {
+    console.log(`[BonusWithdraw] ← status ${response.status} (attempt ${attempt})`, data)
+    return { response, data }
+  }
+
+  const maxAttempts = 2
+  let lastNetworkError = null
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const { response, data } = await sendOnce(attempt)
+
+      // 5xx is transient — retry once, then surface.
+      if (response.status >= 500) {
+        if (attempt < maxAttempts) {
+          console.warn(`[BonusWithdraw] HTTP ${response.status}, retrying in 1s with same reference`)
+          await new Promise((r) => setTimeout(r, 1000))
+          continue
+        }
+        return {
+          success: false,
+          status: 'FAILED',
+          error: data?.message || `Withdraw failed (HTTP ${response.status})`,
+          raw: data,
+        }
+      }
+
+      // 4xx: do NOT retry — player has to fix input (bad bank fields,
+      // amount out of bounds, etc.).
+      if (!response.ok || !data) {
+        return {
+          success: false,
+          status: 'FAILED',
+          error: data?.message || `Withdraw failed (HTTP ${response.status})`,
+          raw: data,
+        }
+      }
+
+      // 200 + COMPLETED → debited; 200 + FAILED → row persisted with
+      // lastError. Neither benefits from a retry.
+      const status = String(data.status || '').toUpperCase()
+      if (status === 'COMPLETED') {
+        clearBonusWalletCache()
+        return { success: true, status, ...data }
+      }
+      return {
+        success: false,
+        status,
+        error: data.lastError || data.message || 'Bonus withdrawal failed',
+        lastError: data.lastError,
+        ...data,
+      }
+    } catch (error) {
+      // AbortError (timeout) or fetch TypeError ("Failed to fetch",
+      // DNS / offline / CORS). Both are network-class — retry once with
+      // the same reference, then surface.
+      lastNetworkError = error
+      const transient = error?.name === 'AbortError' || error instanceof TypeError
+      if (transient && attempt < maxAttempts) {
+        console.warn(`[BonusWithdraw] network error (${error?.name || 'Error'}: ${error?.message}), retrying in 1s with same reference`)
+        await new Promise((r) => setTimeout(r, 1000))
+        continue
+      }
       return {
         success: false,
         status: 'FAILED',
-        error: data?.message || `Withdraw failed (HTTP ${response.status})`,
-        raw: data,
+        error: error?.message || 'Bonus withdrawal failed',
       }
     }
-    // 200 + status COMPLETED → debited; status FAILED → see lastError.
-    const status = String(data.status || '').toUpperCase()
-    if (status === 'COMPLETED') {
-      // Drop the local balance cache so the next read picks up the new
-      // bonus_wallet figure without waiting for the 5s TTL.
-      clearBonusWalletCache()
-      return { success: true, status, ...data }
-    }
-    return {
-      success: false,
-      status,
-      error: data.lastError || data.message || 'Bonus withdrawal failed',
-      lastError: data.lastError,
-      ...data,
-    }
-  } catch (error) {
-    return { success: false, status: 'FAILED', error: error?.message || 'Bonus withdrawal failed' }
+  }
+
+  // Loop fell through (should be unreachable — both branches return).
+  return {
+    success: false,
+    status: 'FAILED',
+    error: lastNetworkError?.message || 'Bonus withdrawal failed',
   }
 }
 

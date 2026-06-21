@@ -166,8 +166,17 @@ export default function WithdrawModal({ isOpen, onClose }) {
       // endpoint, different gate (rollover-complete + per-bonus min/max),
       // same banking-fields contract. Server returns the row even on
       // failure (HTTP 200 with status:"FAILED" + lastError).
+      //
+      // Mint the idempotency reference HERE so it stays stable across
+      // both submitBonusWithdraw's internal network-retry and any user
+      // re-click after a transient failure (the player would naturally
+      // hit Withdraw again on a "Failed to fetch" toast). Server dedupes
+      // on (accountId, reference), so a replay returns the original row
+      // rather than double-debiting.
+      const reference = `BONUS_WD_${(typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : Date.now()}`
       const result = await submitBonusWithdraw(user.accountId, {
         amount: withdrawAmount,
+        reference,
         bankName: bankDetails.bankName || 'Bank Transfer',
         accountHolderName: bankDetails.accountHolderName,
         bsb: bankDetails.bsb || undefined,
