@@ -56,34 +56,29 @@ const transformGame = (game) => {
 };
 
 export const fetchMegaH5Games = async () => {
+  // Direct to accounts.team33.mx — the prior same-origin proxy attempt
+  // (`/api/megah5/games`) was a dead branch in production: team33.mx is
+  // served by S3+CloudFront, not Vercel, so the rewrite never fires and
+  // S3's 301 to a trailing-slash variant lands on the SPA fallback (404).
+  // CORS on accounts.team33.mx allows team33.mx, so the direct call works.
   try {
-    // Prefer same-origin proxy first (avoids CORS), fall back to direct
-    const urls = [`/api/megah5/games`, `${BASE_URL}/api/megah5/games`];
-
-    for (const url of urls) {
-      try {
-        console.log('[MegaH5Service] Fetching games from:', url);
-        const response = await fetchWithTimeout(url);
-        if (!response.ok) continue;
-
-        const text = await response.text();
-        if (!text || text.startsWith('<!')) continue;
-
-        const data = JSON.parse(text);
-        // Apidoc: { success: true, count, games: [...], message: "OK" }
-        if (data.success === false) continue;
-
-        let games = Array.isArray(data) ? data : (data.games || data.data || []);
-
-        if (games.length > 0) {
-          console.log('[MegaH5Service] Found', games.length, 'games (count:', data.count, ')');
-          return { success: true, games: games.map(g => transformGame(g)) };
-        }
-      } catch (err) {
-        console.log('[MegaH5Service] Error:', err.message);
-      }
+    const url = `${BASE_URL}/api/megah5/games`;
+    console.log('[MegaH5Service] Fetching games from:', url);
+    const response = await fetchWithTimeout(url);
+    if (!response.ok) {
+      return { success: false, games: [], error: `HTTP ${response.status}` };
     }
-    return { success: false, games: [], error: 'All API endpoints failed' };
+    const text = await response.text();
+    if (!text || text.startsWith('<!')) {
+      return { success: false, games: [], error: 'Non-JSON response' };
+    }
+    const data = JSON.parse(text);
+    if (data.success === false) {
+      return { success: false, games: [], error: data.message || 'fetch failed' };
+    }
+    const games = Array.isArray(data) ? data : (data.games || data.data || []);
+    console.log('[MegaH5Service] Found', games.length, 'games (count:', data.count, ')');
+    return { success: true, games: games.map(g => transformGame(g)) };
   } catch (error) {
     return { success: false, games: [], error: error.message };
   }
@@ -123,29 +118,21 @@ export const launchMegaH5Game = async (game, accountId, lang = 'en-us') => {
     if (accountType === 'bonus') {
       params.set('account', 'freecredit');
     }
-    const urls = [`/api/megah5/launch?${params}`, `${BASE_URL}/api/megah5/launch?${params}`];
+    // Direct to accounts.team33.mx — see fetchMegaH5Games comment.
+    const url = `${BASE_URL}/api/megah5/launch?${params}`;
     console.log('[MegaH5/launch] accountType=', accountType, 'accountId=', accountId, 'gameCode=', gameCode);
-
-    for (const url of urls) {
-      try {
-        console.log('[MegaH5/launch] → GET', url);
-        const response = await fetchWithTimeout(url);
-        console.log('[MegaH5/launch] ← status', response.status, url);
-        if (!response.ok) continue;
-        const data = await response.json();
-        console.log('[MegaH5/launch] ← body', data);
-        // Apidoc: { success: true, gameUrl: "...", message: "OK" }
-        if (data.success && data.gameUrl) {
-          return { success: true, gameUrl: data.gameUrl.trim(), ...data };
-        }
-        if (data.success === false) {
-          return { success: false, error: data.message || data.error || 'Launch failed', ...data };
-        }
-      } catch (err) {
-        console.log('[MegaH5Service] Launch error:', err.message);
-      }
+    console.log('[MegaH5/launch] → GET', url);
+    const response = await fetchWithTimeout(url);
+    console.log('[MegaH5/launch] ← status', response.status);
+    if (!response.ok) {
+      return { success: false, error: `Launch failed (HTTP ${response.status})` };
     }
-    return { success: false, error: 'Failed to launch game' };
+    const data = await response.json();
+    console.log('[MegaH5/launch] ← body', data);
+    if (data.success && data.gameUrl) {
+      return { success: true, gameUrl: data.gameUrl.trim(), ...data };
+    }
+    return { success: false, error: data.message || data.error || 'Launch failed', ...data };
   } catch (error) {
     return { success: false, error: error.message };
   }
