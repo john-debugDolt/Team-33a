@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { walletService } from '../../services/walletService'
+import {
+  submitBonusWithdraw,
+  getRolloverCompleted,
+  getBonusBalance,
+} from '../../services/bonusWalletService'
+import useAccountType from '../../hooks/useAccountType'
 import { ButtonSpinner } from '../LoadingSpinner/LoadingSpinner'
 import '../DepositModal/DepositModal.css'
 
@@ -10,6 +16,14 @@ const quickAmounts = [50, 100, 200, 500]
 export default function WithdrawModal({ isOpen, onClose }) {
   const { user, notifyTransactionUpdate } = useAuth()
   const { showToast } = useToast()
+  // Drive the withdraw branch off the same accountType signal the rest of
+  // the wallet UI uses (bonus_wallet.balance > 0 → 'bonus'). When the
+  // player is on bonus, the cash-out endpoint flips from
+  // walletService.requestWithdrawal to /api/bonus-withdraw — the form
+  // fields stay the same, the server gate (rollover-complete + min/max
+  // bounds) replaces the main-wallet turnover gate.
+  const accountType = useAccountType()
+  const isBonus = accountType === 'bonus'
 
   const [amount, setAmount] = useState('')
   const [bankDetails, setBankDetails] = useState({
@@ -48,26 +62,51 @@ export default function WithdrawModal({ isOpen, onClose }) {
   const checkEligibility = async () => {
     setCheckingEligibility(true)
     try {
-      const [eligibilityResult, balanceResult] = await Promise.all([
-        walletService.checkWithdrawalEligibility(user.accountId),
-        walletService.getDetailedBalance(user.accountId),
-      ])
-
-      if (eligibilityResult.success) {
+      if (isBonus) {
+        // Bonus mode: eligibility = rollover complete; withdrawable = bonus_wallet.
+        // Min floor is server-enforced from the active claim's bonus row, so we
+        // surface "0" here and let the API send back the precise error if the
+        // amount is below the per-bonus floor.
+        const [rollover, balance] = await Promise.all([
+          getRolloverCompleted(user.accountId),
+          getBonusBalance(user.accountId, { force: true }),
+        ])
+        const complete = !!rollover?.complete
+        const pct = Number(rollover?.percentComplete) || 0
         setEligibility({
-          canWithdraw: eligibilityResult.canWithdraw,
-          reason: eligibilityResult.reason,
-          turnoverRemaining: eligibilityResult.turnoverRemaining,
-          minimumWithdrawal: eligibilityResult.minimumWithdrawal || 20,
+          canWithdraw: complete,
+          reason: complete
+            ? null
+            : `Bonus is ${pct.toFixed(0)}% complete. Keep playing to unlock cash-out.`,
+          turnoverRemaining: 0,
+          minimumWithdrawal: 0,
         })
-      }
-
-      if (balanceResult.success) {
+        const bal = Number(balance) || 0
         setBalanceDetails({
-          cashBalance: balanceResult.cashBalance,
-          bonusBalance: balanceResult.bonusBalance,
-          withdrawableBalance: balanceResult.withdrawableBalance,
+          cashBalance: 0,
+          bonusBalance: bal,
+          withdrawableBalance: bal,
         })
+      } else {
+        const [eligibilityResult, balanceResult] = await Promise.all([
+          walletService.checkWithdrawalEligibility(user.accountId),
+          walletService.getDetailedBalance(user.accountId),
+        ])
+        if (eligibilityResult.success) {
+          setEligibility({
+            canWithdraw: eligibilityResult.canWithdraw,
+            reason: eligibilityResult.reason,
+            turnoverRemaining: eligibilityResult.turnoverRemaining,
+            minimumWithdrawal: eligibilityResult.minimumWithdrawal || 20,
+          })
+        }
+        if (balanceResult.success) {
+          setBalanceDetails({
+            cashBalance: balanceResult.cashBalance,
+            bonusBalance: balanceResult.bonusBalance,
+            withdrawableBalance: balanceResult.withdrawableBalance,
+          })
+        }
       }
     } catch (error) {
       console.error('Error checking eligibility:', error)
@@ -121,6 +160,42 @@ export default function WithdrawModal({ isOpen, onClose }) {
 
     setLoading(true)
     setStep('processing')
+
+    if (isBonus) {
+      // Bonus-mode cash-out hits POST /api/bonus-withdraw — different
+      // endpoint, different gate (rollover-complete + per-bonus min/max),
+      // same banking-fields contract. Server returns the row even on
+      // failure (HTTP 200 with status:"FAILED" + lastError).
+      const result = await submitBonusWithdraw(user.accountId, {
+        amount: withdrawAmount,
+        bankName: bankDetails.bankName || 'Bank Transfer',
+        accountHolderName: bankDetails.accountHolderName,
+        bsb: bankDetails.bsb || undefined,
+        accountNumber: bankDetails.accountNumber || undefined,
+        payId: bankDetails.payId || undefined,
+      })
+      console.log('[WithdrawModal] Bonus withdraw result:', result)
+      if (result.success) {
+        setWithdrawalResult(result)
+        setStep('success')
+        showToast(`Cash-out queued: $${withdrawAmount.toFixed(2)}`, 'success')
+        notifyTransactionUpdate()
+      } else {
+        setStep('amount')
+        // lastError contains the server's player-friendly reason
+        // ("Rollover incomplete...", "Amount X is below the minimum
+        // withdrawal floor Y", "Requested amount X exceeds bonus_wallet
+        // balance Y", etc.). Surface it verbatim per doc §4.10.
+        showToast(result.lastError || result.error || 'Bonus withdrawal failed', 'error')
+        // If the rollover gate fired, re-check eligibility so the
+        // blocker view shows the latest percent.
+        if (result.lastError && /rollover/i.test(result.lastError)) {
+          checkEligibility()
+        }
+      }
+      setLoading(false)
+      return
+    }
 
     console.log('[WithdrawModal] Submitting withdrawal:', {
       accountId: user.accountId,

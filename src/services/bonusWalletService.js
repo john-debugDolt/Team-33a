@@ -122,6 +122,95 @@ export const clearBonusWalletCache = () => {
 }
 
 /**
+ * POST /api/bonus-withdraw — customer-facing bonus cash-out.
+ *
+ * Server gate order (doc §4.10.1):
+ *   1. banking-details / amount validation
+ *   2. active-claim existence
+ *   3. per-claim rollover_completed >= 1
+ *   4. min/max bounds check (admin-set on the bonus row)
+ *   5. bonus_wallet.balance >= amount
+ *   6. debit + admin queue write
+ *
+ * Body: { accountId, amount, reference?, bankName, accountHolderName,
+ *         (bsb + accountNumber) | payId }
+ *
+ * Returns the withdraw row even on failure (HTTP 200, status:"FAILED",
+ * lastError set). The caller surfaces lastError verbatim when present.
+ * Idempotent on (accountId, reference) — pass a UUID per user click and
+ * the replay returns the original row instead of double-debiting.
+ */
+export const submitBonusWithdraw = async (accountId, opts = {}) => {
+  if (!accountId) return { success: false, error: 'No account ID' }
+  const body = {
+    accountId,
+    amount: typeof opts.amount === 'number' ? String(opts.amount) : (opts.amount || '0'),
+    reference: opts.reference || `BONUS_WD_${(typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : Date.now()}`,
+    bankName: opts.bankName || '',
+    accountHolderName: opts.accountHolderName || '',
+  }
+  if (opts.payId) body.payId = opts.payId
+  if (opts.bsb) body.bsb = String(opts.bsb).replace(/[^0-9]/g, '')
+  if (opts.accountNumber) body.accountNumber = String(opts.accountNumber)
+
+  try {
+    const url = `${BASE_URL}/api/bonus-withdraw`
+    console.log('[BonusWithdraw] → POST', url, { ...body, accountNumber: body.accountNumber ? '***' : undefined })
+    const response = await fetchWithTimeout(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }, 25000)
+    const data = await response.json().catch(() => null)
+    console.log('[BonusWithdraw] ← status', response.status, 'body', data)
+    if (!response.ok || !data) {
+      return {
+        success: false,
+        status: 'FAILED',
+        error: data?.message || `Withdraw failed (HTTP ${response.status})`,
+        raw: data,
+      }
+    }
+    // 200 + status COMPLETED → debited; status FAILED → see lastError.
+    const status = String(data.status || '').toUpperCase()
+    if (status === 'COMPLETED') {
+      // Drop the local balance cache so the next read picks up the new
+      // bonus_wallet figure without waiting for the 5s TTL.
+      clearBonusWalletCache()
+      return { success: true, status, ...data }
+    }
+    return {
+      success: false,
+      status,
+      error: data.lastError || data.message || 'Bonus withdrawal failed',
+      lastError: data.lastError,
+      ...data,
+    }
+  } catch (error) {
+    return { success: false, status: 'FAILED', error: error?.message || 'Bonus withdrawal failed' }
+  }
+}
+
+/**
+ * GET /api/bonus-withdraw/account/{accountId} — bonus-withdraw history,
+ * newest first. Used by the wallet history screen and for surfacing
+ * prior failures to the player.
+ */
+export const getBonusWithdrawHistory = async (accountId) => {
+  if (!accountId) return []
+  try {
+    const url = `${BASE_URL}/api/bonus-withdraw/account/${encodeURIComponent(accountId)}`
+    const response = await fetchWithTimeout(url)
+    if (!response.ok) return []
+    const data = await response.json()
+    return Array.isArray(data) ? data : []
+  } catch (error) {
+    console.warn('[BonusWithdraw] history fetch failed:', error?.message)
+    return []
+  }
+}
+
+/**
  * GET /api/bonus-wallet/{accountId}/rollover — Design-C rollover snapshot.
  *
  * Verified 2026-06-18: this endpoint lives on seamless.team33.mx (the spec
@@ -272,6 +361,8 @@ export const bonusWalletService = {
   getRolloverProgress,
   getRolloverCompleted,
   getBonusTransactions,
+  submitBonusWithdraw,
+  getBonusWithdrawHistory,
   bonusAliasParam,
   clearBonus,
   clearCache: clearBonusWalletCache,
