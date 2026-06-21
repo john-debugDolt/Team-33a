@@ -1,7 +1,19 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getAllAdvantPlayGames } from '../services/advantPlayService'
-import { gameService } from '../services/gameService'
+import {
+  getAllAdvantPlayGames,
+  launchAdvantPlayGame,
+  exitAdvantPlayGame,
+} from '../services/advantPlayService'
+import {
+  recordLaunch,
+  clearLaunch,
+  clearLaunchIfMatches,
+  sweepAllReturns,
+  getPreLaunchBalance,
+  getLaunchTimestamp,
+  ProviderKey,
+} from '../services/launchTracker'
 import { walletService } from '../services/walletService'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -15,7 +27,14 @@ import { useCategoryAndSort } from '../components/CategorySortBar/CategorySortBa
 
 export default function AdvantPlay() {
   const navigate = useNavigate()
-  const { isAuthenticated, user, updateBalance, notifyTransactionUpdate, isLaunchBlocked } = useAuth()
+  const {
+    isAuthenticated,
+    user,
+    updateBalance,
+    notifyTransactionUpdate,
+    freezeBalance,
+    isLaunchBlocked,
+  } = useAuth()
   const { showToast } = useToast()
 
   const [games, setGames] = useState([])
@@ -82,20 +101,77 @@ export default function AdvantPlay() {
     return () => window.removeEventListener('message', handleGameMessage)
   }, [embeddedGame, user?.accountId, updateBalance, notifyTransactionUpdate])
 
-  const closeGame = async () => {
-    if (user?.accountId) {
+  // AdvantPlay /exit can return 5121 ("in flight, will reconcile") on a
+  // transport hiccup — same as VPower/LiveCasino. Retry up to 3 times with
+  // a soft backoff. After three failures the backend reconciler (≤5 min)
+  // and the 20-min auto-withdraw timer are the safety net.
+  const tryExitWithRetries = async (accountId, attempts = 3) => {
+    let last = { success: false, error: 'No attempts made' }
+    for (let i = 0; i < attempts; i++) {
       try {
-        const result = await walletService.getBalance(user.accountId)
-        if (result.success && result.balance !== undefined) {
-          updateBalance?.(result.balance)
-        }
-      } catch (error) {
-        console.error('Balance sync error:', error)
+        last = await exitAdvantPlayGame(accountId)
+        if (last?.success) return last
+        // 5121 means the backend is reconciling — sleeping won't help
+        // here, surface it to the caller and let the page render the
+        // soft "processing in background" toast.
+        if (last?.reconciling) return last
+      } catch (err) {
+        last = { success: false, error: err?.message }
+      }
+      if (i < attempts - 1) {
+        await new Promise((r) => setTimeout(r, 800 + i * 400))
       }
     }
+    return last
+  }
+
+  const closeGame = () => {
+    const accountId = user?.accountId
+    const preBalance = getPreLaunchBalance(ProviderKey.ADVANTPLAY)
+    const launchedAt = getLaunchTimestamp(ProviderKey.ADVANTPLAY)
+    // Hold the displayed balance at the pre-launch value for 4s so the
+    // player doesn't see a transient 0 between AdvantPlay's withdraw and
+    // the wallet refresh.
+    if (preBalance != null) freezeBalance?.(preBalance, 4000)
+
+    // Tear the iframe down immediately — the /exit + retries + balance
+    // refresh run in the background so a slow upstream (or a 5121
+    // reconciler signal) never freezes the UI.
     setEmbeddedGame(null)
     setShowExitConfirm(false)
-    notifyTransactionUpdate?.()
+
+    if (!accountId) {
+      notifyTransactionUpdate?.()
+      return
+    }
+
+    ;(async () => {
+      try {
+        const result = await tryExitWithRetries(accountId, 3)
+        if (result?.success) {
+          clearLaunchIfMatches(ProviderKey.ADVANTPLAY, launchedAt)
+        } else if (result?.reconciling) {
+          showToast(
+            'Cash-out is being processed in the background — balance will update shortly.',
+            'warning',
+          )
+        } else if (result?.error) {
+          console.warn('[AdvantPlay] exit failed after retries:', result.error)
+        }
+        // Refresh the main-wallet balance after exit; the freeze above
+        // silences the immediate write so the display stays stable for 4s.
+        try {
+          const r = await walletService.getBalance(accountId)
+          if (r.success && r.balance !== undefined) updateBalance?.(r.balance)
+        } catch (err) {
+          console.error('[AdvantPlay] balance sync error:', err)
+        }
+      } catch (err) {
+        console.error('[AdvantPlay] closeGame background error:', err)
+      } finally {
+        notifyTransactionUpdate?.()
+      }
+    })()
   }
 
   const handlePlayNow = async (game, e) => {
@@ -116,37 +192,59 @@ export default function AdvantPlay() {
     setLaunchingGame(game.id)
     showToast(`Launching ${game.name}...`, 'info')
 
-    const maxRetries = 15
-    let attempt = 0
-    let success = false
+    // Freeze the displayed balance for 5s so the player doesn't see the
+    // full-wallet deposit debit before the iframe finishes loading. /launch
+    // sweeps the full main-wallet balance — we ignore options.amount on
+    // purpose per doc §3.1.
+    const preBalance = Number(user?.balance) || 0
+    freezeBalance?.(preBalance, 5000)
 
-    while (attempt < maxRetries && !success) {
-      attempt++
-      try {
-        const result = await gameService.requestGameUrl(game.id, user?.accountId)
-        if (result.success && result.gameUrl) {
-          setEmbeddedGame({ url: result.gameUrl, name: game.name })
-          showToast(`${game.name} launched!`, 'success')
-          success = true
+    // Sweep any stranded prior sessions in parallel — fire-and-forget so a
+    // slow exit upstream doesn't block this launch.
+    sweepAllReturns(updateBalance).catch(() => {})
+    recordLaunch(ProviderKey.ADVANTPLAY, user?.accountId, { preLaunchBalance: preBalance })
+
+    try {
+      const result = await launchAdvantPlayGame(game, user?.accountId, {
+        langCode: 'en-US',
+      })
+
+      if (result.success && result.gameUrl) {
+        setEmbeddedGame({ url: result.gameUrl, name: game.name })
+        showToast(`${game.name} launched!`, 'success')
+      } else {
+        // Money may be sitting on AdvantPlay's side when the token minted
+        // but the URL gen failed — leave the LIFO record in place so the
+        // next sweep can reclaim it. For everything else, drop the record.
+        if (!result.depositOpTransferId) clearLaunch(ProviderKey.ADVANTPLAY)
+
+        // Doc §6 error-code mapping (player-facing copy).
+        const code = result.errorCode
+        if (code === 5321) {
+          showToast('Insufficient balance. Top up to play.', 'error')
+        } else if (code === 5121) {
+          showToast('Launch already in progress — try again in a moment.', 'warning')
+        } else if (code === 5050) {
+          showToast('AdvantPlay is in maintenance — try again shortly.', 'error')
+        } else if (code === 5213) {
+          showToast('Your AdvantPlay account is locked — contact support.', 'error')
+        } else if (code === 5214) {
+          showToast('Your AdvantPlay account has been suspended — contact support.', 'error')
+        } else if (code === 5201) {
+          showToast('AdvantPlay access restricted from this region.', 'error')
+        } else if (code === 5212) {
+          // Account does not exist — backend auto-creates on next launch.
+          showToast('AdvantPlay account is being prepared — try again.', 'warning')
         } else {
-          console.log(`[Game Launch] Attempt ${attempt} failed, retrying...`)
-          if (attempt < maxRetries) {
-            await new Promise(resolve => setTimeout(resolve, 1000))
-          }
-        }
-      } catch (error) {
-        console.error(`[Game Launch] Attempt ${attempt} error:`, error)
-        if (attempt < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 1000))
+          showToast(result.error || 'AdvantPlay temporarily unavailable.', 'error')
         }
       }
+    } catch (error) {
+      console.error('[AdvantPlay launch] error:', error)
+      showToast('Failed to launch game', 'error')
+    } finally {
+      setLaunchingGame(null)
     }
-
-    if (!success) {
-      console.error('[Game Launch] All retries failed')
-    }
-
-    setLaunchingGame(null)
   }
 
   const renderGameCard = (game, index) => (

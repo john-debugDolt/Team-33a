@@ -1,13 +1,29 @@
 /**
- * AdvantPlay Game Service
- * Handles fetching games from AdvantPlay API and game launching
+ * AdvantPlay — Transfer-Wallet Service (2026-06-21 spec)
  *
- * API Endpoint: /api/advantplay/game/list?iconSize={size}
- * LoadBalancer URL: http://k8s-team33-walletse-ebcec4c2ff-cf4fe459a5f621a8.elb.ap-southeast-2.amazonaws.com
+ * Catalogue still lives on the legacy seamless path:
+ *   GET /api/advantplay/game/list?iconSize={size}
+ *
+ * Everything else (launch / exit / deposit / withdraw / balance / domain /
+ * check / health) is now under the transfer-wallet family:
+ *   /api/advantplay-transfer/*
+ *
+ * /launch is single-call: backend sweeps any leftover balance, deposits the
+ * full main wallet, mints a token, and returns a launchUrl that points at
+ * AdvantPlay's dynamic provider host (don't hardcode it client-side; the
+ * URL changes when AdvantPlay rotates DNS).
+ *
+ * Currency ratio is 1:1; amounts are JSON numbers (4 fractional digits per
+ * spec — trailing zeros may drop).
+ *
+ * Per doc §6 the upstream returns failure as success:false + errorCode
+ * inside an HTTP 200, so callers must read errorCode, not response.status.
  */
 
-// AdvantPlay API URL (subdomain configured)
 const ADVANTPLAY_BASE_URL = 'https://accounts.team33.mx';
+const ADVANTPLAY_TRANSFER_BASE = `${ADVANTPLAY_BASE_URL}/api/advantplay-transfer`;
+const DEFAULT_LANG_CODE = 'en-US';
+const DEFAULT_BACK_URL = 'https://team33.mx';
 
 // Cache for AdvantPlay games
 let cachedAdvantPlayGames = null;
@@ -193,13 +209,18 @@ const transformAdvantPlayGame = (game, iconSize = DEFAULT_ICON_SIZE) => {
  * Fetch games from AdvantPlay API
  * @param {string} iconSize - Icon size to fetch (default: 200x200)
  */
-// Helper function to fetch with timeout (Safari compatibility)
-const fetchWithTimeout = async (url, timeout = 20000) => {
+// Helper function to fetch with timeout (Safari compatibility).
+// Overloaded — call as (url, timeout) for catalog GETs, or
+// (url, options, timeout) for the transfer-wallet POSTs below.
+const fetchWithTimeout = async (url, optionsOrTimeout = {}, maybeTimeout) => {
+  const options = typeof optionsOrTimeout === 'object' ? optionsOrTimeout : {};
+  const timeout = typeof optionsOrTimeout === 'number'
+    ? optionsOrTimeout
+    : (typeof maybeTimeout === 'number' ? maybeTimeout : 20000);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
-
   try {
-    const response = await fetch(url, { signal: controller.signal });
+    const response = await fetch(url, { ...options, signal: controller.signal });
     clearTimeout(timeoutId);
     return response;
   } catch (error) {
@@ -304,72 +325,233 @@ export const clearAdvantPlayCache = () => {
   advantPlayCacheTimestamp = null;
 };
 
+// ---------------------------------------------------------------------------
+// Transfer-wallet operations (POST query-string endpoints under /api/advantplay-transfer/*)
+// ---------------------------------------------------------------------------
+
+const ADVANT_ERROR_HINTS = {
+  // Per doc §6. Hints are what we surface in toasts — the caller can override.
+  5050: 'AdvantPlay is in maintenance — try again shortly.',
+  5100: 'AdvantPlay temporary error — try again.',
+  5112: 'Session token expired — relaunching.',
+  5113: 'Session token expired — relaunching.',
+  5121: 'Cash-out is being processed in the background — your balance will update shortly.',
+  5201: 'AdvantPlay access restricted from this region.',
+  5212: 'Account not initialised on AdvantPlay — retrying.',
+  5213: 'Your AdvantPlay account is locked — contact support.',
+  5214: 'Your AdvantPlay account has been suspended — contact support.',
+  5311: 'AdvantPlay does not permit this action — contact support.',
+  5321: 'Insufficient balance. Top up to play.',
+};
+
 /**
- * Launch an AdvantPlay game
- * @param {string} gameCode - AdvantPlay game code
- * @param {string} accountId - User's account ID
+ * POST /api/advantplay-transfer/launch?accountId&gameCode[&userName&langCode&backUrl&launchLobby]
+ *
+ * Single-call launch — backend sweeps any leftover balance, deposits the full
+ * main wallet (capped at 100k), mints a single-use token, and returns a
+ * launchUrl. The launchUrl host is dynamic; never construct it client-side.
+ *
+ * The caller's `amount` (if any) is intentionally ignored — /launch always
+ * sweeps. Use /deposit for partial top-ups mid-session.
  */
-export const launchAdvantPlayGame = async (gameCode, accountId) => {
+export const launchAdvantPlayGame = async (game, accountId, options = {}) => {
   try {
-    // Get account ID from localStorage if not provided
     if (!accountId) {
       const user = JSON.parse(localStorage.getItem('team33_user') || localStorage.getItem('user') || '{}');
       accountId = user.accountId;
     }
+    if (!accountId) return { success: false, error: 'Please login to play' };
 
-    if (!accountId) {
-      return { success: false, error: 'Please login to play' };
+    const gameCode = typeof game === 'object'
+      ? (game?.gameCode ?? game?.GameCode ?? game?.gameId)
+      : game;
+    if (!gameCode) return { success: false, error: 'Missing gameCode' };
+
+    const params = new URLSearchParams({
+      accountId,
+      gameCode: String(gameCode),
+      langCode: options.langCode || DEFAULT_LANG_CODE,
+      backUrl: options.backUrl || DEFAULT_BACK_URL,
+    });
+    if (options.userName) params.set('userName', options.userName);
+    if (options.launchLobby) params.set('launchLobby', 'true');
+
+    const url = `${ADVANTPLAY_TRANSFER_BASE}/launch?${params}`;
+    console.log('[AdvantPlay/launch] → POST', url);
+
+    const response = await fetchWithTimeout(url, { method: 'POST' });
+    const data = await response.json().catch(() => null);
+    console.log('[AdvantPlay/launch] ← status', response.status, 'body', data);
+
+    if (!response.ok || !data) {
+      return { success: false, error: `Launch failed (HTTP ${response.status})` };
     }
 
-    // Try both proxy and direct URL
-    const urls = [
-      `/api/advantplay/game/launch?accountId=${accountId}&gameCode=${gameCode}`,
-      `${ADVANTPLAY_BASE_URL}/api/advantplay/game/launch?accountId=${accountId}&gameCode=${gameCode}`
-    ];
-
-    for (const url of urls) {
-      try {
-        console.log('[AdvantPlayService] Launching game from:', url);
-        const response = await fetch(url);
-
-        if (!response.ok) {
-          console.log('[AdvantPlayService] Launch response not OK:', response.status);
-          continue;
-        }
-
-        const data = await response.json();
-        console.log('[AdvantPlayService] Launch response:', data);
-
-        // Check for game URL in response and trim whitespace
-        const gameUrl = (data.gameUrl || data.url || data.launchUrl || data.data?.gameUrl)?.trim();
-
-        if (gameUrl) {
-          return {
-            success: true,
-            gameUrl: gameUrl,
-            ...data
-          };
-        }
-
-        // If response indicates error
-        if (data.error || data.message) {
-          return {
-            success: false,
-            error: data.error || data.message
-          };
-        }
-
-      } catch (err) {
-        console.log('[AdvantPlayService] Error launching from', url, ':', err.message);
-      }
+    if (data.success && data.launchUrl) {
+      // The launchUrl is single-use + dynamic-host; trim accidental whitespace.
+      return {
+        success: true,
+        gameUrl: String(data.launchUrl).trim(),
+        token: data.token,
+        depositOpTransferId: data.depositOpTransferId,
+        raw: data,
+      };
     }
 
-    return { success: false, error: 'Failed to launch game. Please try again.' };
-
+    const code = Number(data.errorCode) || 0;
+    return {
+      success: false,
+      errorCode: code,
+      error: ADVANT_ERROR_HINTS[code] || data.errorDescription || 'AdvantPlay temporarily unavailable.',
+      // Surfaced for the page so it can warn the player money is sitting on
+      // AdvantPlay's side when token minted but URL gen failed (doc §3.1).
+      depositOpTransferId: data.depositOpTransferId || null,
+      raw: data,
+    };
   } catch (error) {
-    console.error('[AdvantPlayService] Game launch error:', error);
-    return { success: false, error: error.message };
+    console.error('[AdvantPlay/launch] error:', error);
+    return { success: false, error: error?.message || 'Launch failed' };
   }
+};
+
+/**
+ * POST /api/advantplay-transfer/exit?accountId
+ *
+ * Sweep-all + cancel the 20-min auto-withdraw timer. Use on explicit
+ * cash-out, on closeGame, and on tab-close cleanup. errorCode 0 with
+ * amount > 0 → real cash moved; errorCode 0 with amount 0 → nothing
+ * to withdraw; errorCode 5121 → in flight, reconciler will resolve.
+ */
+export const exitAdvantPlayGame = async (accountId) => {
+  try {
+    if (!accountId) return { success: false, error: 'No account ID' };
+    const url = `${ADVANTPLAY_TRANSFER_BASE}/exit?accountId=${encodeURIComponent(accountId)}`;
+    console.log('[AdvantPlay/exit] → POST', url);
+    const response = await fetchWithTimeout(url, { method: 'POST' });
+    const data = await response.json().catch(() => null);
+    console.log('[AdvantPlay/exit] ← status', response.status, 'body', data);
+    if (!response.ok || !data) {
+      return { success: false, error: `Exit failed (HTTP ${response.status})` };
+    }
+    const code = Number(data.errorCode) || 0;
+    const amount = Number(data.amount) || 0;
+    if (code === 0) {
+      return { success: true, amount, balanceBefore: data.balanceBefore, balanceAfter: data.balanceAfter, raw: data };
+    }
+    if (code === 5121) {
+      // In flight — backend reconciler will resolve within ~5 min. Caller
+      // shows a soft "processing in background" toast and re-polls /balance.
+      return { success: false, reconciling: true, errorCode: code, error: ADVANT_ERROR_HINTS[5121], raw: data };
+    }
+    return {
+      success: false,
+      errorCode: code,
+      error: ADVANT_ERROR_HINTS[code] || data.errorDescription || 'Cash-out failed',
+      raw: data,
+    };
+  } catch (error) {
+    console.error('[AdvantPlay/exit] error:', error);
+    return { success: false, error: error?.message || 'Exit failed' };
+  }
+};
+
+/**
+ * POST /api/advantplay-transfer/deposit?accountId&amount — partial top-up.
+ * Backend handles the signed move; amount must be positive.
+ */
+export const depositAdvantPlay = async (accountId, amount) => {
+  try {
+    if (!accountId) return { success: false, error: 'No account ID' };
+    if (!(Number(amount) > 0)) return { success: false, error: 'amount must be > 0' };
+    const params = new URLSearchParams({ accountId, amount: String(amount) });
+    const url = `${ADVANTPLAY_TRANSFER_BASE}/deposit?${params}`;
+    const response = await fetchWithTimeout(url, { method: 'POST' });
+    const data = await response.json().catch(() => null);
+    if (!response.ok || !data) {
+      return { success: false, error: `Deposit failed (HTTP ${response.status})` };
+    }
+    const code = Number(data.errorCode) || 0;
+    return code === 0
+      ? { success: true, amount: Number(data.amount) || 0, raw: data }
+      : { success: false, errorCode: code, error: ADVANT_ERROR_HINTS[code] || data.errorDescription, raw: data };
+  } catch (error) {
+    return { success: false, error: error?.message || 'Deposit failed' };
+  }
+};
+
+/**
+ * POST /api/advantplay-transfer/withdraw?accountId[&amount]
+ *
+ * Pull chips back to the main wallet. Omit `amount` for a sweep — but for
+ * "end session" prefer /exit so the auto-withdraw timer is cancelled too.
+ */
+export const withdrawAdvantPlay = async (accountId, amount) => {
+  try {
+    if (!accountId) return { success: false, error: 'No account ID' };
+    const params = new URLSearchParams({ accountId });
+    if (amount != null && Number(amount) > 0) params.set('amount', String(amount));
+    const url = `${ADVANTPLAY_TRANSFER_BASE}/withdraw?${params}`;
+    const response = await fetchWithTimeout(url, { method: 'POST' });
+    const data = await response.json().catch(() => null);
+    if (!response.ok || !data) {
+      return { success: false, error: `Withdraw failed (HTTP ${response.status})` };
+    }
+    const code = Number(data.errorCode) || 0;
+    if (code === 0) return { success: true, amount: Number(data.amount) || 0, raw: data };
+    if (code === 5121) return { success: false, reconciling: true, errorCode: code, error: ADVANT_ERROR_HINTS[5121], raw: data };
+    return { success: false, errorCode: code, error: ADVANT_ERROR_HINTS[code] || data.errorDescription, raw: data };
+  } catch (error) {
+    return { success: false, error: error?.message || 'Withdraw failed' };
+  }
+};
+
+/**
+ * GET /api/advantplay-transfer/balance?accountId
+ * Returns the AdvantPlay-side balance. errorCode 5212 → account hasn't been
+ * auto-created yet (no launch has happened), treat as $0.
+ */
+export const getAdvantPlayBalance = async (accountId) => {
+  try {
+    if (!accountId) return { success: false, error: 'No account ID', balance: 0 };
+    const url = `${ADVANTPLAY_TRANSFER_BASE}/balance?accountId=${encodeURIComponent(accountId)}`;
+    const response = await fetchWithTimeout(url);
+    const data = await response.json().catch(() => null);
+    if (!response.ok || !data) return { success: false, balance: 0, error: `HTTP ${response.status}` };
+    const code = Number(data.errorCode || data.ErrorCode) || 0;
+    const balance = Number(data.balance ?? data.Balance) || 0;
+    if (code === 0) return { success: true, balance, raw: data };
+    if (code === 5212) return { success: true, balance: 0, notProvisioned: true, raw: data };
+    return { success: false, errorCode: code, error: data.errorDescription || data.ErrorDescription || 'balance read failed', balance: 0, raw: data };
+  } catch (error) {
+    return { success: false, balance: 0, error: error?.message };
+  }
+};
+
+/**
+ * GET /api/advantplay-transfer/check?opTransferId  — support-only.
+ */
+export const checkAdvantPlayTransfer = async (opTransferId) => {
+  try {
+    if (!opTransferId) return { success: false, error: 'No opTransferId' };
+    const url = `${ADVANTPLAY_TRANSFER_BASE}/check?opTransferId=${encodeURIComponent(opTransferId)}`;
+    const response = await fetchWithTimeout(url);
+    const data = await response.json().catch(() => null);
+    if (!response.ok || !data) return { success: false, error: `HTTP ${response.status}` };
+    return data;
+  } catch (error) {
+    return { success: false, error: error?.message };
+  }
+};
+
+/**
+ * GET /api/advantplay-transfer/domain — diagnostics only. The launchUrl
+ * returned by /launch already embeds the current dynamic host.
+ */
+export const getAdvantPlayDomain = async () => {
+  try {
+    const response = await fetchWithTimeout(`${ADVANTPLAY_TRANSFER_BASE}/domain`);
+    return await response.json().catch(() => null);
+  } catch { return null; }
 };
 
 /**
@@ -403,30 +585,17 @@ export const getAdvantPlayIconSizes = async () => {
 };
 
 /**
- * Check AdvantPlay service health
+ * GET /api/advantplay-transfer/health
+ * Returns { status, provider, enabled, brandCode, siteCode }.
  */
 export const checkAdvantPlayHealth = async () => {
   try {
-    const urls = [
-      `/api/advantplay/game/health`,
-      `${ADVANTPLAY_BASE_URL}/api/advantplay/game/health`
-    ];
-
-    for (const url of urls) {
-      try {
-        const response = await fetch(url);
-        if (response.ok) {
-          return { success: true, status: 'healthy' };
-        }
-      } catch (err) {
-        // Continue to next URL
-      }
-    }
-
-    return { success: false, status: 'unhealthy' };
-
+    const response = await fetchWithTimeout(`${ADVANTPLAY_TRANSFER_BASE}/health`, {}, 8000);
+    if (!response.ok) return { success: false, status: 'unhealthy' };
+    const data = await response.json().catch(() => null);
+    return { success: !!data?.enabled, status: data?.status || 'unknown', raw: data };
   } catch (error) {
-    return { success: false, status: 'error', error: error.message };
+    return { success: false, status: 'error', error: error?.message };
   }
 };
 
@@ -435,6 +604,12 @@ export const advantPlayService = {
   fetchGames: fetchAdvantPlayGames,
   getAllGames: getAllAdvantPlayGames,
   launchGame: launchAdvantPlayGame,
+  exitGame: exitAdvantPlayGame,
+  deposit: depositAdvantPlay,
+  withdraw: withdrawAdvantPlay,
+  getBalance: getAdvantPlayBalance,
+  checkTransfer: checkAdvantPlayTransfer,
+  getDomain: getAdvantPlayDomain,
   getIconSizes: getAdvantPlayIconSizes,
   checkHealth: checkAdvantPlayHealth,
   clearCache: clearAdvantPlayCache,

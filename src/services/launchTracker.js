@@ -11,6 +11,7 @@
  *     safety net for cases this misses.
  */
 
+import { exitAdvantPlayGame } from './advantPlayService'
 import { exitAceWinGame } from './acewinTransferService'
 import { exitFunTaGame } from './funtaGamingService'
 import { exitDragoonSoftGame } from './dragoonSoftService'
@@ -30,6 +31,7 @@ const STORAGE_KEY = 'team33_active_launches_v1'
 // Stable provider keys used by launch/exit recording across all pages.
 export const ProviderKey = {
   ACEWIN: 'ACEWIN',
+  ADVANTPLAY: 'ADVANTPLAY',
   FUNTA: 'FUNTA',
   DRAGOONSOFT: 'DRAGOONSOFT',
   VPOWER: 'VPOWER',
@@ -54,6 +56,11 @@ export const ProviderKey = {
 
 const EXIT_MAP = {
   ACEWIN: exitAceWinGame,
+  // AdvantPlay /exit sweeps the AdvantPlay-side balance and cancels the
+  // 20-min backend auto-withdraw timer. Doc §3.2. errorCode 5121 is
+  // "in flight" — backend reconciler resolves within ~5 min, which is
+  // well inside the sweep's safety window.
+  ADVANTPLAY: exitAdvantPlayGame,
   FUNTA: exitFunTaGame,
   DRAGOONSOFT: exitDragoonSoftGame,
   VPOWER: exitVPowerGame,
