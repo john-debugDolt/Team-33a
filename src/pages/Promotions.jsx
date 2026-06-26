@@ -3,7 +3,6 @@ import { useTranslation } from '../context/TranslationContext'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import bonusService from '../services/bonusService'
-import { getRolloverProgress } from '../services/bonusWalletService'
 import { getActiveCheckinBonus, claimCheckinBonus } from '../services/checkinBonusService'
 import { ButtonSpinner } from '../components/LoadingSpinner/LoadingSpinner'
 import './Promotions.css'
@@ -201,8 +200,10 @@ export default function Promotions() {
     fetchBonuses()
   }, [])
 
-  // Per-account data: rollover snapshot + claim history. Re-fetches when the
-  // active account changes (log-in / log-out without leaving the page).
+  // Per-account data: claim history drives BOTH the claim list and the
+  // rollover snapshot. The dedicated /api/bonus-wallet/{id}/rollover
+  // endpoint is currently unreliable, so we aggregate the per-claim
+  // turnoverRequired / rolloverCompleted figures returned by /my-claims.
   useEffect(() => {
     let cancelled = false
     const accountId = user?.accountId
@@ -211,14 +212,11 @@ export default function Promotions() {
       setMyClaims([])
       return
     }
-    Promise.all([
-      getRolloverProgress(accountId),
-      bonusService.getMyClaims(accountId),
-    ]).then(([rolloverData, claims]) => {
+    bonusService.getMyClaims(accountId).then((claims) => {
       if (cancelled) return
-      setRollover(rolloverData)
       setMyClaims(claims)
-    }).catch(() => { /* services already swallow errors */ })
+      setRollover(bonusService.deriveRolloverFromClaims(claims))
+    }).catch(() => { /* service already swallows errors */ })
     return () => { cancelled = true }
   }, [user?.accountId])
 
@@ -239,12 +237,9 @@ export default function Promotions() {
   const refreshRolloverAndClaims = async () => {
     const accountId = user?.accountId
     if (!accountId) return
-    const [r, c] = await Promise.all([
-      getRolloverProgress(accountId),
-      bonusService.getMyClaims(accountId),
-    ])
-    setRollover(r)
+    const c = await bonusService.getMyClaims(accountId)
     setMyClaims(c)
+    setRollover(bonusService.deriveRolloverFromClaims(c))
   }
 
   // Every tile click opens the detail popup — the popup itself handles
@@ -465,9 +460,10 @@ const fmtDate = (s) => {
   } catch { return '' }
 }
 
-// Rollover progress card — Design-C math from
-// GET /api/bonus-wallet/{id}/rollover. Hidden when both balance and
-// originalBonusCredited are 0 ("no active bonus" per doc §3.7).
+// Rollover progress card — fed by bonusService.deriveRolloverFromClaims,
+// which aggregates per-claim turnoverRequired / rolloverCompleted from
+// /api/bonuses/my-claims. Hidden when there are no active CREDITED
+// claims (derive returns null in that case).
 function RolloverCard({ rollover }) {
   if (!rollover) return null
   const balance = dec(rollover.balance)

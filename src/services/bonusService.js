@@ -150,6 +150,38 @@ class BonusService {
   }
 
   /**
+   * Synthesize a rollover snapshot from /api/bonuses/my-claims rows. The
+   * authoritative /api/bonus-wallet/{id}/rollover endpoint is currently
+   * unreliable, so we aggregate the per-claim figures that the claims
+   * endpoint already exposes: bonusAmount, turnoverRequired,
+   * rolloverCompleted.
+   *
+   * Only CREDITED claims contribute — EXPIRED rows are historical and
+   * would falsely inflate the wagering target.
+   *
+   * Output shape mirrors getRolloverProgress() so RolloverCard renders
+   * without changes:
+   *   { balance, originalBonusCredited, rolloverDenominator,
+   *     rolloverCompleted (0..1 fraction) }
+   */
+  deriveRolloverFromClaims(claims) {
+    if (!Array.isArray(claims) || claims.length === 0) return null
+    const active = claims.filter(c => String(c.status || '').toUpperCase() === 'CREDITED')
+    if (active.length === 0) return null
+    const num = (v) => { const n = Number(v); return Number.isFinite(n) ? n : 0 }
+    const sumBonus = active.reduce((s, c) => s + num(c.bonusAmount), 0)
+    const sumRequired = active.reduce((s, c) => s + num(c.turnoverRequired), 0)
+    const sumCompleted = active.reduce((s, c) => s + num(c.rolloverCompleted), 0)
+    const fraction = sumRequired > 0 ? Math.min(1, sumCompleted / sumRequired) : 0
+    return {
+      balance: sumBonus,
+      originalBonusCredited: sumBonus,
+      rolloverDenominator: sumRequired,
+      rolloverCompleted: fraction,
+    }
+  }
+
+  /**
    * GET /api/bonuses/my-claims/{accountId} — claim history (newest first).
    * Returns [] for unknown accounts or any error so the UI can render an
    * empty state cleanly.
