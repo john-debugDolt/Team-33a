@@ -7,21 +7,11 @@ import { getActiveCheckinBonus, claimCheckinBonus } from '../services/checkinBon
 import { ButtonSpinner } from '../components/LoadingSpinner/LoadingSpinner'
 import './Promotions.css'
 
-// Import banner images
-import banner1 from '../images/New banner.png'
-import banner2 from '../images/New banner 2.png'
-import banner3 from '../images/New banner 3.png'
 import treasureGif from '../images/buried-treasure.gif'
-// Generic team33 game banners — fallback tile background when a bonus
-// doesn't match any of the dedicated art below.
-import tileBg1 from '../images/promo-tile-bg-1.jpg'
-import tileBg2 from '../images/promo-tile-bg-2.jpg'
-import tileBg3 from '../images/promo-tile-bg-3.jpg'
-const TILE_BACKGROUNDS = [tileBg1, tileBg2, tileBg3]
 
 // Per-bonus key art — the JPEGs are sips-shrunk from the original
 // multi-megabyte PNGs (kept .gitignored). Match below is done by bonus
-// title / amount, with a fallback to the cycled generic banners.
+// title / amount.
 import bonusDaily5 from '../images/bonus-daily-5.jpg'
 import bonusWelcome50 from '../images/bonus-welcome-50.jpg'
 import bonusWelcome28 from '../images/bonus-welcome-28.jpg'
@@ -31,11 +21,12 @@ import bonusWeekly20 from '../images/bonus-weekly-20.jpg'
 import bonusWeekly50 from '../images/bonus-weekly-50.jpg'
 import bonusWeekly80 from '../images/bonus-weekly-80.jpg'
 
-// Pick the dedicated art for this bonus or fall back to the generic
-// banner pool. We look for cadence keywords (weekly rebate / daily /
-// welcome) and the integer amount in the bonus value.
-const pickBonusArt = (bonus, fallback) => {
-  if (!bonus) return fallback
+// Returns dedicated key art for a bonus, or null when none of our local
+// imports match. Callers use the null return to filter unsupported
+// bonuses out of the catalog entirely — we do not show generic-banner
+// fallbacks.
+const pickBonusArt = (bonus) => {
+  if (!bonus) return null
   const hay = `${bonus.displayName || ''} ${bonus.bonusCode || ''}`.toLowerCase()
   const value = Math.round(Number(bonus.bonusValue) || 0)
   const has = (s) => hay.includes(s)
@@ -57,7 +48,7 @@ const pickBonusArt = (bonus, fallback) => {
   if (value === 20) return bonusWeekly20
   if (value === 50) return bonusWeekly50
   if (value === 80) return bonusWeekly80
-  return fallback
+  return null
 }
 
 // Backend-driven daily check-in stripe.
@@ -180,9 +171,6 @@ function CheckinStripe({ accountId, isAuthenticated, onClaimSuccess, onUnauthCla
   )
 }
 
-// Cycle through banners for variety
-const bannerImages = [banner1, banner2, banner3]
-
 export default function Promotions() {
   const { t } = useTranslation()
   const { user, isAuthenticated } = useAuth()
@@ -225,7 +213,10 @@ export default function Promotions() {
     setError(null)
     try {
       const activeBonuses = await bonusService.getAvailableBonuses()
-      setBonuses(activeBonuses)
+      // Drop any bonus we don't have dedicated key art for — generic
+      // fallback banners looked off-brand, so we just hide them.
+      const withArt = activeBonuses.filter((b) => pickBonusArt(b) !== null)
+      setBonuses(withArt)
     } catch (err) {
       console.error('Error fetching bonuses:', err)
       setError('Failed to load promotions')
@@ -580,13 +571,13 @@ function BonusSection({ title, icon, bonuses, onClick, formatBonus, claimingBonu
         <span className="bonus-section-count">{bonuses.length}</span>
       </h3>
       <div className="bonus-tiles">
-        {bonuses.map((bonus, idx) => {
+        {bonuses.map((bonus) => {
           const formatted = formatBonus(bonus)
           const available = bonusService.isBonusAvailable(bonus)
           const cardTitle = bonus.displayName || bonus.bonusCode || 'BONUS'
-          // Prefer dedicated art for the bonus; fall back to the
-          // cycled team33 banner pool when there isn't a match.
-          const tileBg = pickBonusArt(bonus, TILE_BACKGROUNDS[idx % TILE_BACKGROUNDS.length])
+          // Non-null — bonuses without dedicated art are filtered out
+          // in fetchBonuses before they reach this loop.
+          const tileBg = pickBonusArt(bonus)
           const isClaiming = claimingBonus === bonus.id
           return (
             <button
