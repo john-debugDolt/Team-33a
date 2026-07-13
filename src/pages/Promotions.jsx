@@ -3,7 +3,6 @@ import { useTranslation } from '../context/TranslationContext'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import bonusService from '../services/bonusService'
-import { getActiveCheckinBonus, claimCheckinBonus } from '../services/checkinBonusService'
 import { ButtonSpinner } from '../components/LoadingSpinner/LoadingSpinner'
 import './Promotions.css'
 
@@ -51,51 +50,56 @@ const pickBonusArt = (bonus) => {
   return null
 }
 
-// Backend-driven daily check-in stripe.
+// Daily check-in stripe backed by the regular /api/bonuses catalogue.
 //
-// Reads /api/checkin-bonus?accountId=… to learn the campaign shape (days,
-// dailyAmount, displayName) and this player's progress (daysClaimed,
-// nextDayIndex, claimedToday). Claim hits POST /api/checkin-bonus/claim
-// which credits the player's bonus_wallet server-side.
+// The original /api/checkin-bonus endpoints were replaced with per-day
+// bonus rows (DAILY_STREAK_DAY1..7, IDs 74-80) in the standard bonuses
+// table. Each row carries streakDay + streakGroup and is claimed via
+// POST /api/bonuses/claim like any other bonus — there is no automatic
+// day-progression on the server, so we compute "which day is next" from
+// the player's /my-claims history.
 //
-// 404 from the GET means no active campaign — the stripe stays hidden.
-function CheckinStripe({ accountId, isAuthenticated, onClaimSuccess, onUnauthClaim, showToast }) {
-  const [campaign, setCampaign] = useState(null)
+// Streak break detection lives server-side. For UI purposes we treat
+// the number of non-EXPIRED streak claims as the current day count.
+function CheckinStripe({ accountId, isAuthenticated, myClaims, onClaimSuccess, onUnauthClaim, showToast }) {
+  const [streakBonuses, setStreakBonuses] = useState([])
   const [loading, setLoading] = useState(true)
   const [claiming, setClaiming] = useState(false)
 
-  const refresh = async () => {
-    // Backend returns 404 when accountId is omitted (verified 2026-06-18),
-    // which collapsed the stripe for logged-out players. Skip the call in
-    // that case so the loading flag clears and the stripe stays hidden
-    // without a noisy 404 in the console.
-    if (!accountId) {
-      setCampaign(null)
-      setLoading(false)
-      return
-    }
-    const result = await getActiveCheckinBonus(accountId)
-    setLoading(false)
-    if (result.status === 'ok') setCampaign(result.data)
-    else setCampaign(null)
-  }
-
   useEffect(() => {
-    refresh()
-    // We re-fetch when the active account changes so the per-player progress
-    // updates if the user logs in/out without leaving the page.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accountId])
+    let cancelled = false
+    ;(async () => {
+      const all = await bonusService.getAvailableBonuses()
+      if (cancelled) return
+      const streak = all
+        .filter((b) => b.streakGroup === 'DAILY_SLOT_STREAK' && b.streakDay)
+        .sort((a, b) => a.streakDay - b.streakDay)
+      setStreakBonuses(streak)
+      setLoading(false)
+    })()
+    return () => { cancelled = true }
+  }, [])
 
-  // No active campaign or still loading the first time — render nothing.
-  if (loading || !campaign) return null
+  // Hide the stripe entirely until we know whether streak bonuses exist.
+  if (loading || streakBonuses.length === 0) return null
 
-  const days = campaign.days || 0
-  const dailyAmount = Number(campaign.dailyAmount) || 0
-  const daysClaimed = campaign.daysClaimed ?? 0
-  const nextDayIndex = campaign.nextDayIndex // null when campaign complete
-  const claimedToday = !!campaign.claimedToday
-  const isComplete = nextDayIndex == null
+  const days = streakBonuses.length
+  const streakIds = new Set(streakBonuses.map((b) => b.id))
+  const activeStreakClaims = (myClaims || []).filter(
+    (c) => streakIds.has(c.bonusId) && String(c.status || '').toUpperCase() !== 'EXPIRED'
+  )
+  // Cap at the campaign length so the "next day" pointer doesn't fall
+  // off the end after a follow-on cycle credits more than 7 claims.
+  const daysClaimed = Math.min(activeStreakClaims.length, days)
+  const nextDay = daysClaimed >= days ? null : daysClaimed + 1
+  const isComplete = nextDay == null
+
+  // "Claimed today" — any streak claim whose creditedAt (UTC day) matches
+  // today. Prevents double-claim button flicker between poll windows.
+  const todayKey = new Date().toISOString().slice(0, 10)
+  const claimedToday = activeStreakClaims.some(
+    (c) => String(c.creditedAt || c.createdAt || '').slice(0, 10) === todayKey
+  )
 
   const handleClaim = async () => {
     if (!isAuthenticated || !accountId) {
@@ -103,56 +107,64 @@ function CheckinStripe({ accountId, isAuthenticated, onClaimSuccess, onUnauthCla
       return
     }
     if (claiming || claimedToday || isComplete) return
+    const target = streakBonuses[nextDay - 1]
+    if (!target) return
     setClaiming(true)
-    const result = await claimCheckinBonus(accountId)
+    const result = await bonusService.claimFreeBonus(accountId, target.id, target.bonusCode)
     setClaiming(false)
 
-    if (result.status === 'ok') {
-      const credited = Number(result.data?.amount) || dailyAmount
-      showToast?.(`Day ${result.data?.dayIndex} reward: $${credited.toFixed(2)} credited to your bonus wallet`, 'success')
+    if (result.success) {
+      const credited = Number(result.bonusAmount) || 0
+      showToast?.(
+        `Day ${nextDay} claimed! $${credited.toFixed(2)} credited to your bonus wallet`,
+        'success'
+      )
       onClaimSuccess?.()
-      refresh()
-    } else if (result.status === 'already' || result.status === 'complete') {
-      showToast?.(result.message, 'warning')
-      refresh()
-    } else if (result.status === 'none') {
-      showToast?.(result.message || 'Daily check-in is not currently available.', 'warning')
-      setCampaign(null)
+    } else if (result.code === 'ALREADY_CLAIMED_TODAY' || result.code === 'ALREADY_CLAIMED_THIS_WEEK') {
+      showToast?.(result.error, 'warning')
+      onClaimSuccess?.()
     } else {
-      showToast?.(result.message || "Couldn't claim — please try again.", 'error')
+      showToast?.(result.error || "Couldn't claim — please try again.", 'error')
     }
   }
+
+  const nextTarget = !isComplete ? streakBonuses[nextDay - 1] : null
+  const minDeposit = Number(nextTarget?.minDeposit) || 0
+  const subline = isComplete
+    ? "You've completed all 7 days — well done!"
+    : minDeposit > 0
+      ? `Deposit $${minDeposit.toFixed(0)}+ to unlock your Day ${nextDay} bonus`
+      : `Claim your Day ${nextDay} bonus`
 
   return (
     <div className="checkin-stripe">
       <div className="checkin-header">
         <h3 className="checkin-title">
           <span className="checkin-icon">🎁</span>
-          {campaign.displayName || `${days}-Day Check-in Bonus`}
+          {days}-Day Daily Check-In Bonus
         </h3>
-        <span className="checkin-sub">
-          {campaign.description || `Claim $${dailyAmount.toFixed(2)} every day for ${days} days`}
-        </span>
+        <span className="checkin-sub">{subline}</span>
       </div>
       <div className="checkin-cards">
-        {Array.from({ length: days }).map((_, idx) => {
+        {streakBonuses.map((b, idx) => {
           const day = idx + 1
           const isPast = day <= daysClaimed
-          const isToday = !isComplete && day === nextDayIndex
+          const isToday = !isComplete && day === nextDay
           const isFuture = !isPast && !isToday
           const isClaimable = isToday && !claimedToday && !claiming
+          const pct = Math.round(Number(b.bonusValue) || 0)
           let ctaLabel
           if (isPast) ctaLabel = 'Claimed'
           else if (isToday) ctaLabel = claiming ? 'Claiming…' : (claimedToday ? 'Done today' : 'Claim')
           else ctaLabel = 'Locked'
           return (
             <button
-              key={day}
+              key={b.id}
               type="button"
               className={`checkin-card ${isToday ? 'today' : ''} ${isPast ? 'claimed' : ''} ${isFuture ? 'future' : ''} ${isClaimable ? 'claimable' : ''}`}
               onClick={isClaimable ? handleClaim : undefined}
               disabled={!isClaimable}
-              aria-label={`Day ${day} reward`}
+              aria-label={`Day ${day} ${pct}% bonus`}
             >
               <div className="checkin-card-media">
                 <img src={treasureGif} alt={`Day ${day} reward`} decoding="async" />
@@ -160,7 +172,7 @@ function CheckinStripe({ accountId, isAuthenticated, onClaimSuccess, onUnauthCla
               </div>
               <div className="checkin-card-body">
                 <span className="checkin-day-label">Day {day}</span>
-                <span className="checkin-amount">${dailyAmount.toFixed(0)}</span>
+                <span className="checkin-amount">{pct}%</span>
                 <span className="checkin-cta">{ctaLabel}</span>
               </div>
             </button>
@@ -339,6 +351,7 @@ export default function Promotions() {
           <CheckinStripe
             accountId={user?.accountId}
             isAuthenticated={isAuthenticated}
+            myClaims={myClaims}
             showToast={showToast}
             onUnauthClaim={() => showToast('Please log in to claim your daily bonus', 'warning')}
             onClaimSuccess={() => {
