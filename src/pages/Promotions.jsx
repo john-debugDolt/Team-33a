@@ -61,10 +61,9 @@ const pickBonusArt = (bonus) => {
 //
 // Streak break detection lives server-side. For UI purposes we treat
 // the number of non-EXPIRED streak claims as the current day count.
-function CheckinStripe({ accountId, isAuthenticated, myClaims, onClaimSuccess, onUnauthClaim, showToast }) {
+function CheckinStripe({ accountId, isAuthenticated, myClaims, onUnauthClaim, showToast }) {
   const [streakBonuses, setStreakBonuses] = useState([])
   const [loading, setLoading] = useState(true)
-  const [claiming, setClaiming] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -106,26 +105,25 @@ function CheckinStripe({ accountId, isAuthenticated, myClaims, onClaimSuccess, o
       onUnauthClaim?.()
       return
     }
-    if (claiming || claimedToday || isComplete) return
+    if (claimedToday || isComplete) return
     const target = streakBonuses[nextDay - 1]
-    if (!target) return
-    setClaiming(true)
-    const result = await bonusService.claimFreeBonus(accountId, target.id, target.bonusCode)
-    setClaiming(false)
-
-    if (result.success) {
-      const credited = Number(result.bonusAmount) || 0
-      showToast?.(
-        `Day ${nextDay} claimed! $${credited.toFixed(2)} credited to your bonus wallet`,
-        'success'
-      )
-      onClaimSuccess?.()
-    } else if (result.code === 'ALREADY_CLAIMED_TODAY' || result.code === 'ALREADY_CLAIMED_THIS_WEEK') {
-      showToast?.(result.error, 'warning')
-      onClaimSuccess?.()
-    } else {
-      showToast?.(result.error || "Couldn't claim — please try again.", 'error')
+    if (!target?.bonusCode) return
+    // These bonuses require a deposit — give the player the code to enter
+    // at the deposit screen rather than calling /claim directly.
+    try {
+      await navigator.clipboard.writeText(target.bonusCode)
+    } catch {
+      const el = document.createElement('textarea')
+      el.value = target.bonusCode
+      document.body.appendChild(el)
+      el.select()
+      document.execCommand('copy')
+      document.body.removeChild(el)
     }
+    showToast?.(
+      `Code copied: ${target.bonusCode} — enter it when making your deposit to activate Day ${nextDay}`,
+      'success'
+    )
   }
 
   const nextTarget = !isComplete ? streakBonuses[nextDay - 1] : null
@@ -151,11 +149,11 @@ function CheckinStripe({ accountId, isAuthenticated, myClaims, onClaimSuccess, o
           const isPast = day <= daysClaimed
           const isToday = !isComplete && day === nextDay
           const isFuture = !isPast && !isToday
-          const isClaimable = isToday && !claimedToday && !claiming
+          const isClaimable = isToday && !claimedToday
           const pct = Math.round(Number(b.bonusValue) || 0)
           let ctaLabel
           if (isPast) ctaLabel = 'Claimed'
-          else if (isToday) ctaLabel = claiming ? 'Claiming…' : (claimedToday ? 'Done today' : 'Claim')
+          else if (isToday) ctaLabel = claimedToday ? 'Done today' : 'Get Code'
           else ctaLabel = 'Locked'
           return (
             <button
@@ -354,17 +352,6 @@ export default function Promotions() {
             myClaims={myClaims}
             showToast={showToast}
             onUnauthClaim={() => showToast('Please log in to claim your daily bonus', 'warning')}
-            onClaimSuccess={() => {
-              // Refresh wallet popups / bonus-wallet listeners by nudging the
-              // localStorage mirror that bonusWalletService writes to.
-              try {
-                window.dispatchEvent(new StorageEvent('storage', { key: 'team33_bonus_balance' }))
-              } catch { /* ignore */ }
-              // Pull the rollover snapshot + claim history again — daily
-              // check-in credits show up in bonus_wallet.balance straight
-              // away.
-              refreshRolloverAndClaims()
-            }}
           />
 
           <RolloverCard rollover={rollover} />
