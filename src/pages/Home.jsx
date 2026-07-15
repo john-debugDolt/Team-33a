@@ -40,6 +40,7 @@ import bannerImg2 from '../images/banner-team33-2.png'
 import bannerImg3 from '../images/banner-team33-3.png'
 import bannerImg4 from '../images/banner-team33-4.png'
 import bannerImg5 from '../images/banner-team33-5.png'
+import bannerMeta from '../images/metapromotion.jpg'
 import belowBanner from '../images/new r banner.png'
 import './Slot.css' // Import slot section styles
 import ProviderTabs from '../components/ProviderTabs/ProviderTabs'
@@ -47,7 +48,7 @@ import LiveStripes from '../components/LiveStripes/LiveStripes'
 import TopHotStripe from '../components/TopHotStripe/TopHotStripe'
 import useAccountType, { isBonusSupported } from '../hooks/useAccountType'
 
-const BANNER_IMAGES = [bannerImg1, bannerImg2, bannerImg3, bannerImg4, bannerImg5]
+const BANNER_IMAGES = [bannerImg1, bannerImg2, bannerImg3, bannerImg4, bannerImg5, bannerMeta]
 
 // Initial slides while bonuses are loading — banner images with no overlay.
 const initialBanners = BANNER_IMAGES.map((image, idx) => ({
