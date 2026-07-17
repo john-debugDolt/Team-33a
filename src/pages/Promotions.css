@@ -1271,6 +1271,53 @@
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
 }
 
+.bonus-popup-desc {
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* Structured T&C rows — icon | label | value */
+.bonus-popup-tc-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.bonus-popup-tc-row {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  background: linear-gradient(135deg, var(--primary-muted) 0%, rgba(5, 150, 105, 0.04) 100%);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.bp-tc-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.bp-tc-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.bp-tc-value {
+  font-size: 12px;
+  color: var(--emerald-400);
+  font-weight: 700;
+  text-align: right;
+  letter-spacing: 0.2px;
+}
+
 .bonus-popup-section-label {
   margin: 6px 0 8px;
   font-size: 13px;

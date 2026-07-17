@@ -12,11 +12,13 @@ import treasureGif from '../images/buried-treasure.gif'
 // multi-megabyte PNGs (kept .gitignored). Match below is done by bonus
 // title / amount.
 import bonusDaily5 from '../images/bonus-daily-5.jpg'
+import bonusDailyTopup20 from '../images/bonus-daily-topup-20.jpg'
 import bonusWelcome50 from '../images/bonus-welcome-50.jpg'
 import bonusWelcome28 from '../images/bonus-welcome-28.jpg'
 import bonusWeeklyRebate5 from '../images/bonus-weeklyrebate-5.jpg'
 import bonusWeeklyRebate10 from '../images/bonus-weeklyrebate-10.jpg'
 import bonusWeekly20 from '../images/bonus-weekly-20.jpg'
+import bonusWeekly30 from '../images/bonus-weekly-30.jpg'
 import bonusWeekly50 from '../images/bonus-weekly-50.jpg'
 import bonusWeekly80 from '../images/bonus-weekly-80.jpg'
 
@@ -30,6 +32,8 @@ const pickBonusArt = (bonus) => {
   const value = Math.round(Number(bonus.bonusValue) || 0)
   const has = (s) => hay.includes(s)
   if (has('daily') && value === 5) return bonusDaily5
+  // Daily First Topup 20% (id:84, DAILY_FIRST_TOPUP)
+  if ((has('topup') || has('first')) && has('daily') && value === 20) return bonusDailyTopup20
   if (has('welcome') && value === 50) return bonusWelcome50
   if (has('welcome') && value === 28) return bonusWelcome28
   if (has('rebate') && value === 5) return bonusWeeklyRebate5
@@ -38,6 +42,8 @@ const pickBonusArt = (bonus) => {
   // frame is the closest stylistic match.
   if (has('rebate') && value === 80) return bonusWeekly80
   if (has('weekly') && value === 20) return bonusWeekly20
+  // Weekly Bonus 30% (id:83, WEEKLY_BONUS) — must come before value catch-all
+  if (has('weekly') && value === 30) return bonusWeekly30
   if (has('weekly') && value === 50) return bonusWeekly50
   if (has('weekly') && value === 80) return bonusWeekly80
   // Catch-alls by value alone — covers bonuses whose title doesn't carry
@@ -45,6 +51,7 @@ const pickBonusArt = (bonus) => {
   // 28 art).
   if (value === 28) return bonusWelcome28
   if (value === 20) return bonusWeekly20
+  if (value === 30) return bonusWeekly30
   if (value === 50) return bonusWeekly50
   if (value === 80) return bonusWeekly80
   return null
@@ -606,8 +613,20 @@ function BonusSection({ title, icon, bonuses, onClick, formatBonus, claimingBonu
 function BonusDetailPopup({ bonus, formatted, available, claiming, onClose, onClaim }) {
   const title = (bonus.displayName || bonus.bonusCode || 'BONUS').toUpperCase()
   const isFree = !dec(bonus.minDeposit)
-  const telegramUrl = null       // not in API today
-  const generalTos = (bonus.description || '').trim()
+
+  // Structured T&C rows — only render rows that have a value.
+  const tcRows = [
+    { icon: '🔁', label: 'Claim frequency', value: bonus.claimFrequencyText },
+    { icon: '🎯', label: 'Winover / Turnover', value: bonus.winoverTargetText },
+    { icon: '💳', label: 'Min deposit',        value: bonus.minDeposit ? `AUD ${Number(bonus.minDeposit).toFixed(0)}` : null },
+    { icon: '💰', label: 'Max withdrawal',     value: bonus.maxWithdrawalText },
+    { icon: '✅', label: 'Valid for',           value: bonus.validForText },
+    { icon: '🚫', label: 'Not allowed',         value: bonus.notAllowedText },
+    { icon: '📋', label: 'Below re-deposit',   value: bonus.belowRedepositText },
+    { icon: '📤', label: 'Above withdrawal',   value: bonus.aboveWithdrawText },
+  ].filter((r) => r.value)
+
+  const generalTerms = (bonus.generalTermsText || bonus.description || '').trim()
 
   return (
     <div className="bonus-popup-overlay" onClick={onClose}>
@@ -620,21 +639,33 @@ function BonusDetailPopup({ bonus, formatted, available, claiming, onClose, onCl
 
         <div className="bonus-popup-title">⭐ {title}</div>
 
-        <p className="bonus-popup-section-label"><b>Requirements:</b></p>
+        {bonus.description && (
+          <p className="bonus-popup-desc">{bonus.description}</p>
+        )}
 
-        {telegramUrl && (
-          <a className="bonus-popup-telegram" href={telegramUrl} target="_blank" rel="noopener noreferrer">
+        {tcRows.length > 0 && (
+          <div className="bonus-popup-tc-rows">
+            {tcRows.map((r) => (
+              <div key={r.label} className="bonus-popup-tc-row">
+                <span className="bp-tc-icon">{r.icon}</span>
+                <span className="bp-tc-label">{r.label}</span>
+                <span className="bp-tc-value">{r.value}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {bonus.telegramUrl && (
+          <a className="bonus-popup-telegram" href={bonus.telegramUrl} target="_blank" rel="noopener noreferrer">
             Join Telegram Game Tips
           </a>
         )}
 
-        <p className="bonus-popup-readbelow">
-          Please read the full terms &amp; conditions below for accurate
-          requirements, claim limits, winover, and withdrawal rules.
-        </p>
-
-        {generalTos && (
-          <pre className="bonus-popup-tos">{generalTos}</pre>
+        {generalTerms && (
+          <>
+            <p className="bonus-popup-section-label">Full Terms &amp; Conditions</p>
+            <pre className="bonus-popup-tos">{generalTerms}</pre>
+          </>
         )}
 
         <div className="bonus-popup-btns">
