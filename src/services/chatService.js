@@ -234,6 +234,20 @@ class ChatService {
     this.stopPolling();
     this.isConnected = true;
 
+    // Pre-seed seenMessageIds with messages already on the server so that
+    // historical messages (e.g. "Agent has joined") don't re-fire on every
+    // page reload / reconnect.
+    if (this.sessionId) {
+      this.getMessages().then((result) => {
+        if (result.success) {
+          result.messages.forEach((msg) => {
+            const id = msg.messageId || msg.id || `${msg.createdAt}-${msg.content}`;
+            this.seenMessageIds.add(id);
+          });
+        }
+      });
+    }
+
     this.pollInterval = setInterval(async () => {
       if (!this.sessionId) return;
 
